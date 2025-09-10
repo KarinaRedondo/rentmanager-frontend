@@ -113,7 +113,6 @@ Gracias a esta arquitectura, el sistema es más fácil de escalar y mantener, pe
 5. **Pagos** → Registro, validación y trazabilidad.
 6. **Mantenimientos** → Gestión de servicios asociados.
 7. **Autómatas Predictivos** → Validación formal de estados y transiciones.
-8. 
 ---
 
 ## Créditos
