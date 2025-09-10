@@ -2,8 +2,12 @@
 ## INGENIERÍA DE SOFTWARE
 ### TRABAJO COLABORATIVO CONTEXTUALIZADO
 
-## Sistema de Gestión de Arriendos
+---
+
+# Sistema de Gestión de Arriendos
 ## RentManager
+
+---
 
 ## Descripción
 
@@ -13,19 +17,26 @@ Facilita la interacción entre clientes,tenderos y repartidores mediante un sist
 
 La plataforma permite gestionar usuarios, propiedades, contratos, facturas, pagos y servicios extras. 
 
+---
+
 ## Tecnologias
 - React
 - TypeScript + SWC
 
+---
+
 ## Requisitos
 -   Node
 -   Java 17
+
+---
 
 ## Cómo empezar
 1. Clona este repositorio git@github.com:KarinaRedondo/rentmanager-frontend.git
 2. Configura la conexión con el backend en el archivo index.ts dentro de la carpeta api. 
 3. Ejecuta la aplicación.
 
+---
 
 ## Dependencias del proyecto
 
@@ -52,7 +63,7 @@ Estas herramientas ayudan en el desarrollo del proyecto, pero no son necesarias 
 - **`typescript`** → Lenguaje que extiende JavaScript con tipado estático.  
 - **`vite`** → Herramienta rápida para construir proyectos con React.
 
-
+---
 ## Principios de Diseño y Flujo de Trabajo en el Frontend  
 
 En este proyecto, hemos utilizado uno de los principios SOLID, específicamente el **Principio de Responsabilidad Única (SRP)**. Este principio establece que cada módulo o clase debe tener una única responsabilidad, es decir, debe encargarse de una sola tarea. Esto se traduce en un código más limpio, mantenible y fácil de entender.  
@@ -65,10 +76,13 @@ Para lograrlo, dividimos el proyecto en varias capas, asegurando que cada una te
 - **`servicios/`**: Contiene la lógica de negocio relacionada con el manejo de datos, como funciones que interactúan con la API o procesan información antes de enviarla a los componentes.  
 - **`vistas/`**: Define las páginas principales de la aplicación, que agrupan componentes y presentan la interfaz al usuario.  
 
+---
 
  ## Arquitectura por Capas  
 
 El sistema de Gestión de Arriendos sigue una **arquitectura por capas**, lo que permite organizar el código de manera estructurada y modular. Cada capa tiene una función específica y se comunica con las demás de manera controlada, lo que facilita la **escalabilidad, el mantenimiento y la reutilización del código**.  
+
+---
 
 ### Estructura del Proyecto  
 
@@ -80,12 +94,14 @@ El sistema de Gestión de Arriendos sigue una **arquitectura por capas**, lo que
 
 Gracias a esta arquitectura, el sistema es más fácil de escalar y mantener, permitiendo el desarrollo ágil y ordenado del proyecto.  
 
+---
 
 ### Beneficios: 
 - **Separación de Responsabilidades**: Cada capa tiene una función específica, lo que facilita la comprensión y el mantenimiento del código. 
 - **Escalabilidad**: La arquitectura por capas permite agregar nuevas funcionalidades de manera modular sin afectar otras partes del sistema. 
 - **Reutilización del Código**: Los componentes están diseñados para ser independientes y pueden ser reutilizados en diferentes partes de la aplicación o en proyectos futuros. 
 - **Facilita el Testing**: Las capas separadas permiten una mejor organización de las pruebas unitarias y de integración, lo que facilita la identificación y corrección de errores. Esta arquitectura proporciona una base sólida para el desarrollo del sistema de gestión de eventos, promoviendo la robustez, la flexibilidad y la mantenibilidad del código.
+
 ---
 
 ## Funcionalidades
@@ -97,6 +113,7 @@ Gracias a esta arquitectura, el sistema es más fácil de escalar y mantener, pe
 5. **Pagos** → Registro, validación y trazabilidad.
 6. **Mantenimientos** → Gestión de servicios asociados.
 7. **Autómatas Predictivos** → Validación formal de estados y transiciones.
+8. 
 ---
 
 ## Créditos
