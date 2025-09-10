@@ -3,6 +3,7 @@
 ### TRABAJO COLABORATIVO CONTEXTUALIZADO
 
 ## Sistema de Gestión de Arriendos
+## RentManager
 
 ## Descripción
 
