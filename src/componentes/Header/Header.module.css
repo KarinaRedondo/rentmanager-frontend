@@ -78,7 +78,12 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -420,5 +425,104 @@
 
   .nav_mobile_icon {
     font-size: 1.8rem;
+  }
+}
+
+/* Estilo del header para la vista de inicio */
+.headerInicio {
+  background: linear-gradient(90deg, #ffffff, #f9fafb);
+  color: #111827; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 60px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* sombra más elegante */
+  position: sticky;
+  top: 0;
+  border-radius: 12px; /* bordes redondeados */
+  top: 20px; /* se queda un poco flotando al hacer scroll */
+  z-index: 100;
+  transition: background 0.3s ease, padding 0.3s ease;
+}
+
+/* Logo */
+.headerInicio .logo {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2563eb; /* azul llamativo */
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.headerInicio .logo:hover {
+  transform: scale(1.1);
+}
+
+/* Menú de navegación */
+.menuInicio ul {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menuInicio li a {
+  text-decoration: none;
+  color: #111827;
+  font-weight: 500;
+  font-size: 17px;
+  padding: 6px 0;
+  transition: color 0.25s ease-in-out, transform 0.25s ease;
+  position: relative;
+}
+
+.menuInicio li a::after {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: #2563eb;
+  transition: width 0.3s ease;
+}
+
+.menuInicio li a:hover::after {
+  width: 100%;
+}
+
+.menuInicio li a:hover {
+  color: #2563eb;
+  transform: translateY(-2px);
+}
+
+/* Enlace activo */
+.menuInicio li a.active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.menuInicio li a.active::after {
+  width: 100%;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .headerInicio {
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 20px;
+  }
+
+  .menuInicio ul {
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .menuInicio li a {
+    font-size: 18px;
   }
 }

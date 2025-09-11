@@ -1,0 +1,162 @@
+.inicio {
+  font-family: "Segoe UI", sans-serif;
+  color: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ===== Header ===== */
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.header nav ul {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  margin-left: 2rem;
+}
+
+.header nav a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+}
+
+.header nav a:hover,
+.header nav .active {
+  color: #2563eb;
+}
+
+/* ===== Main ===== */
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3rem 5rem;
+  gap: 3rem;
+}
+
+.texto {
+  max-width: 50%;
+}
+
+.texto h1 {
+  font-size: 2.8rem;
+  font-weight: bold;
+  color: #111;
+}
+
+.texto h1 span {
+  color: #2563eb;
+}
+
+.texto p {
+  margin: 1rem 0;
+  font-size: 1.2rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.texto button {
+  padding: 0.9rem 2rem;
+  border: none;
+  border-radius: 0.4rem;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.texto button:hover {
+  background: #1e40af;
+}
+
+.imagen {
+  display: flex;
+  justify-content: center; /* centra la imagen horizontalmente */
+  margin-bottom: 20px; /* espacio debajo si hay texto */
+}
+
+.imagen webp {
+  width: 100%;          /* ocupa todo el ancho disponible de su contenedor */
+  max-width: 400px;     /* tamaño máximo de la imagen */
+  height: auto;         /* mantiene proporción */
+  border-radius: 12px;  /* bordes redondeados */
+  object-fit: cover;    /* se ajusta bien dentro del contenedor */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); /* sombra para que resalte */
+}
+
+/* ===== Footer ===== */
+.footer {
+  background: #fafafa;
+  padding: 2rem 5rem;
+  border-top: 1px solid #eee;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+
+.footer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer a {
+  text-decoration: none;
+  color: #444;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.footer a:hover {
+  color: #2563eb;
+}
+
+.footerBtn {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.socials {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.copy {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #777;
+}
+

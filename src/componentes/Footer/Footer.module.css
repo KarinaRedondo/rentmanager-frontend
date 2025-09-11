@@ -1,0 +1,124 @@
+.pie {
+  background: linear-gradient(90deg, #ffffff, #f9fafb);
+  color: #111827; /* texto oscuro para contraste */
+  padding: 60px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* sombra más elegante */
+  position: sticky;
+  top: 0;
+  border-radius: 12px; /* bordes redondeados */
+}
+
+.contenedor {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 40px;
+}
+
+.seccionLogo {
+  flex: 1 1 250px;
+  min-width: 250px;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #111827;
+}
+
+.redes {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.redes a {
+  width: 36px;
+  height: 36px;
+  background-color: #1f2937;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.redes a:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+/* Columnas de enlaces */
+.contenedor > div:not(.seccionLogo) {
+  flex: 1 1 150px;
+  min-width: 150px;
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827; /* gris oscuro para destacar */
+  margin-bottom: 15px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  margin-bottom: 10px;
+}
+
+a {
+  color: #4b5563; /* gris medio legible */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #2563eb;
+}
+
+/* Pie inferior */
+.inferior {
+  margin-top: 50px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb; /* gris muy claro */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #6b7280; /* gris suave */
+}
+
+.inferior a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.inferior a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .contenedor {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .seccionLogo,
+  .contenedor > div:not(.seccionLogo) {
+    min-width: 100%;
+  }
+}

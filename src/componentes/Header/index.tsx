@@ -1,12 +1,12 @@
-"use client";
-
-import { useEffect, useState, useRef } from "react";
-import styles from "./Header.module.css";
-import type { Usuario } from "../../modelos/types/Usuario";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { TipoUsuario } from "../../modelos/enumeraciones/tipoUsuario";
+import styles from "./Header.module.css";
 
-const Header = () => {
+interface Usuario {
+  rol: "ADMINISTRADOR" | "PROPIETARIO" | "INQUILINO" | "CONTADOR";
+}
+
+const Header: React.FC = () => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [mostrarMenu, setMostrarMenu] = useState(false);
   const navigate = useNavigate();
@@ -20,7 +20,6 @@ const Header = () => {
     }
   }, []);
 
-  // Cerrar menú al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -35,7 +34,7 @@ const Header = () => {
   }, []);
 
   const cerrarSesion = () => {
-    localStorage.removeItem("Usuario");
+    localStorage.removeItem("usuario");
     setMostrarMenu(false);
     navigate("/");
   };
@@ -45,152 +44,95 @@ const Header = () => {
     setMostrarMenu(false);
   };
 
- const obtenerRutasNavegacion = () => {
-  if (!usuario) return [];
+  const obtenerRutasNavegacion = () => {
+    if (!usuario) return [];
 
-  const rutasBase = [{ label: "Inicio", ruta: "/", icon: "🏠" }];
-
-  switch (usuario.tipoUsuario) {
-    case TipoUsuario.ADMINISTRADOR:
-      return [
-        ...rutasBase,
-        { label: "Gestión Usuarios", ruta: "/administrador/usuarios", icon: "👥" },
-        { label: "Reportes", ruta: "/administrador/reportes", icon: "📊" },
-      ];
-    case TipoUsuario.PROPIETARIO:
-      return [
-        ...rutasBase,
-        { label: "Mis Propiedades", ruta: "/propietario/propiedades", icon: "🏠" },
-        { label: "Contratos", ruta: "/propietario/contratos", icon: "📜" },
-      ];
-    case TipoUsuario.INQUILINO:
-      return [
-        ...rutasBase,
-        { label: "Propiedades Disponibles", ruta: "/inquilino/propiedades", icon: "🏘️" },
-        { label: "Mis Pagos", ruta: "/inquilino/pagos", icon: "💳" },
-      ];
-    case TipoUsuario.CONTADOR:
-      return [
-        ...rutasBase,
-        { label: "Pagos", ruta: "/contador/pagos", icon: "💰" },
-        { label: "Reportes Financieros", ruta: "/contador/reportes", icon: "📑" },
-      ];
-    default:
-      return rutasBase;
-  }
-};
-
-  const rutasNavegacion = obtenerRutasNavegacion();
-
-  const obtenerIniciales = (nombre: string, apellido?: string) => {
-    const inicial1 = nombre?.charAt(0).toUpperCase() || "U";
-    const inicial2 = apellido?.charAt(0).toUpperCase() || "";
-    return inicial1 + inicial2;
+    switch (usuario.rol) {
+      case "ADMINISTRADOR":
+        return [
+          { nombre: "Dashboard", ruta: "/dashboard" },
+          { nombre: "Usuarios", ruta: "/usuarios" },
+          { nombre: "Contratos", ruta: "/contratos" },
+        ];
+      case "PROPIETARIO":
+        return [
+          { nombre: "Dashboard", ruta: "/dashboard" },
+          { nombre: "Propiedades", ruta: "/propiedades" },
+          { nombre: "Contratos", ruta: "/contratos" },
+          { nombre: "Facturas", ruta: "/facturas" },
+          { nombre: "Pagos", ruta: "/pagos" },
+        ];
+      case "INQUILINO":
+        return [
+          { nombre: "Tablero", ruta: "/tablero" },
+          { nombre: "Propiedad", ruta: "/propiedad" },
+          { nombre: "Pagos", ruta: "/pagos" },
+          { nombre: "Facturas", ruta: "/facturas" },
+          { nombre: "Servicios", ruta: "/servicios" },
+          { nombre: "Contratos", ruta: "/contratos" },
+        ];
+      case "CONTADOR":
+        return [
+          { nombre: "Panel", ruta: "/panel" },
+          { nombre: "Pagos", ruta: "/pagos" },
+          { nombre: "Facturas", ruta: "/facturas" },
+          { nombre: "Filtros", ruta: "/filtros" },
+        ];
+      default:
+        return [];
+    }
   };
 
-  const obtenerTipoUsuarioLabel = (tipo: TipoUsuario) => {
-  switch (tipo) {
-    case TipoUsuario.ADMINISTRADOR:
-      return "Administrador";
-    case TipoUsuario.PROPIETARIO:
-      return "Propietario";
-    case TipoUsuario.INQUILINO:
-      return "Inquilino";
-    case TipoUsuario.CONTADOR:
-      return "Contador";
-    default:
-      return "Usuario";
-  }
-};
+  const opcionesMenu = obtenerRutasNavegacion();
+
+  // Determinar si estamos en la vista de inicio
+  const esInicio = location.pathname === "/";
 
   return (
-    <header className={styles.header}>
-      <div className={styles.header_container}>
-        {/* Logo */}
-        <div className={styles.logo_section}>
-          <div className={styles.logo} onClick={() => navegarA("/")}>
-            <span className={styles.logo_text}>
-              <span className={styles.logo_highlight}>Tiend</span>app
-            </span>
-          </div>
-        </div>
+    <header className={esInicio ? styles.headerInicio : styles.encabezado} ref={menuRef}>
+      <div className={styles.logo}>{esInicio ? "✦" : "🌐"}</div>
 
-        {/* Navegación */}
-        <nav className={styles.navigation}>
-          {rutasNavegacion.map((item) => (
-            <button
-              key={item.ruta}
-              className={`${styles.nav_item} ${
-                location.pathname === item.ruta ? styles.nav_active : ""
-              }`}
-              onClick={() => navegarA(item.ruta)}
-            >
-              <span className={styles.nav_icon}>{item.icon}</span>
-              <span className={styles.nav_label}>{item.label}</span>
-            </button>
-          ))}
+      {esInicio ? (
+        <nav className={styles.menuInicio}>
+          <ul>
+            <li>
+              <a href="/" className={location.pathname === "/" ? styles.active : ""}>
+                Inicio
+              </a>
+            </li>
+            <li>
+              <a href="/nosotros" className={location.pathname === "/nosotros" ? styles.active : ""}>
+                Acerca de Nosotros
+              </a>
+            </li>
+            <li>
+              <a href="/contacto" className={location.pathname === "/contacto" ? styles.active : ""}>
+                Contacto
+              </a>
+            </li>
+          </ul>
         </nav>
+      ) : (
+        <nav className={styles.menu}>
+          <ul>
+            {opcionesMenu.map((opcion, index) => (
+              <li
+                key={index}
+                className={location.pathname === opcion.ruta ? styles.activo : ""}
+                onClick={() => navegarA(opcion.ruta)}
+              >
+                {opcion.nombre}
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
 
-        {/* Usuario */}
-        {usuario ? (
-          <div className={styles.user_section} ref={menuRef}>
-            <div className={styles.user_info}>
-              <span className={styles.user_name}>{usuario.nombre}</span>
-              <span className={styles.user_type}>
-                {obtenerTipoUsuarioLabel(usuario.tipoUsuario)}
-              </span>
-            </div>
-            <button
-              className={styles.avatar}
-              onClick={() => setMostrarMenu(!mostrarMenu)}
-            >
-              {obtenerIniciales(usuario.nombre, usuario.apellido)}
-            </button>
-
-            {mostrarMenu && (
-              <div className={styles.dropdown_menu}>
-                <div className={styles.menu_header}>
-                  <div className={styles.menu_avatar}>
-                    {obtenerIniciales(usuario.nombre, usuario.apellido)}
-                  </div>
-                  <div className={styles.menu_user_info}>
-                    <span className={styles.menu_name}>
-                      {usuario.nombre} {usuario.apellido}
-                    </span>
-                    <span className={styles.menu_email}>{usuario.correo}</span>
-                    <span className={styles.menu_type}>
-                      {obtenerTipoUsuarioLabel(usuario.tipoUsuario)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.menu_divider}></div>
-                <div className={styles.menu_divider}></div>
-
-                <button
-                  className={`${styles.menu_item} ${styles.logout_item}`}
-                  onClick={cerrarSesion}
-                >
-                  <span className={styles.menu_icon}>🚪</span>
-                  <span>Cerrar Sesión</span>
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className={styles.auth_buttons}>
-            <button className={styles.login_btn} onClick={() => navegarA("/")}>
-              Iniciar Sesión
-            </button>
-            <button
-              className={styles.register_btn}
-              onClick={() => navegarA("/registrarse")}
-            >
-              Registrarse
-            </button>
-          </div>
-        )}
-      </div>
+      {!esInicio && (
+        <button className={styles.botonCerrar} onClick={cerrarSesion}>
+          Cerrar Sesión
+        </button>
+      )}
     </header>
   );
 };
