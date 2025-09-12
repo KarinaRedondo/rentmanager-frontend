@@ -1,4 +1,5 @@
 import estilos from "./Footer.module.css";
+import { Home, Facebook, Twitter, Linkedin, Instagram, GitHub, Youtube, Dribbble, Mail } from "react-feather";
 
 const Footer = () => {
   return (
@@ -6,12 +7,29 @@ const Footer = () => {
       <div className={estilos.contenedor}>
         {/* Logo + descripción */}
         <div className={estilos.seccionLogo}>
-          <div className={estilos.logo}>＊</div>
+          <div className={estilos.logo}>
+            <Home size={36} color="#2563eb" />
+          </div>
           <p>Gestión profesional de alquiler de propiedades.</p>
           <div className={estilos.redes}>
-            <a href="#">🔗</a>
-            <a href="#">🐦</a>
-            <a href="#">📘</a>
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+              <Facebook size={20} />
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+              <Twitter size={20} />
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+              <Linkedin size={20} />
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+              <Instagram size={20} />
+            </a>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+              <GitHub size={20} />
+            </a>
+            <a href="mailto:contacto@rentmanager.com">
+              <Mail size={20} />
+            </a>
           </div>
         </div>
 
@@ -57,8 +75,7 @@ const Footer = () => {
 
       <div className={estilos.inferior}>
         <p>
-          ¿Listo para gestionar tus propiedades?{" "}
-          <a href="#">Comenzar</a>
+          ¿Listo para gestionar tus propiedades? <a href="#">Comenzar</a>
         </p>
         <p>© 2025 RentManager. Todos los derechos reservados.</p>
       </div>
