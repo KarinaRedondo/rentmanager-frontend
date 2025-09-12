@@ -3,27 +3,27 @@ import styles from "./InputCustom.module.css";
 import { Eye, EyeOff } from "react-feather";
 
 interface InputCustomProps {
-  value: string | number;
+  value: string;
   setValue: Dispatch<SetStateAction<string>>;
   type?: "text" | "password" | "email" | "number" | "date";
   placeholder?: string;
   title?: string;
 }
 
-const InputCustom = ({
+const InputCustom: React.FC<InputCustomProps> = ({
   value,
   setValue,
   type = "text",
   placeholder,
   title,
-}: InputCustomProps) => {
+}) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const inputType = isPassword && showPassword ? "text" : type;
 
   return (
     <div className={styles.container}>
-      <span>{title}</span>
+      {title && <label className={styles.label}>{title}</label>}
       <div className={styles.inputWrapper}>
         <input
           className={styles.input}
@@ -31,17 +31,17 @@ const InputCustom = ({
           placeholder={placeholder}
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          autoComplete={type === "email" ? "email" : type === "password" ? "current-password" : "off"}
         />
         {isPassword && (
           <button
             type="button"
             className={styles.toggleButton}
-            onClick={() => setShowPassword((show) => !show)}
-            aria-label={
-              showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-            }
+            onClick={() => setShowPassword((s) => !s)}
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            tabIndex={0}
           >
-            {showPassword ? <EyeOff /> : <Eye />}
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         )}
       </div>

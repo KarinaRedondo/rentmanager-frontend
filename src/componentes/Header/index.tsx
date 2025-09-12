@@ -13,12 +13,21 @@ const Header: React.FC = () => {
   const location = useLocation();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const storedUsuario = localStorage.getItem("usuario");
-    if (storedUsuario) {
-      setUsuario(JSON.parse(storedUsuario));
+ useEffect(() => {
+  const storedUsuario = localStorage.getItem("usuario");
+
+  if (storedUsuario) {
+    try {
+      const parsedUsuario = JSON.parse(storedUsuario);
+      setUsuario(parsedUsuario);
+    } catch (error) {
+      console.error("Error al parsear usuario de localStorage:", error);
+      setUsuario(null);
     }
-  }, []);
+  } else {
+    setUsuario(null);
+  }
+}, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -45,7 +54,15 @@ const Header: React.FC = () => {
   };
 
   const obtenerRutasNavegacion = () => {
-    if (!usuario) return [];
+    // Si no hay usuario o estamos en login, mostrar menú de inicio de sesión
+    if (!usuario || location.pathname === "/login") {
+      return [
+        { nombre: "Inicio", ruta: "/" },
+        { nombre: "Iniciar Sesión", ruta: "/login" },
+        { nombre: "Quiénes Somos", ruta: "/nosotros" },
+        { nombre: "Contacto", ruta: "/contacto" },
+      ];
+    }
 
     switch (usuario.rol) {
       case "ADMINISTRADOR":
@@ -87,32 +104,76 @@ const Header: React.FC = () => {
 
   // Determinar si estamos en la vista de inicio
   const esInicio = location.pathname === "/";
+  // Determinar si estamos en login
+  const esLogin = location.pathname === "/login";
 
   return (
-    <header className={esInicio ? styles.headerInicio : styles.encabezado} ref={menuRef}>
-      <div className={styles.logo}>{esInicio ? "✦" : "🌐"}</div>
+  <header
+    className={
+      esInicio
+        ? styles.headerInicio
+        : esLogin
+        ? `${styles.headerInicio} ${styles.loginHeader}`
+        : styles.encabezado
+    }
+    ref={menuRef}
+  >
+    <div className={styles.logo}>{esInicio || esLogin ? "✦" : "🌐"}</div>
 
-      {esInicio ? (
-        <nav className={styles.menuInicio}>
-          <ul>
-            <li>
-              <a href="/" className={location.pathname === "/" ? styles.active : ""}>
-                Inicio
-              </a>
-            </li>
-            <li>
-              <a href="/nosotros" className={location.pathname === "/nosotros" ? styles.active : ""}>
-                Acerca de Nosotros
-              </a>
-            </li>
-            <li>
-              <a href="/contacto" className={location.pathname === "/contacto" ? styles.active : ""}>
-                Contacto
-              </a>
-            </li>
-          </ul>
-        </nav>
-      ) : (
+    {/* Caso: Inicio */}
+    {esInicio && (
+      <nav className={styles.menuInicio}>
+        <ul>
+          <li>
+            <a href="/" className={location.pathname === "/" ? styles.active : ""}>
+              Inicio
+            </a>
+          </li>
+          <li>
+            <a href="/nosotros" className={location.pathname === "/nosotros" ? styles.active : ""}>
+              Acerca de Nosotros
+            </a>
+          </li>
+          <li>
+            <a href="/contacto" className={location.pathname === "/contacto" ? styles.active : ""}>
+              Contacto
+            </a>
+          </li>
+        </ul>
+      </nav>
+    )}
+
+    {/* Caso: Login */}
+    {esLogin && (
+      <nav className={styles.menuInicio}>
+        <ul>
+          <li>
+            <a href="/" className={location.pathname === "/" ? styles.activo : ""}>
+              Inicio
+            </a>
+          </li>
+          <li>
+            <a href="/login" className={location.pathname === "/login" ? styles.activo : ""}>
+              Iniciar Sesión
+            </a>
+          </li>
+          <li>
+            <a href="/nosotros" className={location.pathname === "/nosotros" ? styles.activo : ""}>
+              Quiénes Somos
+            </a>
+          </li>
+          <li>
+            <a href="/contacto" className={location.pathname === "/contacto" ? styles.activo : ""}>
+              Contacto
+            </a>
+          </li>
+        </ul>
+      </nav>
+    )}
+
+    {/* Caso: Usuario logueado */}
+    {!esInicio && !esLogin && (
+      <>
         <nav className={styles.menu}>
           <ul>
             {opcionesMenu.map((opcion, index) => (
@@ -126,15 +187,13 @@ const Header: React.FC = () => {
             ))}
           </ul>
         </nav>
-      )}
-
-      {!esInicio && (
         <button className={styles.botonCerrar} onClick={cerrarSesion}>
           Cerrar Sesión
         </button>
-      )}
-    </header>
-  );
+      </>
+    )}
+  </header>
+);
 };
 
 export default Header;

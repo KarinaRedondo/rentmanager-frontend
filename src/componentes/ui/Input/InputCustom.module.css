@@ -1,71 +1,69 @@
 .container {
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 0.6rem;
-  padding: 1rem 1.2rem;
-  background-color: #fff;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  gap: 10px;
+  width: 100%;
 }
 
-.container:focus-within {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(48, 71, 94, 0.2);
-}
-
-.container span {
+/* label */
+.label {
   font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--secondary-color);
-}
-
-.inputWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.input {
-  flex: 1;
-  font-size: 1rem;
-  padding: 0.6rem 0.8rem;
-  border: none;
-  outline: none;
   color: #111827;
+  text-align: left; /* alineado a la izquierda como en la imagen */
+  margin-left: 4px;
+}
+
+/* wrapper para input + botón */
+.inputWrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background-color: #f9fafb; /* fondo muy claro */
+  border: 1px solid #e5e7eb; /* borde gris sutil */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); /* sombra suave */
+  transition: all 0.2s ease;
+}
+
+/* input */
+.input {
+  width: 100%;
+  border: none;
   background: transparent;
+  font-size: 1rem;
+  color: #111827;
+  outline: none;
 }
 
-.input::placeholder {
-  color: #9ca3af; /* gris sutil */
+/* quitar fondo azul de autofill en Chrome */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #f9fafb inset !important;
+  box-shadow: 0 0 0px 1000px #f9fafb inset !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
+/* botón para mostrar/ocultar */
 .toggleButton {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border: none;
-  cursor: pointer;
-  background-color: transparent;
-  border-radius: 0.4rem;
-  transition: background-color 0.2s ease;
+  padding: 4px;
 }
 
-.toggleButton:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+/* foco accesible en wrapper */
+.inputWrapper:focus-within {
+  border-color: #3b82f6; /* azul más visible */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* sombra de foco suave */
 }
-
-.toggleButton svg {
-  width: 1.4rem;
-  height: 1.4rem;
-  stroke: var(--secondary-color);
-  transition: stroke 0.2s ease;
-}
-
-.toggleButton:hover svg {
-  stroke: var(--primary-color);
-}
-
