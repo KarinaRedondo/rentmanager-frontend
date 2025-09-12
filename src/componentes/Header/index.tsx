@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./Header.module.css";
-import { Globe, Layers} from "react-feather";
+import { Globe, Layers } from "react-feather";
+
 interface Usuario {
   rol: "ADMINISTRADOR" | "PROPIETARIO" | "INQUILINO" | "CONTADOR";
 }
@@ -126,8 +127,8 @@ const Header: React.FC = () => {
         )}
       </div>
 
-      {/* Caso: Inicio */}
-      {esInicio && (
+      {/* Caso: Inicio y Login */}
+      {(esInicio || esLogin) && (
         <nav className={styles.menuInicio}>
           <ul>
             <li>
@@ -140,44 +141,8 @@ const Header: React.FC = () => {
             </li>
             <li>
               <a
-                href="/nosotros"
-                className={
-                  location.pathname === "/nosotros" ? styles.active : ""
-                }
-              >
-                Acerca de Nosotros
-              </a>
-            </li>
-            <li>
-              <a
-                href="/contacto"
-                className={
-                  location.pathname === "/contacto" ? styles.active : ""
-                }
-              >
-                Contacto
-              </a>
-            </li>
-          </ul>
-        </nav>
-      )}
-
-      {/* Caso: Login */}
-      {esLogin && (
-        <nav className={styles.menuInicio}>
-          <ul>
-            <li>
-              <a
-                href="/"
-                className={location.pathname === "/" ? styles.activo : ""}
-              >
-                Inicio
-              </a>
-            </li>
-            <li>
-              <a
                 href="/login"
-                className={location.pathname === "/login" ? styles.activo : ""}
+                className={location.pathname === "/login" ? styles.active : ""}
               >
                 Iniciar Sesión
               </a>
@@ -185,9 +150,7 @@ const Header: React.FC = () => {
             <li>
               <a
                 href="/nosotros"
-                className={
-                  location.pathname === "/nosotros" ? styles.activo : ""
-                }
+                className={location.pathname === "/nosotros" ? styles.active : ""}
               >
                 Quiénes Somos
               </a>
@@ -195,9 +158,7 @@ const Header: React.FC = () => {
             <li>
               <a
                 href="/contacto"
-                className={
-                  location.pathname === "/contacto" ? styles.activo : ""
-                }
+                className={location.pathname === "/contacto" ? styles.active : ""}
               >
                 Contacto
               </a>

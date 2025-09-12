@@ -1,5 +1,5 @@
 import estilos from "./Footer.module.css";
-import { Home, Facebook, Twitter, Linkedin, Instagram, GitHub, Youtube, Dribbble, Mail } from "react-feather";
+import { Home, Facebook, Twitter, Linkedin, Instagram, GitHub, Mail} from "react-feather";
 
 const Footer = () => {
   return (
