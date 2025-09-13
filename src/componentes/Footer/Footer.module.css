@@ -24,11 +24,37 @@
   min-width: 250px;
 }
 
+/* Logo */
+.logo_section {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
 .logo {
-  font-size: 28px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  color: #111827;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.08);
+  filter: brightness(1.1);
+}
+
+.logo_text {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+}
+
+.logo_highlight {
+  background: linear-gradient(45deg, #fff, #f3f4f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .redes {

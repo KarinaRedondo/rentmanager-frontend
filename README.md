@@ -13,7 +13,7 @@
 
 RentManager es una plataforma de gestión de arriendos inmobiliarios desarrollada con **Spring Boot** en el backend y **TypeScript con SWC** en el frontend, basada en una arquitectura de microservicios para garantizar escalabilidad y mantenimiento.  
 
-Facilita la interacción entre clientes,tenderos y repartidores mediante un sistema seguro que emplea **Spring Security** y autenticación **JWT** en el backend, mientras que en el frontend optimiza el rendimiento con **Vite y SWC**.  
+Facilita la interacción entre administradores, propietarios, inquilinos y contadores mediante un sistema seguro que emplea **Spring Security** y autenticación **JWT** en el backend, mientras que en el frontend optimiza el rendimiento con **Vite y SWC**.  
 
 La plataforma permite gestionar usuarios, propiedades, contratos, facturas, pagos y servicios extras. 
 

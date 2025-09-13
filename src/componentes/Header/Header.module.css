@@ -1,20 +1,17 @@
-/* ===================== HEADER GENERAL ===================== */
 .header {
   background: linear-gradient(135deg, var(--primary-color) 0%, #2980b9 100%);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .header_container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1400px;
+  max-width: 140rem;
   margin: 0 auto;
   padding: 0 3rem;
   height: 7rem;
@@ -24,81 +21,84 @@
 .logo_section {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
 }
 
 .logo {
   cursor: pointer;
-  transition: transform 0.3s ease, filter 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .logo:hover {
-  transform: scale(1.08);
-  filter: brightness(1.1);
+  transform: scale(1.05);
 }
 
 .logo_text {
-  font-size: 2.6rem;
+  font-size: 2.8rem;
   font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.5px;
+  color: white;
   display: flex;
   align-items: center;
 }
 
 .logo_highlight {
-  background: linear-gradient(45deg, #fff, #f3f4f6);
+  background: linear-gradient(45deg, #fff, #f8f9fa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* ===================== NAVEGACIÓN ===================== */
+/* Navegación */
 .navigation {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .nav_item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.9rem 1.3rem;
-  color: #fff;
+  gap: 0.8rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: white;
   font-size: 1.4rem;
   font-weight: 500;
   cursor: pointer;
   border-radius: 0.8rem;
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
   position: relative;
+  overflow: hidden;
 }
 
-.nav_item::after {
+.nav_item::before {
   content: "";
   position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 0%;
-  height: 2px;
-  background: #fff;
-  border-radius: 4px;
-  transform: translateX(-50%);
-  transition: width 0.3s ease;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s;
 }
 
-.nav_item:hover::after {
-  width: 70%;
+.nav_item:hover::before {
+  left: 100%;
 }
 
 .nav_item:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
 
 .nav_active {
   background: rgba(255, 255, 255, 0.15);
-  font-weight: 600;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
 }
 
 .nav_icon {
@@ -109,7 +109,7 @@
   font-weight: 600;
 }
 
-/* ===================== USUARIO ===================== */
+/* Usuario */
 .user_section {
   display: flex;
   align-items: center;
@@ -125,23 +125,25 @@
 }
 
 .user_name {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #fff;
+  color: white;
+  line-height: 1.2;
 }
 
 .user_type {
   font-size: 1.2rem;
   color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
 }
 
 .avatar {
-  width: 44px;
-  height: 44px;
+  width: 4.5rem;
+  height: 4.5rem;
   border-radius: 50%;
   background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
   color: var(--primary-color);
-  border: 2px solid rgba(255, 255, 255, 0.25);
+  border: 3px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -149,32 +151,33 @@
   font-size: 1.6rem;
   font-weight: 700;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
 }
 
 .avatar:hover {
   transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.15);
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* ===================== MENÚ DROPDOWN ===================== */
+/* Dropdown Menu */
 .dropdown_menu {
   position: absolute;
-  top: 60px;
+  top: 6rem;
   right: 0;
   background: var(--bg-second);
-  border-radius: 1rem;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  min-width: 250px;
+  border-radius: 1.2rem;
+  box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.15);
+  min-width: 28rem;
   overflow: hidden;
-  animation: slideDown 0.25s ease-out;
+  animation: slideDown 0.3s ease-out;
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-1rem);
   }
   to {
     opacity: 1;
@@ -185,22 +188,24 @@
 .menu_header {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
-  padding: 1.6rem;
-  background: linear-gradient(135deg, var(--primary-color), #2980b9);
+  gap: 1.5rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #2980b9 100%);
   color: white;
 }
 
 .menu_avatar {
-  width: 46px;
-  height: 46px;
+  width: 5rem;
+  height: 5rem;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   font-weight: 700;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .menu_user_info {
@@ -210,87 +215,253 @@
 }
 
 .menu_name {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .menu_email {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   opacity: 0.9;
+  font-weight: 400;
 }
 
 .menu_type {
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.25);
-  padding: 0.2rem 0.7rem;
-  border-radius: 0.8rem;
-  margin-top: 0.4rem;
+  font-size: 1.1rem;
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.3rem 0.8rem;
+  border-radius: 1rem;
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}
+
+.menu_divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .menu_items {
-  padding: 0.5rem 0;
+  padding: 1rem 0;
 }
 
 .menu_item {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.2rem;
   width: 100%;
-  padding: 1rem 1.6rem;
+  padding: 1.2rem 2rem;
   background: transparent;
   border: none;
-  font-size: 1.3rem;
+  color: var(--white-color);
+  font-size: 1.4rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease;
+  transition: all 0.3s ease;
   text-align: left;
-  color: var(--text-color, #333);
 }
 
 .menu_item:hover {
-  background: rgba(25, 113, 234, 0.1);
+  background: var(--bg-main);
   color: var(--primary-color);
 }
 
+.menu_icon {
+  font-size: 1.6rem;
+  width: 2rem;
+  text-align: center;
+}
+
 .logout_item {
-  color: #e74c3c;
+  color: var(--error-color, #e74c3c);
 }
 
 .logout_item:hover {
-  background: rgba(231, 76, 60, 0.12);
-  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--error-color, #e74c3c);
 }
 
-/* ===================== HEADER INICIO/LOGIN ===================== */
+/* Botones de autenticación */
+.auth_buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.login_btn,
+.register_btn {
+  padding: 1rem 2rem;
+  border-radius: 0.8rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.login_btn {
+  background: transparent;
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.login_btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.register_btn {
+  background: white;
+  color: var(--primary-color);
+  border-color: white;
+}
+
+.register_btn:hover {
+  background: var(--bg-main);
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header_container {
+    padding: 0 2rem;
+    height: 6rem;
+  }
+
+  .logo_text {
+    font-size: 2.4rem;
+  }
+
+  .navigation {
+    display: none;
+  }
+
+  .user_info {
+    display: none;
+  }
+
+  .dropdown_menu {
+    min-width: 25rem;
+    right: -1rem;
+  }
+
+  .menu_header {
+    padding: 1.5rem;
+  }
+
+  .auth_buttons {
+    gap: 0.5rem;
+  }
+
+  .login_btn,
+  .register_btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header_container {
+    padding: 0 1rem;
+  }
+
+  .logo_text {
+    font-size: 2rem;
+  }
+
+  .dropdown_menu {
+    min-width: 22rem;
+    right: -0.5rem;
+  }
+
+  .auth_buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .login_btn,
+  .register_btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 1.2rem;
+  }
+}
+
+/* Navegación móvil */
+@media (max-width: 768px) {
+  .nav_mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-second);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-around;
+    z-index: 1000;
+  }
+
+  .nav_mobile_item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem;
+    background: transparent;
+    border: none;
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 0.8rem;
+    transition: all 0.3s ease;
+  }
+
+  .nav_mobile_item:hover,
+  .nav_mobile_active {
+    color: var(--primary-color);
+    background: rgba(25, 113, 234, 0.1);
+  }
+
+  .nav_mobile_icon {
+    font-size: 1.8rem;
+  }
+}
+
+/* Estilo del header para la vista de inicio */
 .headerInicio {
   background: linear-gradient(90deg, #ffffff, #f9fafb);
-  color: #111827;
+  color: #111827; 
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 50px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  padding: 20px 60px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* sombra más elegante */
   position: sticky;
-  top: 20px;
-  border-radius: 12px;
+  top: 0;
+  border-radius: 12px; /* bordes redondeados */
+  top: 20px; /* se queda un poco flotando al hacer scroll */
   z-index: 100;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, padding 0.3s ease;
 }
 
+/* Logo */
 .headerInicio .logo {
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 700;
-  color: #2563eb;
+  color: #2563eb; /* azul llamativo */
+  cursor: pointer;
   transition: transform 0.3s ease;
 }
 
 .headerInicio .logo:hover {
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
+/* Menú de navegación */
 .menuInicio ul {
   display: flex;
-  gap: 35px;
+  gap: 40px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -300,9 +471,9 @@
   text-decoration: none;
   color: #111827;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 17px;
   padding: 6px 0;
-  transition: color 0.25s, transform 0.25s;
+  transition: color 0.25s ease-in-out, transform 0.25s ease;
   position: relative;
 }
 
@@ -326,6 +497,7 @@
   transform: translateY(-2px);
 }
 
+/* Enlace activo */
 .menuInicio li a.active {
   color: #2563eb;
   font-weight: 600;
@@ -333,4 +505,67 @@
 
 .menuInicio li a.active::after {
   width: 100%;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .headerInicio {
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 20px;
+  }
+
+  .menuInicio ul {
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .menuInicio li a {
+    font-size: 18px;
+  }
+}
+
+/* ===================== ANIMACIONES HEADER ===================== */
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes linkHoverPulse {
+  0% {
+    transform: translateY(-2px) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.05);
+  }
+  100% {
+    transform: translateY(-2px) scale(1);
+  }
+}
+
+/* Aparece con efecto al cargar */
+.headerInicio {
+  animation: fadeSlideDown 0.6s ease forwards;
+}
+
+/* Efecto sutil al pasar por los links */
+.menuInicio li a:hover {
+  animation: linkHoverPulse 0.4s ease;
+}
+
+/* Suavizar el avatar y logo */
+.logo, .avatar {
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+.logo:hover, .avatar:hover {
+  transform: scale(1.08) rotate(-1deg);
+  filter: brightness(1.1);
 }

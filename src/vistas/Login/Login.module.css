@@ -79,38 +79,6 @@
 }
 
 .enlaces .link {
-  color: #2563eb;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.enlaces .link:hover {
-  color: #1d4ed8;
-  text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .main {
-    padding: 2rem 1rem;
-  }
-  .formulario {
-    width: 95%;
-    padding: 1.5rem;
-  }
-}
-
-/* ===== Enlaces debajo del botón ===== */
-.enlaces {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  text-align: center;
-}
-
-.enlaces .link {
   color: #2563eb; /* color inicial azul profesional */
   font-size: 0.9rem;
   font-weight: 500;

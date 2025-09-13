@@ -8,7 +8,7 @@ export default function Inicio() {
 
   return (
     <div className={styles.inicio}>
-    <Header />
+      <Header />
       {/* Contenido principal */}
       <main className={styles.main}>
         <div className={styles.texto}>
@@ -24,10 +24,9 @@ export default function Inicio() {
           <button onClick={() => navigate("/login")}>Iniciar Sesión</button>
         </div>
         <div className={styles.imagen}>
-          <img
-            src="/propiedad.webp" // ruta desde la carpeta public
-            alt="Ilustración de propiedad de lujo"
-          />
+          <img src="/propiedad.webp" alt="Ilustración de propiedad de lujo" />
+          <img src="/casa.jpg" alt="Casa moderna" />
+          <img src="/fachadaModerna.jpg" alt="Fachada contemporánea" />
         </div>
       </main>
       <Footer />

@@ -1,5 +1,6 @@
 import estilos from "./Footer.module.css";
-import { Home, Facebook, Twitter, Linkedin, Instagram, GitHub, Mail} from "react-feather";
+import { Home, Facebook, Twitter, Linkedin, Instagram, GitHub, Mail } from "react-feather";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -37,9 +38,9 @@ const Footer = () => {
         <div>
           <h3>Empresa</h3>
           <ul>
-            <li><a href="#">Acerca de Nosotros</a></li>
-            <li><a href="#">Carreras</a></li>
-            <li><a href="#">Prensa</a></li>
+            <li><Link to="/acerca">Acerca de Nosotros</Link></li>
+            <li><Link to="/carreras">Carreras</Link></li>
+            <li><Link to="/prensa">Prensa</Link></li>
           </ul>
         </div>
 
@@ -47,9 +48,9 @@ const Footer = () => {
         <div>
           <h3>Producto</h3>
           <ul>
-            <li><a href="#">Características</a></li>
-            <li><a href="#">Precios</a></li>
-            <li><a href="#">Integraciones</a></li>
+            <li><Link to="/caracteristicas">Características</Link></li>
+            <li><Link to="/precios">Precios</Link></li>
+            <li><Link to="/integraciones">Integraciones</Link></li>
           </ul>
         </div>
 
@@ -57,9 +58,9 @@ const Footer = () => {
         <div>
           <h3>Recursos</h3>
           <ul>
-            <li><a href="#">Blog</a></li>
-            <li><a href="#">Soporte</a></li>
-            <li><a href="#">Preguntas Frecuentes</a></li>
+            <li><Link to="/blog">Blog</Link></li>
+            <li><Link to="/soporte">Soporte</Link></li>
+            <li><Link to="/faq">Preguntas Frecuentes</Link></li>
           </ul>
         </div>
 
@@ -67,15 +68,15 @@ const Footer = () => {
         <div>
           <h3>Legal</h3>
           <ul>
-            <li><a href="#">Términos de Servicio</a></li>
-            <li><a href="#">Política de Privacidad</a></li>
+            <li><Link to="/terminos">Términos de Servicio</Link></li>
+            <li><Link to="/privacidad">Política de Privacidad</Link></li>
           </ul>
         </div>
       </div>
 
       <div className={estilos.inferior}>
         <p>
-          ¿Listo para gestionar tus propiedades? <a href="#">Comenzar</a>
+          ¿Listo para gestionar tus propiedades? <Link to="/comenzar">Comenzar</Link>
         </p>
         <p>© 2025 RentManager. Todos los derechos reservados.</p>
       </div>
@@ -84,3 +85,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

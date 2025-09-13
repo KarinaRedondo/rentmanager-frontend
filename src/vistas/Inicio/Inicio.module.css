@@ -86,19 +86,89 @@
   background: #1e40af;
 }
 
+/* ===== Imagen ===== */
+
 .imagen {
-  display: flex;
-  justify-content: center; /* centra la imagen horizontalmente */
-  margin-bottom: 20px; /* espacio debajo si hay texto */
+  position: relative;
+  width: 100%;
+  max-width: 750px;
+  height: 420px;
+  margin: 50px auto;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
-.imagen webp {
-  width: 100%;          /* ocupa todo el ancho disponible de su contenedor */
-  max-width: 400px;     /* tamaño máximo de la imagen */
-  height: auto;         /* mantiene proporción */
-  border-radius: 12px;  /* bordes redondeados */
-  object-fit: cover;    /* se ajusta bien dentro del contenedor */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); /* sombra para que resalte */
+/* Todas las imágenes apiladas una sobre otra */
+.imagen img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+  opacity: 0;
+  animation: fadeZoom 15s infinite;
+}
+
+/* Hover premium */
+.imagen img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  filter: brightness(1.05) saturate(1.1);
+}
+
+/* Animación fade + zoom */
+@keyframes fadeZoom {
+  0% { opacity: 0; transform: scale(1); }
+  5% { opacity: 1; transform: scale(1.02); }
+  30% { opacity: 1; transform: scale(1.05); }
+  35% { opacity: 0; transform: scale(1.08); }
+  100% { opacity: 0; }
+}
+
+/* Controlar los tiempos de cada imagen */
+.imagen img:nth-child(1) { animation-delay: 0s; }
+.imagen img:nth-child(2) { animation-delay: 5s; }
+.imagen img:nth-child(3) { animation-delay: 10s; }
+
+/* Indicadores elegantes */
+.imagen::after {
+  content: '';
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  width: 60px;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  transform: translateX(-50%);
+}
+
+.indicador {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+.indicador span {
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  animation: indicador 15s infinite;
+}
+
+.indicador span:nth-child(1) { animation-delay: 0s; }
+.indicador span:nth-child(2) { animation-delay: 5s; }
+.indicador span:nth-child(3) { animation-delay: 10s; }
+
+@keyframes indicador {
+  0%, 33% { background: #2563eb; transform: scale(1.3); }
+  34%, 100% { background: rgba(255, 255, 255, 0.6); transform: scale(1); }
 }
 
 /* ===== Footer ===== */
