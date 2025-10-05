@@ -1,13 +1,23 @@
 import type { EstadoPropiedad } from "../enumeraciones/estadoPropiedad";
-import type { Propietario } from "./Propietario";
+import type {  ServiciosPublicos } from "../enumeraciones/serviciosPublicos";
 
 export interface Propiedad {
   idPropiedad: number;
   direccion: string;
   ciudad: string;
   estado: EstadoPropiedad;
-  propietario: Propietario;
+  propietario: number;
   propiedadPadre?: Propiedad;
+  area: number;
+  habitaciones: number;
+  banos: number;
+  parqueaderos: number;
+  amoblado: boolean;
+  pisos: number;
+  descripcion: string;
+  anoCosnstruccion: number;
+  serviciosPublicos: ServiciosPublicos
+
 }
 
 export type DTOPropiedadRegistro = Omit<Propiedad, "idPropiedad">;

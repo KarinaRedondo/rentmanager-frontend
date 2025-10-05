@@ -569,3 +569,260 @@
   transform: scale(1.08) rotate(-1deg);
   filter: brightness(1.1);
 }
+
+/* Header para usuario logueado */
+.encabezado {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  position: sticky;
+  top: 10px;
+  z-index: 100;
+  transition: background 0.3s ease, padding 0.3s ease;
+}
+
+/* Menú principal para cualquier usuario */
+.menu ul {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu li {
+  position: relative;
+  cursor: pointer;
+  padding: 8px 5px;
+  font-weight: 500;
+  color: #1f2937; /* gris oscuro */
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.menu li:hover {
+  color: #2563eb; /* azul destacado */
+}
+
+.menu li.activo {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.menu li::after {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: #2563eb;
+  transition: width 0.3s ease;
+}
+
+.menu li.activo::after,
+.menu li:hover::after {
+  width: 100%;
+}
+
+/* Botón de cerrar sesión */
+.botonCerrar {
+  background: #ef4444;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.botonCerrar:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .menu ul {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .encabezado {
+    flex-direction: column;
+    padding: 15px 20px;
+  }
+
+  .botonCerrar {
+    margin-top: 15px;
+  }
+} 
+
+/* Sección de usuario */
+.userSection {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Avatar */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Menú desplegable */
+.dropdownMenu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDown 0.3s ease-out;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Encabezado del menú */
+.menuHeader {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: white;
+}
+
+.menuAvatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.menuUserInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menuName {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.menuEmail {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.menuType {
+  font-size: 12px;
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 3px 8px;
+  border-radius: 10px;
+  align-self: flex-start;
+  margin-top: 5px;
+}
+
+/* Divisor */
+.menuDivider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Elementos del menú */
+.menuItems {
+  padding: 10px 0;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.menuItem:hover {
+  background: #f3f4f6;
+  color: #2563eb;
+}
+
+.menuIcon {
+  width: 20px;
+}
+
+/* Elemento de cerrar sesión */
+.logoutItem {
+  color: #ef4444;
+}
+
+.logoutItem:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dropdownMenu {
+    right: -10px;
+    min-width: 250px;
+  }
+  
+  .menuHeader {
+    padding: 15px;
+  }
+}

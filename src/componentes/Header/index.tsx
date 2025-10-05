@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./Header.module.css";
-import { Globe, Layers } from "react-feather";
+import { Globe, Layers, User, Settings, LogOut } from "react-feather";
 
 interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
   rol: "ADMINISTRADOR" | "PROPIETARIO" | "INQUILINO" | "CONTADOR";
 }
 
@@ -68,37 +71,46 @@ const Header: React.FC = () => {
     switch (usuario.rol) {
       case "ADMINISTRADOR":
         return [
-          { nombre: "Dashboard", ruta: "/dashboard" },
-          { nombre: "Usuarios", ruta: "/usuarios" },
-          { nombre: "Contratos", ruta: "/contratos" },
+          { nombre: "Dashboard", ruta: "/administrador/dashboard" },
+          { nombre: "Usuarios", ruta: "/administrador/usuarios" },
+          { nombre: "Contratos", ruta: "/administrador/contratos" },
         ];
       case "PROPIETARIO":
         return [
-          { nombre: "Dashboard", ruta: "/dashboard" },
-          { nombre: "Propiedades", ruta: "/propiedades" },
-          { nombre: "Contratos", ruta: "/contratos" },
-          { nombre: "Facturas", ruta: "/facturas" },
-          { nombre: "Pagos", ruta: "/pagos" },
+          { nombre: "Dashboard", ruta: "/propietario/dashboard" },
+          { nombre: "Propiedades", ruta: "/propietario/propiedades" },
+          { nombre: "Contratos", ruta: "/propietario/contratos" },
+          { nombre: "Facturas", ruta: "/propietario/facturas" },
+          { nombre: "Pagos", ruta: "/propietario/pagos" },
         ];
       case "INQUILINO":
         return [
-          { nombre: "Tablero", ruta: "/tablero" },
-          { nombre: "Propiedad", ruta: "/propiedad" },
-          { nombre: "Pagos", ruta: "/pagos" },
-          { nombre: "Facturas", ruta: "/facturas" },
-          { nombre: "Servicios", ruta: "/servicios" },
-          { nombre: "Contratos", ruta: "/contratos" },
+          { nombre: "Tablero", ruta: "/inquilino/tablero" },
+          { nombre: "Propiedad", ruta: "/inquilino/propiedad" },
+          { nombre: "Pagos", ruta: "/inquilino/pagos" },
+          { nombre: "Facturas", ruta: "/inquilino/facturas" },
+          { nombre: "Servicios", ruta: "/inquilino/servicios" },
+          { nombre: "Contratos", ruta: "/inquilino/contratos" },
         ];
       case "CONTADOR":
         return [
-          { nombre: "Panel", ruta: "/panel" },
-          { nombre: "Pagos", ruta: "/pagos" },
-          { nombre: "Facturas", ruta: "/facturas" },
-          { nombre: "Filtros", ruta: "/filtros" },
+          { nombre: "Panel", ruta: "/contador/panel" },
+          { nombre: "Pagos", ruta: "/contador/pagos" },
+          { nombre: "Facturas", ruta: "/contador/facturas" },
+          { nombre: "Filtros", ruta: "/contador/filtros" },
         ];
       default:
         return [];
     }
+  };
+
+  const obtenerIniciales = (nombre: string) => {
+    return nombre
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   const opcionesMenu = obtenerRutasNavegacion();
@@ -150,7 +162,9 @@ const Header: React.FC = () => {
             <li>
               <a
                 href="/nosotros"
-                className={location.pathname === "/nosotros" ? styles.active : ""}
+                className={
+                  location.pathname === "/nosotros" ? styles.active : ""
+                }
               >
                 Quiénes Somos
               </a>
@@ -158,7 +172,9 @@ const Header: React.FC = () => {
             <li>
               <a
                 href="/contacto"
-                className={location.pathname === "/contacto" ? styles.active : ""}
+                className={
+                  location.pathname === "/contacto" ? styles.active : ""
+                }
               >
                 Contacto
               </a>
@@ -168,7 +184,7 @@ const Header: React.FC = () => {
       )}
 
       {/* Caso: Usuario logueado */}
-      {!esInicio && !esLogin && (
+      {!esInicio && !esLogin && usuario && (
         <>
           <nav className={styles.menu}>
             <ul>
@@ -185,9 +201,70 @@ const Header: React.FC = () => {
               ))}
             </ul>
           </nav>
-          <button className={styles.botonCerrar} onClick={cerrarSesion}>
-            Cerrar Sesión
-          </button>
+
+          <div className={styles.userSection}>
+            <div
+              className={styles.avatar}
+              onClick={() => setMostrarMenu(!mostrarMenu)}
+            >
+              {usuario.nombre ? (
+                obtenerIniciales(usuario.nombre)
+              ) : (
+                <User size={20} />
+              )}
+            </div>
+
+            {mostrarMenu && (
+              <div className={styles.dropdownMenu}>
+                <div className={styles.menuHeader}>
+                  <div className={styles.menuAvatar}>
+                    {usuario.nombre ? (
+                      obtenerIniciales(usuario.nombre)
+                    ) : (
+                      <User size={20} />
+                    )}
+                  </div>
+                  <div className={styles.menuUserInfo}>
+                    <div className={styles.menuName}>
+                      {usuario.nombre || "Usuario"}
+                    </div>
+                    <div className={styles.menuEmail}>{usuario.email}</div>
+                    <div className={styles.menuType}>{usuario.rol}</div>
+                  </div>
+                </div>
+
+                <div className={styles.menuDivider}></div>
+
+                <div className={styles.menuItems}>
+                  <button
+                    className={styles.menuItem}
+                    onClick={() => navegarA("/perfil")}
+                  >
+                    <User size={16} className={styles.menuIcon} />
+                    Mi Perfil
+                  </button>
+
+                  <button
+                    className={styles.menuItem}
+                    onClick={() => navegarA("/configuracion")}
+                  >
+                    <Settings size={16} className={styles.menuIcon} />
+                    Configuración
+                  </button>
+
+                  <div className={styles.menuDivider}></div>
+
+                  <button
+                    className={`${styles.menuItem} ${styles.logoutItem}`}
+                    onClick={cerrarSesion}
+                  >
+                    <LogOut size={16} className={styles.menuIcon} />
+                    Cerrar Sesión
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </>
       )}
     </header>

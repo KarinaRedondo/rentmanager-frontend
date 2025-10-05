@@ -5,6 +5,7 @@ export interface Factura {
   idFactura: number;
   contrato: Contrato;
   fechaEmision: string;
+  fechaVencimiento: string;
   total: number;
   estado: EstadoFactura;
 }

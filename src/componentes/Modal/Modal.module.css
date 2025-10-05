@@ -1,121 +1,228 @@
-/* Fondo del modal */
 .contenedorModal {
   position: fixed;
-  inset: 0; /* top, right, bottom, left en 0 */
-  background-color: rgba(0, 0, 0, 0.6);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 1rem; /* margen para móviles */
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
 }
 
-/* Caja modal */
 .modal {
-  background-color: #ffffff;
-  padding: 1.8rem;
-  border-radius: 0.6rem;
-  min-width: 350px;
-  max-width: 600px;
-  width: 100%;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  animation: aparecer 0.3s ease-out;
+  background: #fff;
+  border-radius: 16px;
+  width: 560px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative; /* importante para que el botón se posicione relativo al modal */
 }
 
-/* Animación suave al abrir */
-@keyframes aparecer {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Header */
 .headerModal {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 0.8rem;
+  padding: 1.5rem 1.5rem 0;
+  margin-bottom: 1rem;
 }
 
 .headerModal h2 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #111827;
+  color: #1a1a1a;
+  letter-spacing: -0.025em;
 }
 
-/* Botón cerrar */
-.headerModal button {
-  background-color: transparent;
+.botonCerrar {
+  background: none;
   border: none;
-  font-size: 1.6rem;
-  font-weight: bold;
   cursor: pointer;
-  color: #6b7280;
-  border-radius: 0.4rem;
-  transition: all 0.2s ease-in-out;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.2s ease;
 }
 
-.headerModal button:hover {
-  background-color: #ef4444;
-  color: #fff;
+.botonCerrar:hover {
+  background-color: #f1f5f9;
+  color: #334155;
+  transform: rotate(90deg);
 }
 
-/* Contenido */
 .contenido {
-  margin-top: 1.5rem;
-  font-size: 1rem;
-  color: #374151;
-  line-height: 1.5;
+  padding: 0 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-/* Footer */
+.recomendaciones {
+  background: linear-gradient(to bottom right, #f0f9ff, #e0f2fe);
+  padding: 1.25rem;
+  border-radius: 12px;
+  border-left: 4px solid #0ea5e9;
+  margin: 0.5rem 0;
+}
+
+.recomendaciones h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.recomendaciones h3:before {
+  content: "💡";
+  font-size: 1.2rem;
+}
+
+.recomendaciones ul {
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.recomendaciones li {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.5;
+  position: relative;
+}
+
+.recomendaciones li:before {
+  content: "";
+  position: absolute;
+  left: -1rem;
+  top: 0.6rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #0ea5e9;
+}
+
 .footer {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
-  padding-top: 1.5rem;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 0.5rem;
 }
 
-/* Botón guardar */
-.boton__guardar {
-  background-color: #2563eb; /* azul */
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-size: 0.95rem;
-  padding: 0.7rem 1.2rem;
-  border-radius: 0.4rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease-in-out, transform 0.1s;
-}
-
-.boton__guardar:hover {
-  background-color: #1d4ed8;
-  transform: scale(1.03);
-}
-
-/* Botón cancelar */
 .boton__cancelar {
-  background-color: transparent;
-  border: 1px solid #d1d5db;
-  font-size: 0.95rem;
-  font-weight: 500;
+  padding: 0.625rem 1.25rem;
+  background: #fcfaf8;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   cursor: pointer;
-  padding: 0.7rem 1.2rem;
-  border-radius: 0.4rem;
-  color: #374151;
-  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.2s ease;
 }
 
 .boton__cancelar:hover {
-  background-color: #ef4444;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.boton__guardar {
+  padding: 0.625rem 1.5rem;
+  background: linear-gradient(to right, #3b82f6, #2563eb);
   color: #fff;
-  border-color: #ef4444;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
+
+.boton__guardar:hover {
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 10px -1px rgba(59, 130, 246, 0.4);
+}
+
+.boton__guardar:active {
+  transform: translateY(0);
+}
+
+.boton__x {
+  padding: 0.625rem 1.25rem;
+  background: #e72424;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.2s ease;
+   top: 10px;   /* distancia desde arriba */
+  right: 10px; /* distancia desde la derecha */         /* a la derecha */
+}
+
+.boton__x:hover {
+  background: #e77cae;
+  color: #334155;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modal {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .headerModal,
+  .contenido,
+  .footer {
+    padding: 1rem;
+  }
+
+  .footer {
+    flex-direction: column-reverse;
+  }
+
+  .boton__cancelar,
+  .boton__guardar {
+    width: 100%;
+  }
 }

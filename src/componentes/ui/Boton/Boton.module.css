@@ -1,35 +1,15 @@
-.Boton {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%; /* asegura que el contenedor ocupe todo el ancho */
-}
-
-.Boton button {
-  padding: 0.9rem 1.4rem;
+.base {
+  padding: 8px 14px;
   border: none;
-  border-radius: 0.6rem;
-  background-color: #30475e;
-  color: #fff;
+  border-radius: 6px;
   cursor: pointer;
-  width: 100%;
-  font-size: 1rem;
   font-weight: 500;
-  letter-spacing: 0.3px;
-  transition: background-color 0.25s ease, transform 0.15s ease;
+  transition: background 0.2s ease;
 }
 
-.Boton button:hover {
-  background-color: #22313f; /* un poco más oscuro */
-  transform: translateY(-1px);
+.small {
+  padding: 4px 8px;
+  font-size: 0.85rem;
 }
 
-.Boton button:active {
-  background-color: #1a242f; /* aún más oscuro al presionar */
-  transform: translateY(0);
-}
-
-.Boton button:disabled {
-  background-color: #9ca3af; /* gris deshabilitado */
-  cursor: not-allowed;
-}
+/* puedes heredar colores con className */

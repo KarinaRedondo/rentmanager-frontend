@@ -1,4 +1,6 @@
 import type { EstadoContrato } from "../enumeraciones/estadoContrato";
+import type { FormaPago } from "../enumeraciones/formaPago";
+import type { TipoContrato } from "../enumeraciones/tipoContrato";
 import type { Inquilino } from "./Inquilino";
 import type { Propiedad } from "./Propiedad";
 
@@ -10,6 +12,10 @@ export interface Contrato {
   fechaFin: string;
   valorMensual: number; // BigDecimal → number
   estado: EstadoContrato;
+  contratoAnterior: Contrato;
+  observaciones: string;
+  tipoContrato: TipoContrato;
+  formaPago: FormaPago;
 }
 
 export type DTOContratoRegistro = Omit<Contrato, "idContrato">;

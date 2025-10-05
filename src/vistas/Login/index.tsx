@@ -34,16 +34,16 @@ const Login: React.FC = () => {
       // Redirigir según rol del usuario
       switch (usuario.rol) {
         case "ADMINISTRADOR":
-          navigate("/dashboard");
+          navigate("/administrador/dashboard");
           break;
         case "PROPIETARIO":
-          navigate("/propiedades");
+          navigate("/propietario/dashboard");
           break;
         case "INQUILINO":
-          navigate("/tablero");
+          navigate("/inquilino/tablero");
           break;
         case "CONTADOR":
-          navigate("/panel");
+          navigate("/contador/panel");
           break;
         default:
           navigate("/");

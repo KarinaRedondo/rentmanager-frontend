@@ -1,3 +1,4 @@
+import type { EstadoCivil } from "../enumeraciones/estadoCivil";
 import type { DTOUsuarioRespuesta, Usuario } from "./Usuario";
 
 export interface Inquilino extends Usuario {
@@ -5,6 +6,7 @@ export interface Inquilino extends Usuario {
   referenciaPersonal?: string;
   ocupacion?: string;
   ingresosMensuales?: number; // BigDecimal → number en TS
+  estadoCivil: EstadoCivil
 }
 
 export type DTOInquilinoRegistro = Omit<Inquilino, "idUsuario">;

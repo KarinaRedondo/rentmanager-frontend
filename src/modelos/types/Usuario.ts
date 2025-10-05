@@ -1,4 +1,5 @@
 import type { EstadoUsuario } from "../enumeraciones/estadoUsuario";
+import type { TipoDocumento } from "../enumeraciones/tipoDocumento";
 import type { TipoUsuario } from "../enumeraciones/tipoUsuario";
 
 export interface Usuario {
@@ -7,8 +8,9 @@ export interface Usuario {
   apellido: string;
   correo: string;
   contrasena: string;
+  tipoDocumento: TipoDocumento;
+  numeroDocumento: string;
   tipoUsuario: TipoUsuario;
-  documentoIdentidad: string;
   telefono?: string;
   estado: EstadoUsuario;
   fechaRegistro: string; // viene como ISO string desde la API

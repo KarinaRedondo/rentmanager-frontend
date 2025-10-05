@@ -7,6 +7,7 @@ interface PropsModal {
   nombreModal: string;
   children: React.ReactNode;
   guardar: () => void;
+  recomendaciones?: string[]; // Opcional
 }
 
 export const ModalComponente = ({
@@ -15,6 +16,7 @@ export const ModalComponente = ({
   nombreModal,
   children,
   guardar,
+  recomendaciones = [],
 }: PropsModal) => {
   const cerrarModal = () => {
     setOpenModal(false);
@@ -27,8 +29,25 @@ export const ModalComponente = ({
       <div className={styles.modal}>
         <div className={styles.headerModal}>
           <h2>{nombreModal}</h2>
+          <button className={styles.boton__x} onClick={cerrarModal}>
+            X
+          </button>
         </div>
-        <div className={styles.contenido}>{children}</div>
+        <div className={styles.contenido}>
+          {children}
+
+          {recomendaciones.length > 0 && (
+            <div className={styles.recomendaciones}>
+              <h3>Recomendaciones:</h3>
+              <ul>
+                {recomendaciones.map((rec, idx) => (
+                  <li key={idx}>{rec}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
         <div className={styles.footer}>
           <button className={styles.boton__cancelar} onClick={cerrarModal}>
             Cancelar

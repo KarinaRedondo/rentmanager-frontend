@@ -1,4 +1,4 @@
-import { urlApi } from "../api";
+import { urlApi } from "../app/api"; 
 import type { DTOPropietarioRegistro, DTOPropietarioRespuesta } from "../modelos/types/Propietario";
 
 const API_URL = "/api/v1/propietario";

@@ -1,4 +1,4 @@
-import { urlApi } from "../api";
+import { urlApi } from "../app/api"; 
 
 const API_URL = "/api/v1/auth";
 
@@ -13,6 +13,8 @@ export class AuthService {
     const { data } = await urlApi.post(`${API_URL}/login`, {
       correo,
       contrasena,
+
+      
     });
     return data;
   }

@@ -1,4 +1,4 @@
-import { urlApi } from "../api";
+import { urlApi } from "../app/api"; 
 import type { DTOContadorRegistro, DTOContadorRespuesta } from "../modelos/types/Contador";
 
 const API_URL = "/api/v1/contador";

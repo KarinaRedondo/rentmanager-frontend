@@ -1,7 +1,7 @@
-import { urlApi } from "../api";
+import { urlApi } from "../app/api"; 
 import type { DTOServicioExtraActualizar, DTOServicioExtraRegistro, DTOServicioExtraRespuesta } from "../modelos/types/ServicioExtra";
 
-const API_URL = "api/v1/servicios-extra";
+const API_URL = "/api/v1/servicios-extra";
 
 export class ServicioExtraService {
   // Obtener todos los servicios extra

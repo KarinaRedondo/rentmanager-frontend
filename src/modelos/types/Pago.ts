@@ -1,13 +1,17 @@
 import type { EstadoPago } from "../enumeraciones/estadoPago";
-import type { Contrato } from "./Contrato";
+import type { MetodoPago } from "../enumeraciones/metodoPago";
 import type { Factura } from "./Factura";
 
 export interface Pago {
   idPago: number;
-  contrato: Contrato;
   factura: Factura;
-  mes: string; // LocalDate → string
+  fecha: Date;
   monto: number;
+  metodoPago: MetodoPago;
+  referenciaTransaccion: string;
+  comprobanteURL: string;
+  bancoOrigen: string;
+  bancoDestino: string;
   estado: EstadoPago;
 }
 

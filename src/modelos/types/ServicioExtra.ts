@@ -1,13 +1,13 @@
-import type { Contrato } from "./Contrato";
+import type { TipoServicioExtra } from "../enumeraciones/tipoServicioExtra";
 import type { Factura } from "./Factura";
 
 export interface ServicioExtra {
   idServicio: number;
-  contrato: Contrato;
   factura: Factura;
   descripcion: string;
   valor: number;
   fecha: string;
+  tipoServicioExtra: TipoServicioExtra
 }
 
 export type DTOServicioExtraRegistro = Omit<ServicioExtra, "idServicio">;

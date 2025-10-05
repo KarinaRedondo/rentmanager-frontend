@@ -1,8 +1,9 @@
+import type { EspecialidadContador } from "../enumeraciones/especialidadContador";
 import type { DTOUsuarioRespuesta, Usuario } from "./Usuario";
 
 export interface Contador extends Usuario {
   numeroTarjetaProfesional: string;
-  especialidad?: string;
+ especialidadContador:EspecialidadContador;
 }
 
 export type DTOContadorRegistro = Omit<Contador, "idUsuario">;
