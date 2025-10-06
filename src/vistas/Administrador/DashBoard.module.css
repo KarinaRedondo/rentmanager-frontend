@@ -1,0 +1,577 @@
+.dashboard {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+}
+
+.contenedor {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ===== Encabezado ===== */
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.encabezado h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.subtitulo {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+.accionesEncabezado {
+  display: flex;
+  gap: 1rem;
+}
+
+/* ===== Grid de Estadísticas ===== */
+.gridEstadisticas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tarjetaEstadistica {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.tarjetaEstadistica:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.iconoEstadistica {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.contenidoEstadistica {
+  flex: 1;
+}
+
+.tituloEstadistica {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.valorEstadistica {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.descripcionEstadistica {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0 0 0.75rem 0;
+}
+
+.tendencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+.tendenciaNegativa {
+  color: #dc2626;
+}
+
+/* ===== Alertas ===== */
+.seccionAlertas {
+  margin-bottom: 2rem;
+}
+
+.tarjeta {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.headerTarjeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.tituloConIcono {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.iconoTitulo {
+  color: #f59e0b;
+}
+
+.headerTarjeta h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.subtituloTarjeta {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+}
+
+.contenidoTarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alerta {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+  transition: all 0.3s ease;
+}
+
+.alerta.warning {
+  background: #fef3c7;
+  border-left-color: #f59e0b;
+}
+
+.alerta.error {
+  background: #fee2e2;
+  border-left-color: #ef4444;
+}
+
+.alerta.info {
+  background: #dbeafe;
+  border-left-color: #3b82f6;
+}
+
+.iconoAlerta {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alerta.warning .iconoAlerta {
+  color: #f59e0b;
+}
+
+.alerta.error .iconoAlerta {
+  color: #ef4444;
+}
+
+.alerta.info .iconoAlerta {
+  color: #3b82f6;
+}
+
+.contenidoAlerta {
+  flex: 1;
+}
+
+.mensajeAlerta {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+}
+
+.tiempoAlerta {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ===== Grid de Tablas ===== */
+.gridTablas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ===== Items de Lista ===== */
+.itemLista {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.itemLista:hover {
+  background: #f3f4f6;
+}
+
+.avatarItem {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.infoItem {
+  flex: 1;
+  min-width: 0;
+}
+
+.nombreItem {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emailItem {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badgesItem {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.badgeRol,
+.estadoActivo,
+.estadoPendiente,
+.estadoInactivo,
+.estadoArrendada,
+.estadoMantenimiento,
+.estadoDefault {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badgeRol {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.estadoActivo {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.estadoPendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.estadoInactivo {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.estadoArrendada {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.estadoMantenimiento {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.estadoDefault {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* ===== Menú Desplegable ===== */
+.menuContainer {
+  position: relative;
+}
+
+.btnMenu {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnMenu:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.menuDesplegable {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  z-index: 100;
+  min-width: 150px;
+  margin-top: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.menuDesplegable button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.menuDesplegable button:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.btnEliminar {
+  color: #ef4444 !important;
+}
+
+.btnEliminar:hover {
+  background: #fee2e2 !important;
+}
+
+.btnSecundario {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnSecundario:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* ===== Estados de carga ===== */
+.cargando,
+.errorContenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  color: #ef4444;
+  text-align: center;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .gridTablas {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+
+  .encabezado {
+    flex-direction: column;
+  }
+
+  .accionesEncabezado {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .gridEstadisticas {
+    grid-template-columns: 1fr;
+  }
+
+  .badgesItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Agrega al final de tu DashBoard.module.css */
+
+/* ===== Overlay de procesamiento ===== */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.overlayContenido {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.overlayContenido p {
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ===== Estado sin datos ===== */
+.sinDatos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #9ca3af;
+}
+
+.iconoSinDatos {
+  margin-bottom: 1rem;
+  color: #d1d5db;
+}
+
+.sinDatos p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* ===== Mejoras en menú desplegable ===== */
+.menuDesplegable button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnAprobar {
+  color: #059669 !important;
+}
+
+.btnAprobar:hover {
+  background: #d1fae5 !important;
+}
+
+/* ===== Estado de carga mejorado ===== */
+.textoCargando {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.iconoError {
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+/* ===== Mejoras en estados ===== */
+.estadoPendiente,
+.estadoMantenimiento {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}

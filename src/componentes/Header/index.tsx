@@ -72,32 +72,18 @@ const Header: React.FC = () => {
       case "ADMINISTRADOR":
         return [
           { nombre: "Dashboard", ruta: "/administrador/dashboard" },
-          { nombre: "Usuarios", ruta: "/administrador/usuarios" },
-          { nombre: "Contratos", ruta: "/administrador/contratos" },
         ];
       case "PROPIETARIO":
         return [
           { nombre: "Dashboard", ruta: "/propietario/dashboard" },
-          { nombre: "Propiedades", ruta: "/propietario/propiedades" },
-          { nombre: "Contratos", ruta: "/propietario/contratos" },
-          { nombre: "Facturas", ruta: "/propietario/facturas" },
-          { nombre: "Pagos", ruta: "/propietario/pagos" },
         ];
       case "INQUILINO":
         return [
           { nombre: "Tablero", ruta: "/inquilino/tablero" },
-          { nombre: "Propiedad", ruta: "/inquilino/propiedad" },
-          { nombre: "Pagos", ruta: "/inquilino/pagos" },
-          { nombre: "Facturas", ruta: "/inquilino/facturas" },
-          { nombre: "Servicios", ruta: "/inquilino/servicios" },
-          { nombre: "Contratos", ruta: "/inquilino/contratos" },
         ];
       case "CONTADOR":
         return [
           { nombre: "Panel", ruta: "/contador/panel" },
-          { nombre: "Pagos", ruta: "/contador/pagos" },
-          { nombre: "Facturas", ruta: "/contador/facturas" },
-          { nombre: "Filtros", ruta: "/contador/filtros" },
         ];
       default:
         return [];

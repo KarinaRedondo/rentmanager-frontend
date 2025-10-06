@@ -1,4 +1,3 @@
-// TablaBase.tsx
 import React from "react";
 import styles from "./TablaBase.module.css";
 

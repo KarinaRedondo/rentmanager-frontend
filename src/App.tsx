@@ -1,13 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Inicio from "./vistas/Inicio";
 import Login from "./vistas/Login";
-import Usuarios from "./vistas/Administrador/Usuarios";
-import VistaContratos from "./vistas/Administrador/Contratos";
-import VistaPropiedades from "./vistas/Inquilino/Propiedad";
-import Pagos from "./vistas/Inquilino/Pagos";
 import ProtectedRoute from "./app/routes";
 import { TipoUsuario } from "./modelos/enumeraciones/tipoUsuario"; 
-// ⚡ Ejemplo: usuario logueado (simulado)
+import AdminDashboard from "./vistas/Administrador";
 const usuario = {
   tipoUsuario: TipoUsuario.ADMINISTRADOR, // cámbialo a INQUILINO para probar
 };
@@ -22,14 +18,12 @@ function App() {
 
         {/* ADMINISTRADOR */}
         <Route element={<ProtectedRoute allowedRoles={[TipoUsuario.ADMINISTRADOR]} usuario={usuario} />}>
-          <Route path="/administrador/usuarios" element={<Usuarios />} />
-          <Route path="/administrador/contratos" element={<VistaContratos />} />
+          <Route path="/administrador/dashboard" element={<AdminDashboard />} />
         </Route>
 
         {/* INQUILINO */}
         <Route element={<ProtectedRoute allowedRoles={[TipoUsuario.INQUILINO]} usuario={usuario} />}>
-          <Route path="/inquilino/propiedades" element={<VistaPropiedades />} />
-          <Route path="/inquilino/pagos" element={<Pagos />} />
+         
         </Route>
       </Routes>
     </BrowserRouter>
