@@ -16,7 +16,8 @@ export interface Propiedad {
   pisos: number;
   descripcion: string;
   anoCosnstruccion: number;
-  serviciosPublicos: ServiciosPublicos
+  serviciosPublicos?: ServiciosPublicos[];
+
 
 }
 

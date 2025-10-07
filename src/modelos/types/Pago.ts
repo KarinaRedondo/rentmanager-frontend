@@ -1,3 +1,4 @@
+import type { EntidadFinanciera } from "../enumeraciones/entidadFinanciera";
 import type { EstadoPago } from "../enumeraciones/estadoPago";
 import type { MetodoPago } from "../enumeraciones/metodoPago";
 import type { Factura } from "./Factura";
@@ -10,8 +11,8 @@ export interface Pago {
   metodoPago: MetodoPago;
   referenciaTransaccion: string;
   comprobanteURL: string;
-  bancoOrigen: string;
-  bancoDestino: string;
+  bancoOrigen: EntidadFinanciera;
+  bancoDestino: EntidadFinanciera;
   estado: EstadoPago;
 }
 

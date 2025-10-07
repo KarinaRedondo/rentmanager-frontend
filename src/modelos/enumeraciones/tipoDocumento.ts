@@ -1,6 +1,6 @@
 export const TipoDocumento = {
-    CEDULA: "CEDULA",
-    CEDULA_EXTRANJERIA: "CEDULA_EXTRANJERIA",
+    CC: "CC",
+    CE: "CE",
     NIT: "NIT",
     PASAPORTE: "PASAPORTE",
 }as const;

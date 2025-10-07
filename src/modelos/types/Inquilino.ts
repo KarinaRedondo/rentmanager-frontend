@@ -16,4 +16,5 @@ export interface DTOInquilinoRespuesta extends DTOUsuarioRespuesta {
   referenciaPersonal?: string;
   ocupacion?: string;
   ingresosMensuales?: number; // BigDecimal en backend -> number en frontend
+  estadoCivil?: EstadoCivil;
 }

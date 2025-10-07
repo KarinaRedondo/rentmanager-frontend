@@ -10,4 +10,5 @@ export type DTOAdministradorRegistro = Omit<Administrador, "idUsuario">;
 export type DTOAdministradorActualizar = Partial<Administrador>;
 export interface DTOAdministradorRespuesta extends DTOUsuarioRespuesta {
   cargo?: string;
+  nivelAcceso: NivelAcceso;
 }

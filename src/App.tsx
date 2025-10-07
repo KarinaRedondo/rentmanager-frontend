@@ -4,6 +4,8 @@ import Login from "./vistas/Login";
 import ProtectedRoute from "./app/routes";
 import { TipoUsuario } from "./modelos/enumeraciones/tipoUsuario"; 
 import AdminDashboard from "./vistas/Administrador";
+import Usuarios from "./vistas/Administrador/Usuarios";
+import Propiedades from "./vistas/Administrador/Propiedades";
 const usuario = {
   tipoUsuario: TipoUsuario.ADMINISTRADOR, // cámbialo a INQUILINO para probar
 };
@@ -19,6 +21,8 @@ function App() {
         {/* ADMINISTRADOR */}
         <Route element={<ProtectedRoute allowedRoles={[TipoUsuario.ADMINISTRADOR]} usuario={usuario} />}>
           <Route path="/administrador/dashboard" element={<AdminDashboard />} />
+          <Route path="/administrador/usuarios" element={<Usuarios />} />
+          <Route path="/administrador/propiedades" element={<Propiedades />} />
         </Route>
 
         {/* INQUILINO */}

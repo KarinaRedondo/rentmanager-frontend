@@ -12,6 +12,7 @@ interface Props {
   datos: any[];
   onEditar?: (fila: any) => void;
   onEliminar?: (fila: any) => void;
+  
 }
 
 export const TablaBase: React.FC<Props> = ({

@@ -24,7 +24,8 @@ export interface DTOUsuarioRespuesta {
   apellido: string;
   correo: string;
   tipoUsuario: TipoUsuario;
-  documentoIdentidad: string;
+  tipoDocumento: TipoDocumento;
+  numeroDocumento: string;
   telefono?: string;
   estado: EstadoUsuario;
   fechaRegistro: string;

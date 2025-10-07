@@ -4,9 +4,13 @@ import Header from "../../componentes/Header";
 import Footer from "../../componentes/Footer";
 import { BotonComponente } from "../../componentes/ui/Boton";
 import { UsuarioService } from "../../servicios/usuarios";
-import { obtenerPropiedades, eliminarPropiedad, actualizarPropiedad } from "../../servicios/propiedades";
-import { obtenerContratos } from "../../servicios/contratos"; 
-import { obtenerFacturas } from "../../servicios/facturas"; 
+import {
+  obtenerPropiedades,
+  eliminarPropiedad,
+  actualizarPropiedad,
+} from "../../servicios/propiedades";
+import { obtenerContratos } from "../../servicios/contratos";
+import { obtenerFacturas } from "../../servicios/facturas";
 import type { DTOPropiedadRespuesta } from "../../modelos/types/Propiedad";
 import type { DTOContratoRespuesta } from "../../modelos/types/Contrato";
 import type { DTOFacturaRespuesta } from "../../modelos/types/Factura";
@@ -15,10 +19,10 @@ import { EstadoFactura } from "../../modelos/enumeraciones/estadoFactura";
 import { EstadoPropiedad } from "../../modelos/enumeraciones/estadoPropiedad";
 import { TipoUsuario } from "../../modelos/enumeraciones/tipoUsuario";
 import styles from "./DashBoard.module.css";
-import { 
-  FileText, 
-  Users, 
-  DollarSign, 
+import {
+  FileText,
+  Users,
+  DollarSign,
   TrendingUp,
   TrendingDown,
   AlertTriangle,
@@ -30,7 +34,7 @@ import {
   Edit2,
   Trash2,
   CheckCircle,
-  XCircle
+  XCircle,
 } from "react-feather";
 
 interface Alerta {
@@ -104,8 +108,11 @@ const AdminDashboard: React.FC = () => {
 
       // Verificar tanto 'rol' como 'tipoUsuario' para compatibilidad
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
-      
-      if (rolUsuario !== "ADMINISTRADOR" && rolUsuario !== TipoUsuario.ADMINISTRADOR) {
+
+      if (
+        rolUsuario !== "ADMINISTRADOR" &&
+        rolUsuario !== TipoUsuario.ADMINISTRADOR
+      ) {
         console.error("🚫 Acceso denegado: usuario no es administrador");
         console.error("Rol encontrado:", rolUsuario);
         alert("No tienes permisos para acceder a esta sección");
@@ -113,7 +120,12 @@ const AdminDashboard: React.FC = () => {
         return;
       }
 
-      console.log("✅ Acceso verificado - Usuario:", usuario.nombre, "| Rol:", rolUsuario);
+      console.log(
+        "✅ Acceso verificado - Usuario:",
+        usuario.nombre,
+        "| Rol:",
+        rolUsuario
+      );
       await cargarDatosIniciales();
     } catch (err: any) {
       console.error("❌ Error al verificar acceso:", err);
@@ -143,7 +155,10 @@ const AdminDashboard: React.FC = () => {
         setUsuarios(resultados[0].value);
         console.log("✅ Usuarios cargados:", resultados[0].value.length);
       } else {
-        console.warn("⚠️ No se pudieron cargar usuarios:", resultados[0].reason);
+        console.warn(
+          "⚠️ No se pudieron cargar usuarios:",
+          resultados[0].reason
+        );
         setUsuarios([]);
       }
 
@@ -152,7 +167,10 @@ const AdminDashboard: React.FC = () => {
         setPropiedades(resultados[1].value);
         console.log("✅ Propiedades cargadas:", resultados[1].value.length);
       } else {
-        console.warn("⚠️ No se pudieron cargar propiedades:", resultados[1].reason);
+        console.warn(
+          "⚠️ No se pudieron cargar propiedades:",
+          resultados[1].reason
+        );
         setPropiedades([]);
       }
 
@@ -161,7 +179,10 @@ const AdminDashboard: React.FC = () => {
         setContratos(resultados[2].value);
         console.log("✅ Contratos cargados:", resultados[2].value.length);
       } else {
-        console.warn("⚠️ No se pudieron cargar contratos:", resultados[2].reason);
+        console.warn(
+          "⚠️ No se pudieron cargar contratos:",
+          resultados[2].reason
+        );
         setContratos([]);
       }
 
@@ -170,13 +191,18 @@ const AdminDashboard: React.FC = () => {
         setFacturas(resultados[3].value);
         console.log("✅ Facturas cargadas:", resultados[3].value.length);
       } else {
-        console.warn("⚠️ No se pudieron cargar facturas:", resultados[3].reason);
+        console.warn(
+          "⚠️ No se pudieron cargar facturas:",
+          resultados[3].reason
+        );
         setFacturas([]);
       }
 
       // Generar alertas
-      const contratosValidos = resultados[2].status === "fulfilled" ? resultados[2].value : [];
-      const propiedadesValidas = resultados[1].status === "fulfilled" ? resultados[1].value : [];
+      const contratosValidos =
+        resultados[2].status === "fulfilled" ? resultados[2].value : [];
+      const propiedadesValidas =
+        resultados[1].status === "fulfilled" ? resultados[1].value : [];
       generarAlertas(contratosValidos, propiedadesValidas);
 
       console.log("✅ Carga de datos completada exitosamente");
@@ -191,19 +217,19 @@ const AdminDashboard: React.FC = () => {
   // ============================================
   // CARGAR DATOS
   // ============================================
-const cargarUsuarios = async (): Promise<Usuario[]> => {
-  try {
-    console.log("🔄 Llamando a UsuarioService.listarTodos()...");
-    const data = await UsuarioService.listarTodos();
-    console.log("📦 Datos recibidos:", data);
-    console.log("📊 Cantidad de usuarios:", data.length);
-    console.log("👤 Primer usuario:", data[0]);
-    return data;
-  } catch (err: any) {
-    console.error("❌ Error al cargar usuarios:", err);
-    throw new Error("No se pudieron cargar los usuarios");
-  }
-};
+  const cargarUsuarios = async (): Promise<Usuario[]> => {
+    try {
+      console.log("🔄 Llamando a UsuarioService.listarTodos()...");
+      const data = await UsuarioService.listarTodos();
+      console.log("📦 Datos recibidos:", data);
+      console.log("📊 Cantidad de usuarios:", data.length);
+      console.log("👤 Primer usuario:", data[0]);
+      return data;
+    } catch (err: any) {
+      console.error("❌ Error al cargar usuarios:", err);
+      throw new Error("No se pudieron cargar los usuarios");
+    }
+  };
 
   const cargarPropiedades = async (): Promise<DTOPropiedadRespuesta[]> => {
     try {
@@ -332,9 +358,11 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
 
   const handleEliminarUsuario = async (usuario: Usuario) => {
     setMenuAbierto(null);
-    
+
     const confirmar = window.confirm(
-      `¿Está seguro de suspender al usuario ${usuario.nombre} ${usuario.apellido || ""}?\n\nEsta acción desactivará su cuenta.`
+      `¿Está seguro de suspender al usuario ${usuario.nombre} ${
+        usuario.apellido || ""
+      }?\n\nEsta acción desactivará su cuenta.`
     );
 
     if (!confirmar) return;
@@ -342,13 +370,13 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
     try {
       setProcesando(true);
       console.log("🗑️ Suspendiendo usuario:", usuario.idUsuario);
-      
+
       await UsuarioService.eliminar(usuario.idUsuario);
-      
+
       // Recargar usuarios
       const usuariosActualizados = await cargarUsuarios();
       setUsuarios(usuariosActualizados);
-      
+
       alert("✅ Usuario suspendido correctamente");
     } catch (err: any) {
       console.error("❌ Error al suspender usuario:", err);
@@ -488,11 +516,14 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
 
   const obtenerColorEstado = (estado: string | undefined): string => {
     if (!estado) return styles.estadoDefault;
-    
+
     const estadoLower = estado.toLowerCase();
     if (estadoLower === "activo" || estadoLower === "disponible") {
       return styles.estadoActivo;
-    } else if (estadoLower === "pendiente" || estadoLower.includes("verificacion")) {
+    } else if (
+      estadoLower === "pendiente" ||
+      estadoLower.includes("verificacion")
+    ) {
       return styles.estadoPendiente;
     } else if (estadoLower === "inactivo" || estadoLower === "suspendido") {
       return styles.estadoInactivo;
@@ -542,8 +573,8 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
             <XCircle size={64} className={styles.iconoError} />
             <h2>Error al cargar datos</h2>
             <p className={styles.error}>{error}</p>
-            <BotonComponente 
-              label="Reintentar" 
+            <BotonComponente
+              label="Reintentar"
               onClick={cargarDatosIniciales}
             />
           </div>
@@ -587,10 +618,6 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
                 label="📊 Reportes"
                 onClick={handleVerReportes}
               />
-              <BotonComponente
-                label="➕ Nuevo Usuario"
-                onClick={handleNuevoUsuario}
-              />
             </div>
           </div>
 
@@ -602,9 +629,15 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
                 <Home size={24} />
               </div>
               <div className={styles.contenidoEstadistica}>
-                <p className={styles.tituloEstadistica}>Propiedades Registradas</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.totalPropiedades}</h2>
-                <p className={styles.descripcionEstadistica}>Total de propiedades en el sistema</p>
+                <p className={styles.tituloEstadistica}>
+                  Propiedades Registradas
+                </p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.totalPropiedades}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  Total de propiedades en el sistema
+                </p>
                 <div className={styles.tendencia}>
                   <TrendingUp size={14} />
                   <span>+12% vs mes anterior</span>
@@ -619,8 +652,12 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.tituloEstadistica}>Contratos Activos</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.contratosActivos}</h2>
-                <p className={styles.descripcionEstadistica}>Contratos vigentes</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.contratosActivos}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  Contratos vigentes
+                </p>
                 <div className={styles.tendencia}>
                   <TrendingUp size={14} />
                   <span>+8% vs mes anterior</span>
@@ -635,7 +672,9 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.tituloEstadistica}>Usuarios Totales</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.totalUsuarios}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.totalUsuarios}
+                </h2>
                 <p className={styles.descripcionEstadistica}>
                   Propietarios, inquilinos y contadores
                 </p>
@@ -656,8 +695,12 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
                 <h2 className={styles.valorEstadistica}>
                   ${estadisticas.pagosPendientes.toLocaleString("es-CO")}
                 </h2>
-                <p className={styles.descripcionEstadistica}>Facturas por cobrar</p>
-                <div className={`${styles.tendencia} ${styles.tendenciaNegativa}`}>
+                <p className={styles.descripcionEstadistica}>
+                  Facturas por cobrar
+                </p>
+                <div
+                  className={`${styles.tendencia} ${styles.tendenciaNegativa}`}
+                >
                   <TrendingDown size={14} />
                   <span>-5% vs mes anterior</span>
                 </div>
@@ -735,7 +778,9 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
                         <p className={styles.emailItem}>{usuario.correo}</p>
                       </div>
                       <div className={styles.badgesItem}>
-                        <span className={styles.badgeRol}>{usuario.tipoUsuario}</span>
+                        <span className={styles.badgeRol}>
+                          {usuario.tipoUsuario}
+                        </span>
                         <span className={obtenerColorEstado(usuario.estado)}>
                           {formatearEstado(usuario.estado)}
                         </span>
@@ -754,7 +799,9 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
                               <Eye size={16} />
                               Ver detalles
                             </button>
-                            <button onClick={() => handleEditarUsuario(usuario)}>
+                            <button
+                              onClick={() => handleEditarUsuario(usuario)}
+                            >
                               <Edit2 size={16} />
                               Editar
                             </button>
@@ -798,14 +845,20 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
                   </div>
                 ) : (
                   propiedades.slice(0, 3).map((propiedad) => (
-                    <div key={propiedad.idPropiedad} className={styles.itemLista}>
+                    <div
+                      key={propiedad.idPropiedad}
+                      className={styles.itemLista}
+                    >
                       <div className={styles.avatarItem}>
                         <Home size={20} />
                       </div>
                       <div className={styles.infoItem}>
-                        <p className={styles.nombreItem}>{propiedad.direccion}</p>
+                        <p className={styles.nombreItem}>
+                          {propiedad.direccion}
+                        </p>
                         <p className={styles.emailItem}>
-                          {propiedad.ciudad} • {propiedad.nombrePropietario || "Sin propietario"}
+                          {propiedad.ciudad} •{" "}
+                          {propiedad.nombrePropietario || "Sin propietario"}
                         </p>
                       </div>
                       <div className={styles.badgesItem}>
@@ -823,18 +876,25 @@ const cargarUsuarios = async (): Promise<Usuario[]> => {
                         </button>
                         {menuAbierto === propiedad.idPropiedad && (
                           <div className={styles.menuDesplegable}>
-                            <button onClick={() => handleVerPropiedad(propiedad)}>
+                            <button
+                              onClick={() => handleVerPropiedad(propiedad)}
+                            >
                               <Eye size={16} />
                               Ver detalles
                             </button>
-                            <button onClick={() => handleEditarPropiedad(propiedad)}>
+                            <button
+                              onClick={() => handleEditarPropiedad(propiedad)}
+                            >
                               <Edit2 size={16} />
                               Editar
                             </button>
-                            {propiedad.estado === EstadoPropiedad.EN_VERIFICACION && (
-                              <button 
+                            {propiedad.estado ===
+                              EstadoPropiedad.EN_VERIFICACION && (
+                              <button
                                 className={styles.btnAprobar}
-                                onClick={() => handleAprobarPropiedad(propiedad)}
+                                onClick={() =>
+                                  handleAprobarPropiedad(propiedad)
+                                }
                               >
                                 <CheckCircle size={16} />
                                 Aprobar

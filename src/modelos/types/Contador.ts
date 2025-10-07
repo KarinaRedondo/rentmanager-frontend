@@ -10,5 +10,5 @@ export type DTOContadorRegistro = Omit<Contador, "idUsuario">;
 export type DTOContadorActualizar = Partial<Contador>;
 export interface DTOContadorRespuesta extends DTOUsuarioRespuesta {
   numeroTarjetaProfesional?: string;
-  especialidad?: string;
+  especialidadContador?: EspecialidadContador;
 }
