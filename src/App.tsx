@@ -6,6 +6,9 @@ import { TipoUsuario } from "./modelos/enumeraciones/tipoUsuario";
 import AdminDashboard from "./vistas/Administrador";
 import PropietarioDashboard from "./vistas/Propietario";
 import Propiedades from "./vistas/Administrador/Propiedades";
+import Usuarios from "./vistas/Administrador/Usuarios";
+import InquilinoDashboard from "./vistas/Inquilino";
+import ContadorDashboard from "./vistas/Contador";
 
 function App() {
   // Cargar usuario guardado en localStorage
@@ -29,6 +32,7 @@ function App() {
           }
         >
           <Route path="/administrador/dashboard" element={<AdminDashboard />} />
+           <Route path="/administrador/usuarios" element={<Usuarios />} />
            <Route path="/administrador/propiedades" element={<Propiedades />} />
         </Route>
 
@@ -44,6 +48,36 @@ function App() {
           <Route
             path="/propietario/dashboard"
             element={<PropietarioDashboard />}
+          />
+        </Route>
+
+         {/* INQUILINO */}
+        <Route
+          element={
+            <ProtectedRoute
+              allowedRoles={[TipoUsuario.INQUILINO]}
+              usuario={usuario}
+            />
+          }
+        >
+          <Route
+            path="/inquilino/dashboard"
+            element={<InquilinoDashboard />}
+          />
+        </Route>
+
+         {/* CONTADOR */}
+        <Route
+          element={
+            <ProtectedRoute
+              allowedRoles={[TipoUsuario.CONTADOR]}
+              usuario={usuario}
+            />
+          }
+        >
+          <Route
+            path="/contador/dashboard"
+            element={<ContadorDashboard />}
           />
         </Route>
       </Routes>

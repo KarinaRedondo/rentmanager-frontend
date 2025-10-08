@@ -40,10 +40,10 @@ const Login: React.FC = () => {
           navigate("/propietario/dashboard");
           break;
         case "INQUILINO":
-          navigate("/inquilino/tablero");
+          navigate("/inquilino/dashboard");
           break;
         case "CONTADOR":
-          navigate("/contador/panel");
+          navigate("/contador/dashboard");
           break;
         default:
           navigate("/");

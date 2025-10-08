@@ -1,6 +1,6 @@
 .header {
   background: linear-gradient(135deg, var(--primary-color) 0%, #2980b9 100%);
-  box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.5rem 2rem rgba(161, 142, 142, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -430,19 +430,29 @@
 
 /* Estilo del header para la vista de inicio */
 .headerInicio {
-  background: linear-gradient(90deg, #ffffff, #f9fafb);
-  color: #111827; 
+  background: linear-gradient(90deg, #dee2ff, #b6ccfe);
+  color: #1e293b; /* texto gris oscuro elegante */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 60px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* sombra más elegante */
+  width: 55%; /* tamaño más pequeño y centrado */
+  margin: 25px auto; /* centrado horizontal */
+  padding: 8px 24px; /* espacio interno equilibrado */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* sombra sutil y profesional */
+  border-radius: 16px; /* bordes redondeados */
   position: sticky;
-  top: 0;
-  border-radius: 12px; /* bordes redondeados */
-  top: 20px; /* se queda un poco flotando al hacer scroll */
+  top: 20px;
+  backdrop-filter: blur(10px); /* efecto de vidrio */
+  border: 1px solid rgba(255, 255, 255, 0.6); /* borde semitransparente elegante */
   z-index: 100;
-  transition: background 0.3s ease, padding 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+/* efecto al pasar el cursor (hover) */
+.headerInicio:hover {
+  background: linear-gradient(90deg, #edf2f7, #dbeafe);
+  transform: scale(1.02); /* ligero aumento */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
 /* Logo */
@@ -562,27 +572,41 @@
 }
 
 /* Suavizar el avatar y logo */
-.logo, .avatar {
+.logo,
+.avatar {
   transition: transform 0.35s ease, filter 0.35s ease;
 }
-.logo:hover, .avatar:hover {
+.logo:hover,
+.avatar:hover {
   transform: scale(1.08) rotate(-1deg);
   filter: brightness(1.1);
 }
 
 /* Header para usuario logueado */
 .encabezado {
-  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  background: linear-gradient(90deg, #dee2ff, #b6ccfe);
+  color: #1e293b; /* tono gris oscuro elegante */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 50px;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  width: 55%; /* más pequeño y centrado */
+  margin: 20px auto; /* centrado horizontalmente */
+  padding: 10px 30px; /* espacio interno balanceado */
+  border-radius: 16px; /* bordes suaves y modernos */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* sombra sutil */
+  border: 1px solid rgba(255, 255, 255, 0.6); /* borde semitransparente */
+  backdrop-filter: blur(10px); /* efecto vidrio */
   position: sticky;
-  top: 10px;
+  top: 15px;
   z-index: 100;
-  transition: background 0.3s ease, padding 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+/* efecto hover profesional */
+.encabezado:hover {
+  background: linear-gradient(90deg, #edf2f7, #dbeafe);
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
 /* Menú principal para cualquier usuario */
@@ -663,7 +687,7 @@
   .botonCerrar {
     margin-top: 15px;
   }
-} 
+}
 
 /* Sección de usuario */
 .userSection {
@@ -821,7 +845,7 @@
     right: -10px;
     min-width: 250px;
   }
-  
+
   .menuHeader {
     padding: 15px;
   }

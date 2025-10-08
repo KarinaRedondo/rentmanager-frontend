@@ -15,7 +15,7 @@ import { EstadoContrato } from "../../modelos/enumeraciones/estadoContrato";
 import { EstadoFactura } from "../../modelos/enumeraciones/estadoFactura";
 import { EstadoPropiedad } from "../../modelos/enumeraciones/estadoPropiedad";
 import { TipoUsuario } from "../../modelos/enumeraciones/tipoUsuario";
-import styles from "./DashBoard.module.css";
+import styles from "./AdminDashboard.module.css";
 import {
   FileText,
   Users,
