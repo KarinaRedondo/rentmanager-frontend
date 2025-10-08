@@ -1,0 +1,832 @@
+/* ===== Base ===== */
+.dashboard {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+}
+
+.contenedor {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ===== Encabezado ===== */
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.encabezado h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.subtitulo {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+.accionesEncabezado {
+  display: flex;
+  gap: 1rem;
+}
+
+/* ===== Grid de Estadísticas ===== */
+.gridEstadisticas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tarjetaEstadistica {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.tarjetaEstadistica:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.iconoEstadistica {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.contenidoEstadistica {
+  flex: 1;
+}
+
+.tituloEstadistica {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.valorEstadistica {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.descripcionEstadistica {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0 0 0.75rem 0;
+}
+
+.tendencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+/* ===== Sección Propiedades ===== */
+.seccionPropiedades {
+  margin-bottom: 2rem;
+}
+
+.headerSeccion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.headerSeccion h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.headerSeccion p {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0 0;
+}
+
+.btnSecundario {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnSecundario:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* ===== Grid de Propiedades ===== */
+.gridPropiedades {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.tarjetaPropiedad {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.tarjetaPropiedad:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.imagenPropiedad {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.imagenPropiedad img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.tarjetaPropiedad:hover .imagenPropiedad img {
+  transform: scale(1.05);
+}
+
+.imagenPropiedad span {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+}
+
+/* Estados de propiedad */
+.estadoArrendada {
+  background: rgba(16, 185, 129, 0.9);
+  color: white;
+}
+
+.estadoDisponible {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+}
+
+.estadoMantenimiento {
+  background: rgba(245, 158, 11, 0.9);
+  color: white;
+}
+
+.estadoReservada {
+  background: rgba(168, 85, 247, 0.9);
+  color: white;
+}
+
+.estadoDefault {
+  background: rgba(107, 114, 128, 0.9);
+  color: white;
+}
+
+/* ===== Contenido Propiedad ===== */
+.contenidoPropiedad {
+  padding: 1.25rem;
+}
+
+.encabezadoPropiedad {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.encabezadoPropiedad h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+.tipoPropiedad {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.detallesPropiedad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detalle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.labelDetalle {
+  color: #6b7280;
+}
+
+.valorDetalle {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* ===== Menú Desplegable ===== */
+.menuContainer {
+  position: relative;
+}
+
+.btnMenu {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnMenu:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.menuDesplegable {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  z-index: 100;
+  min-width: 150px;
+  margin-top: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.menuDesplegable button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.menuDesplegable button:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* ===== Grid Inferior ===== */
+.gridInferior {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.tarjeta {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.headerTarjeta {
+  margin-bottom: 1.5rem;
+}
+
+.headerTarjeta h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.subtituloTarjeta {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+}
+
+/* ===== Resumen de Ocupación ===== */
+.contenidoOcupacion {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.estadisticaOcupacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.porcentajeOcupacion {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.barraProgreso {
+  width: 100%;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progresoArrendadas {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  transition: width 0.5s ease;
+  border-radius: 6px;
+}
+
+.estadosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.estadoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.estadoIndicador {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.estadoNumero {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1;
+}
+
+.estadoLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+  text-transform: capitalize;
+}
+
+/* ===== Pagos y Contratos ===== */
+.listaPagos {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.itemPago {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.itemPago:hover {
+  background: #f3f4f6;
+}
+
+.infoPago {
+  flex: 1;
+}
+
+.propiedadPago {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.inquilinoPago {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0 0 0.25rem 0;
+}
+
+.fechaPago {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.montoPago {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.valorPago {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.estadoPagada {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #d1fae5;
+  color: #065f46;
+  text-transform: uppercase;
+}
+
+.estadoPendiente {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+  text-transform: uppercase;
+}
+
+.estadoActivo {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #d1fae5;
+  color: #065f46;
+  text-transform: uppercase;
+}
+
+.estadoFinalizado {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #374151;
+  text-transform: uppercase;
+}
+
+.estadoCancelado {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #991b1b;
+  text-transform: uppercase;
+}
+
+.btnVerTodos {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.btnVerTodos:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* ===== Facturas ===== */
+.listaFacturas {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.itemFactura {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.itemFactura:hover {
+  background: #f3f4f6;
+  border-left-color: #2563eb;
+}
+
+.iconoFactura {
+  flex-shrink: 0;
+}
+
+.iconoPagada {
+  color: #10b981;
+}
+
+.iconoPendiente {
+  color: #f59e0b;
+}
+
+.iconoVencida {
+  color: #ef4444;
+}
+
+.infoFactura {
+  flex: 1;
+}
+
+.numeroFactura {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.conceptoFactura {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0 0 0.25rem 0;
+}
+
+.fechaFactura {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.montoFactura {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.valorFactura {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.estadoVencida {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #991b1b;
+  text-transform: uppercase;
+}
+
+.btnVerDetalle {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnVerDetalle:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+}
+
+/* ===== Estados de carga ===== */
+.cargando,
+.errorContenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 1rem;
+}
+
+.cargando p,
+.errorContenedor h2 {
+  color: #374151;
+  margin: 0;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  color: #ef4444;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.sinDatos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #9ca3af;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #e5e7eb;
+}
+
+.iconoSinDatos {
+  margin-bottom: 1rem;
+  color: #d1d5db;
+}
+
+.sinDatos p {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1200px) {
+  .gridInferior {
+    grid-template-columns: 1fr;
+  }
+
+  .gridPropiedades {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+
+  .encabezado {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .accionesEncabezado {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .gridEstadisticas {
+    grid-template-columns: 1fr;
+  }
+
+  .gridPropiedades {
+    grid-template-columns: 1fr;
+  }
+
+  .estadosGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .headerSeccion {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .btnSecundario {
+    width: 100%;
+  }
+
+  .itemPago {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .montoPago {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .itemFactura {
+    flex-wrap: wrap;
+  }
+
+  .btnVerDetalle {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .encabezado h1 {
+    font-size: 1.5rem;
+  }
+
+  .valorEstadistica {
+    font-size: 1.5rem;
+  }
+
+  .gridEstadisticas {
+    gap: 1rem;
+  }
+
+  .tarjetaEstadistica {
+    padding: 1rem;
+  }
+}

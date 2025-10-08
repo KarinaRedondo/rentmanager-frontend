@@ -4,11 +4,8 @@ import Header from "../../componentes/Header";
 import Footer from "../../componentes/Footer";
 import { BotonComponente } from "../../componentes/ui/Boton";
 import { UsuarioService } from "../../servicios/usuarios";
-import {
-  obtenerPropiedades,
-  eliminarPropiedad,
-  actualizarPropiedad,
-} from "../../servicios/propiedades";
+import { PropiedadService } from "../../servicios/propiedades";
+const { obtenerPropiedades, eliminarPropiedad, actualizarPropiedad } = PropiedadService;
 import { obtenerContratos } from "../../servicios/contratos";
 import { obtenerFacturas } from "../../servicios/facturas";
 import type { DTOPropiedadRespuesta } from "../../modelos/types/Propiedad";

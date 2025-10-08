@@ -2,15 +2,15 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Inicio from "./vistas/Inicio";
 import Login from "./vistas/Login";
 import ProtectedRoute from "./app/routes";
-import { TipoUsuario } from "./modelos/enumeraciones/tipoUsuario"; 
+import { TipoUsuario } from "./modelos/enumeraciones/tipoUsuario";
 import AdminDashboard from "./vistas/Administrador";
-import Usuarios from "./vistas/Administrador/Usuarios";
-import Propiedades from "./vistas/Administrador/Propiedades";
-const usuario = {
-  tipoUsuario: TipoUsuario.ADMINISTRADOR, // cámbialo a INQUILINO para probar
-};
+import PropietarioDashboard from "./vistas/Propietario";
 
 function App() {
+  // Cargar usuario guardado en localStorage
+  const usuarioGuardado = localStorage.getItem("usuario");
+  const usuario = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
+
   return (
     <BrowserRouter>
       <Routes>
@@ -19,15 +19,30 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         {/* ADMINISTRADOR */}
-        <Route element={<ProtectedRoute allowedRoles={[TipoUsuario.ADMINISTRADOR]} usuario={usuario} />}>
+        <Route
+          element={
+            <ProtectedRoute
+              allowedRoles={[TipoUsuario.ADMINISTRADOR]}
+              usuario={usuario}
+            />
+          }
+        >
           <Route path="/administrador/dashboard" element={<AdminDashboard />} />
-          <Route path="/administrador/usuarios" element={<Usuarios />} />
-          <Route path="/administrador/propiedades" element={<Propiedades />} />
         </Route>
 
-        {/* INQUILINO */}
-        <Route element={<ProtectedRoute allowedRoles={[TipoUsuario.INQUILINO]} usuario={usuario} />}>
-         
+        {/* PROPIETARIO */}
+        <Route
+          element={
+            <ProtectedRoute
+              allowedRoles={[TipoUsuario.PROPIETARIO]}
+              usuario={usuario}
+            />
+          }
+        >
+          <Route
+            path="/propietario/dashboard"
+            element={<PropietarioDashboard />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

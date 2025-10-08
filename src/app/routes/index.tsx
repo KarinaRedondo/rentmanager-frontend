@@ -1,11 +1,10 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { TipoUsuario
-  
- } from "../../modelos/enumeraciones/tipoUsuario"; 
+import { TipoUsuario } from "../../modelos/enumeraciones/tipoUsuario";
+
 interface ProtectedRouteProps {
   allowedRoles: TipoUsuario[];
   usuario: {
-    tipoUsuario: TipoUsuario;
+    rol: TipoUsuario; // Cambiado de tipoUsuario a rol
   } | null;
 }
 
@@ -16,15 +15,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, usuario }
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles.includes(usuario.tipoUsuario)) {
-    console.warn("⛔ Acceso denegado. Rol:", usuario.tipoUsuario);
+  if (!allowedRoles.includes(usuario.rol)) {
+    console.warn("⛔ Acceso denegado. Rol:", usuario.rol);
     return <Navigate to="/" replace />;
   }
 
-  console.log("✅ Acceso permitido:", usuario.tipoUsuario);
+  console.log("✅ Acceso permitido:", usuario.rol);
   return <Outlet />;
 };
 
 export default ProtectedRoute;
-
-
