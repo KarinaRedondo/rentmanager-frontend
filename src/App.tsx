@@ -5,6 +5,7 @@ import ProtectedRoute from "./app/routes";
 import { TipoUsuario } from "./modelos/enumeraciones/tipoUsuario";
 import AdminDashboard from "./vistas/Administrador";
 import PropietarioDashboard from "./vistas/Propietario";
+import Propiedades from "./vistas/Administrador/Propiedades";
 
 function App() {
   // Cargar usuario guardado en localStorage
@@ -28,6 +29,7 @@ function App() {
           }
         >
           <Route path="/administrador/dashboard" element={<AdminDashboard />} />
+           <Route path="/administrador/propiedades" element={<Propiedades />} />
         </Route>
 
         {/* PROPIETARIO */}
