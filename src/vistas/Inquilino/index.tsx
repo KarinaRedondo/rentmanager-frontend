@@ -155,11 +155,8 @@ const InquilinoDashboard: React.FC = () => {
     }
   };
 
-  // ============================================
-  // CALCULAR ESTADÍSTICAS
-  // ============================================
+  // ✅ CORREGIDO: Calcular estadísticas con fechas correctas
   const calcularEstadisticas = () => {
-    // ✅ CORREGIDO: Usar String() para comparar
     const contratosActivos = contratos.filter(
       (c) => String(c.estado).toUpperCase() === "ACTIVO"
     ).length;
@@ -170,9 +167,9 @@ const InquilinoDashboard: React.FC = () => {
         return estado === "PENDIENTE" || estado === "GENERADA";
       })
       .sort((a, b) => {
-        const fechaA = new Date(a.fechaVencimiento || a.fechaEmision || "").getTime();
-        const fechaB = new Date(b.fechaVencimiento || b.fechaEmision || "").getTime();
-        return fechaA - fechaB;
+        const fechaA = a.fechaVencimiento || a.fechaEmision || "";
+        const fechaB = b.fechaVencimiento || b.fechaEmision || "";
+        return fechaA.localeCompare(fechaB);
       });
 
     const proximoPago = facturasOrdenadas[0];
@@ -180,7 +177,7 @@ const InquilinoDashboard: React.FC = () => {
     const diasRestantes = proximoPago
       ? Math.ceil(
           (new Date(proximoPago.fechaVencimiento || proximoPago.fechaEmision || "").getTime() -
-            new Date().getTime()) /
+            new Date().setHours(0, 0, 0, 0)) /
             (1000 * 60 * 60 * 24)
         )
       : 0;
@@ -204,22 +201,24 @@ const InquilinoDashboard: React.FC = () => {
     };
   };
 
-  // ============================================
-  // OBTENER HISTORIAL DE PAGOS
-  // ============================================
   const obtenerHistorialPagos = () => {
     console.log("📊 Procesando pagos para historial:", pagos);
-    
+
     return pagos
       .filter((p) => {
         const estado = String(p.estado || "").toUpperCase();
-        console.log("🔍 Estado de pago:", estado);
-        return estado === "VERIFICADO" || estado === "COMPLETADO" || estado === "APROBADO" || estado === "PENDIENTE";
+        console.log("🔍 Estado de pago:", estado, "ID:", p.idPago);
+        return (
+          estado === "COMPLETADO" ||
+          estado === "VERIFICADO" ||
+          estado === "APROBADO" ||
+          estado === "PENDIENTE"
+        );
       })
       .sort((a, b) => {
-        const fechaA = new Date((a as any).fechaCreacion || (a as any).fechaPago || "").getTime();
-        const fechaB = new Date((b as any).fechaCreacion || (b as any).fechaPago || "").getTime();
-        return fechaB - fechaA;
+        const fechaA = a.fecha || "";
+        const fechaB = b.fecha || "";
+        return fechaB.localeCompare(fechaA);
       })
       .slice(0, 3)
       .map((pago) => {
@@ -227,28 +226,24 @@ const InquilinoDashboard: React.FC = () => {
         const contrato = factura?.contrato;
         const propiedad = contrato?.propiedad;
 
-        const direccion = 
-          (contrato as any)?.direccionPropiedad || 
-          propiedad?.direccion || 
-          "Propiedad no identificada";
+        const direccion = propiedad?.direccion || "Propiedad no identificada";
 
-        console.log("📍 Dirección encontrada:", direccion);
+        console.log("📍 Dirección encontrada:", direccion, "Pago ID:", pago.idPago);
 
         return {
           id: pago.idPago || 0,
           propiedad: direccion,
           tipo: pago.metodoPago || "TRANSFERENCIA",
-          referencia: pago.referenciaTransaccion || `PAG-${String(pago.idPago).padStart(6, "0")}`,
-          fecha: (pago as any).fechaCreacion || (pago as any).fechaPago || "",
+          referencia:
+            pago.referenciaTransaccion ||
+            `PAG-${String(pago.idPago).padStart(6, "0")}`,
+          fecha: pago.fecha || "",
           monto: pago.monto || 0,
           estado: String(pago.estado || "PENDIENTE").toUpperCase(),
         };
       });
   };
 
-  // ============================================
-  // OBTENER RECORDATORIOS
-  // ============================================
   const obtenerRecordatorios = () => {
     return facturas
       .filter((f) => {
@@ -256,25 +251,22 @@ const InquilinoDashboard: React.FC = () => {
         return estado === "PENDIENTE" || estado === "GENERADA";
       })
       .sort((a, b) => {
-        const fechaA = new Date(a.fechaVencimiento || a.fechaEmision || "").getTime();
-        const fechaB = new Date(b.fechaVencimiento || b.fechaEmision || "").getTime();
-        return fechaA - fechaB;
+        const fechaA = a.fechaVencimiento || a.fechaEmision || "";
+        const fechaB = b.fechaVencimiento || b.fechaEmision || "";
+        return fechaA.localeCompare(fechaB);
       })
       .slice(0, 2)
       .map((factura) => {
         const diasRestantes = Math.ceil(
           (new Date(factura.fechaVencimiento || factura.fechaEmision || "").getTime() -
-            new Date().getTime()) /
+            new Date().setHours(0, 0, 0, 0)) /
             (1000 * 60 * 60 * 24)
         );
 
         const contrato = factura.contrato;
         const propiedad = contrato?.propiedad;
 
-        const direccion = 
-          (contrato as any)?.direccionPropiedad || 
-          propiedad?.direccion || 
-          "Propiedad no identificada";
+        const direccion = propiedad?.direccion || "Propiedad no identificada";
 
         return {
           id: factura.idFactura || 0,
@@ -285,24 +277,47 @@ const InquilinoDashboard: React.FC = () => {
       });
   };
 
+  // ✅ CORREGIDO: Formatear fecha sin problemas de zona horaria
   const formatearFecha = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
-    const date = new Date(fecha);
-    return date.toLocaleDateString("es-CO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    try {
+      const partes = fecha.split('-');
+      if (partes.length !== 3) return "Fecha inválida";
+      
+      const [anio, mes, dia] = partes;
+      const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+      
+      if (isNaN(date.getTime())) return "Fecha inválida";
+      return date.toLocaleDateString("es-CO", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      console.error("Error al formatear fecha:", error);
+      return "Error en fecha";
+    }
   };
 
   const formatearFechaCorta = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
-    const date = new Date(fecha);
-    return date.toLocaleDateString("es-CO", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+    try {
+      const partes = fecha.split('-');
+      if (partes.length !== 3) return "Fecha inválida";
+      
+      const [anio, mes, dia] = partes;
+      const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+      
+      if (isNaN(date.getTime())) return "Fecha inválida";
+      return date.toLocaleDateString("es-CO", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    } catch (error) {
+      console.error("Error al formatear fecha corta:", error);
+      return "Error en fecha";
+    }
   };
 
   const obtenerImagenPropiedad = (index: number): string => {
@@ -311,8 +326,22 @@ const InquilinoDashboard: React.FC = () => {
 
   const obtenerNombreMes = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
-    const date = new Date(fecha);
-    return date.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+    try {
+      const partes = fecha.split('-');
+      if (partes.length !== 3) return "Mes inválido";
+      
+      const [anio, mes, dia] = partes;
+      const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+      
+      if (isNaN(date.getTime())) return "Mes inválido";
+      return date.toLocaleDateString("es-CO", {
+        month: "long",
+        year: "numeric",
+      });
+    } catch (error) {
+      console.error("Error al obtener nombre del mes:", error);
+      return "Error en mes";
+    }
   };
 
   if (cargando) {
@@ -381,7 +410,9 @@ const InquilinoDashboard: React.FC = () => {
               </div>
               <div className={styles.contenidoTarjeta}>
                 <p className={styles.tituloTarjeta}>Contratos Activos</p>
-                <h2 className={styles.valorTarjeta}>{estadisticas.contratosActivos}</h2>
+                <h2 className={styles.valorTarjeta}>
+                  {estadisticas.contratosActivos}
+                </h2>
                 <p className={styles.descripcionTarjeta}>Propiedades arrendadas</p>
               </div>
             </div>
@@ -397,7 +428,9 @@ const InquilinoDashboard: React.FC = () => {
                 </h2>
                 <p className={styles.descripcionTarjeta}>
                   {estadisticas.fechaProximoPago
-                    ? `Vence el ${formatearFechaCorta(estadisticas.fechaProximoPago)}`
+                    ? `Vence el ${formatearFechaCorta(
+                        estadisticas.fechaProximoPago
+                      )}`
                     : "No hay pagos pendientes"}
                 </p>
               </div>
@@ -409,7 +442,9 @@ const InquilinoDashboard: React.FC = () => {
               </div>
               <div className={styles.contenidoTarjeta}>
                 <p className={styles.tituloTarjeta}>Pagos al Día</p>
-                <h2 className={styles.valorTarjeta}>{estadisticas.porcentajePagos}%</h2>
+                <h2 className={styles.valorTarjeta}>
+                  {estadisticas.porcentajePagos}%
+                </h2>
                 <p className={styles.descripcionTarjeta}>
                   {estadisticas.pagosAlDia
                     ? "Sin pagos pendientes"
@@ -424,8 +459,12 @@ const InquilinoDashboard: React.FC = () => {
               </div>
               <div className={styles.contenidoTarjeta}>
                 <p className={styles.tituloTarjeta}>Días Restantes</p>
-                <h2 className={styles.valorTarjeta}>{estadisticas.diasRestantes}</h2>
-                <p className={styles.descripcionTarjeta}>Para próximo vencimiento</p>
+                <h2 className={styles.valorTarjeta}>
+                  {estadisticas.diasRestantes}
+                </h2>
+                <p className={styles.descripcionTarjeta}>
+                  Para próximo vencimiento
+                </p>
               </div>
             </div>
           </div>
@@ -458,7 +497,11 @@ const InquilinoDashboard: React.FC = () => {
                   {historialPagos.map((pago) => (
                     <div key={pago.id} className={styles.itemPago}>
                       <div className={styles.iconoPago}>
-                        <CheckCircle size={20} className={styles.iconoVerde} />
+                        {pago.estado === "COMPLETADO" || pago.estado === "VERIFICADO" ? (
+                          <CheckCircle size={20} className={styles.iconoVerde} />
+                        ) : (
+                          <Clock size={20} className={styles.iconoNaranja} />
+                        )}
                       </div>
                       <div className={styles.infoPago}>
                         <p className={styles.propiedadPago}>{pago.propiedad}</p>
@@ -473,7 +516,13 @@ const InquilinoDashboard: React.FC = () => {
                         <p className={styles.valorPago}>
                           ${pago.monto.toLocaleString("es-CO")}
                         </p>
-                        <span className={styles.estadoConfirmado}>
+                        <span
+                          className={
+                            pago.estado === "COMPLETADO" || pago.estado === "VERIFICADO"
+                              ? styles.estadoConfirmado
+                              : styles.estadoPendiente
+                          }
+                        >
                           {pago.estado}
                         </span>
                       </div>
@@ -535,64 +584,81 @@ const InquilinoDashboard: React.FC = () => {
             </div>
 
             <div className={styles.tarjetaBlanca}>
-              {/* ✅ CORREGIDO */}
-              {contratos.filter((c) => String(c.estado).toUpperCase() === "ACTIVO").length === 0 ? (
+              {contratos.filter((c) => String(c.estado).toUpperCase() === "ACTIVO")
+                .length === 0 ? (
                 <div className={styles.sinDatos}>
                   <Home size={48} />
                   <p>No tienes contratos activos</p>
                 </div>
               ) : (
                 <div className={styles.gridContratos}>
-                  {/* ✅ CORREGIDO */}
                   {contratos
                     .filter((c) => String(c.estado).toUpperCase() === "ACTIVO")
                     .slice(0, 2)
-                    .map((contrato, index) => (
-                      <div key={contrato.idContrato} className={styles.tarjetaContrato}>
-                        <div className={styles.imagenContrato}>
-                          <img
-                            src={obtenerImagenPropiedad(index)}
-                            alt="Propiedad"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                "https://via.placeholder.com/400x250/e5e7eb/6b7280?text=Propiedad";
-                            }}
-                          />
-                          <span className={styles.estadoActivo}>ACTIVO</span>
-                        </div>
-                        <div className={styles.contenidoContrato}>
-                          <h4>{(contrato as any).direccionPropiedad || contrato.propiedad?.direccion || "Propiedad"}</h4>
-                          <p className={styles.propietarioContrato}>
-                            Ciudad: {(contrato as any).ciudadPropiedad || contrato.propiedad?.ciudad || "N/A"}
-                          </p>
-                          <div className={styles.detallesContrato}>
-                            <div className={styles.detalleContrato}>
-                              <span>Renta mensual:</span>
-                              <strong>
-                                ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
-                              </strong>
-                            </div>
-                            <div className={styles.detalleContrato}>
-                              <span>Inicio:</span>
-                              <strong>{formatearFechaCorta(contrato.fechaInicio)}</strong>
-                            </div>
-                            <div className={styles.detalleContrato}>
-                              <span>Vencimiento:</span>
-                              <strong>{formatearFechaCorta(contrato.fechaFin)}</strong>
-                            </div>
+                    .map((contrato, index) => {
+                      const propiedad = contrato.propiedad;
+                      const direccion = propiedad?.direccion || "Dirección no disponible";
+                      const ciudad = propiedad?.ciudad || "N/A";
+                      const detalles = propiedad?.habitaciones 
+                        ? `${propiedad.habitaciones} hab. • ${propiedad.banos} baños`
+                        : `${propiedad?.area || 0} m²`;
+
+                      console.log("🏠 Contrato:", contrato.idContrato, "Propiedad:", propiedad);
+
+                      return (
+                        <div
+                          key={contrato.idContrato}
+                          className={styles.tarjetaContrato}
+                        >
+                          <div className={styles.imagenContrato}>
+                            <img
+                              src={obtenerImagenPropiedad(index)}
+                              alt="Propiedad"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "https://via.placeholder.com/400x250/e5e7eb/6b7280?text=Propiedad";
+                              }}
+                            />
+                            <span className={styles.estadoActivo}>ACTIVO</span>
                           </div>
-                          <button
-                            className={styles.btnDescargar}
-                            onClick={() =>
-                              navigate(`/inquilino/contratos/${contrato.idContrato}`)
-                            }
-                          >
-                            <Download size={16} />
-                            Descargar Contrato
-                          </button>
+                          <div className={styles.contenidoContrato}>
+                            <h4>{direccion}</h4>
+                            <p className={styles.propietarioContrato}>
+                              {ciudad} • {detalles}
+                            </p>
+                            <div className={styles.detallesContrato}>
+                              <div className={styles.detalleContrato}>
+                                <span>Renta mensual:</span>
+                                <strong>
+                                  ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
+                                </strong>
+                              </div>
+                              <div className={styles.detalleContrato}>
+                                <span>Inicio:</span>
+                                <strong>
+                                  {formatearFechaCorta(contrato.fechaInicio)}
+                                </strong>
+                              </div>
+                              <div className={styles.detalleContrato}>
+                                <span>Vencimiento:</span>
+                                <strong>
+                                  {formatearFechaCorta(contrato.fechaFin)}
+                                </strong>
+                              </div>
+                            </div>
+                            <button
+                              className={styles.btnDescargar}
+                              onClick={() =>
+                                navigate(`/inquilino/contratos/${contrato.idContrato}`)
+                              }
+                            >
+                              <Download size={16} />
+                              Descargar Contrato
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               )}
             </div>
@@ -626,10 +692,8 @@ const InquilinoDashboard: React.FC = () => {
                   {facturas.slice(0, 4).map((factura) => {
                     const contrato = factura.contrato;
                     const propiedad = contrato?.propiedad;
-                    const direccion = 
-                      (contrato as any)?.direccionPropiedad || 
-                      propiedad?.direccion || 
-                      "Propiedad no identificada";
+                    const direccion =
+                      propiedad?.direccion || "Propiedad no identificada";
 
                     return (
                       <div key={factura.idFactura} className={styles.itemFactura}>
@@ -646,9 +710,14 @@ const InquilinoDashboard: React.FC = () => {
                           </p>
                           <p className={styles.propiedadFactura}>{direccion}</p>
                           <p className={styles.fechaFactura}>
-                            Vence: {formatearFechaCorta(factura.fechaVencimiento || factura.fechaEmision)}
+                            Vence:{" "}
+                            {formatearFechaCorta(
+                              factura.fechaVencimiento || factura.fechaEmision
+                            )}
                             {String(factura.estado).toUpperCase() === "PAGADA" &&
-                              ` • Pagado: ${formatearFechaCorta(factura.fechaEmision)}`}
+                              ` • Pagado: ${formatearFechaCorta(
+                                factura.fechaEmision
+                              )}`}
                           </p>
                         </div>
                         <div className={styles.montoFactura}>

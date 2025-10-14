@@ -2,23 +2,18 @@ import { urlApi } from "../app/api";
 import { TipoUsuario } from "../modelos/enumeraciones/tipoUsuario";
 import type {
   DTOAdministradorRegistro,
-  DTOAdministradorRespuesta,
 } from "../modelos/types/Administrador";
 import type {
   DTOContadorRegistro,
-  DTOContadorRespuesta,
 } from "../modelos/types/Contador";
 import type {
   DTOInquilinoRegistro,
-  DTOInquilinoRespuesta,
 } from "../modelos/types/Inquilino";
 import type {
   DTOPropietarioRegistro,
-  DTOPropietarioRespuesta,
 } from "../modelos/types/Propietario";
 import type {
   DTOUsuarioRegistro,
-  DTOUsuarioRespuesta,
 } from "../modelos/types/Usuario";
 
 const API_URL = "/api/v1/";

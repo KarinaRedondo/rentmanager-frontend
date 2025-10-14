@@ -55,7 +55,6 @@ const ContadorDashboard: React.FC = () => {
         return;
       }
 
-      console.log("✅ Acceso verificado - Contador:", usuario.nombre);
       await cargarDatosIniciales();
     } catch (err: any) {
       console.error("❌ Error al verificar acceso:", err);
@@ -212,9 +211,8 @@ const ContadorDashboard: React.FC = () => {
         const inquilino = contrato?.inquilino;
 
         const diasVencidos = Math.floor(
-          (new Date().getTime() -
-            new Date(factura.fechaVencimiento || "").getTime()) /
-            (1000 * 60 * 60 * 24)
+          (new Date().getTime() - new Date(factura.fechaVencimiento || "").getTime()) /
+          (1000 * 60 * 60 * 24)
         );
 
         return {
@@ -237,24 +235,13 @@ const ContadorDashboard: React.FC = () => {
   // ============================================
   const obtenerIngresosMensuales = () => {
     const meses = [
-      "Ene",
-      "Feb",
-      "Mar",
-      "Abr",
-      "May",
-      "Jun",
-      "Jul",
-      "Ago",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dic",
+      "Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"
     ];
 
     const mesActual = new Date().getMonth();
     const añoActual = new Date().getFullYear();
 
-    const ingresosPorMes = [];
+    const ingresosPorMes: { mes: string; ingresos: number }[] = [];
 
     for (let i = filtroMeses - 1; i >= 0; i--) {
       let mes = mesActual - i;
@@ -281,7 +268,6 @@ const ContadorDashboard: React.FC = () => {
         ingresos,
       });
     }
-
     return ingresosPorMes;
   };
 
@@ -438,7 +424,9 @@ const ContadorDashboard: React.FC = () => {
                   </h3>
                   <p>Últimos pagos procesados y pendientes</p>
                 </div>
-                <button className={styles.btnLink}>Ver todos</button>
+                <button className={styles.btnLink} onClick={() => navigate("/contador/pagos")}>
+                  Ver todos
+                </button>
               </div>
 
               <div className={styles.listaPagos}>
@@ -499,7 +487,9 @@ const ContadorDashboard: React.FC = () => {
                   </h3>
                   <p>Facturas por cobrar y vencidas</p>
                 </div>
-                <button className={styles.btnLink}>Ver todas</button>
+                <button className={styles.btnLink} onClick={() => navigate("/contador/facturas")}>
+                  Ver todas
+                </button>
               </div>
 
               <div className={styles.listaFacturas}>
@@ -508,9 +498,7 @@ const ContadorDashboard: React.FC = () => {
                     <div className={styles.infoFacturaIzq}>
                       <div
                         className={`${styles.indicadorFactura} ${
-                          factura.diasVencidos > 0
-                            ? styles.indicadorRojo
-                            : styles.indicadorNaranja
+                          factura.diasVencidos > 0 ? styles.indicadorRojo : styles.indicadorNaranja
                         }`}
                       ></div>
                       <div>
@@ -519,23 +507,16 @@ const ContadorDashboard: React.FC = () => {
                         <p className={styles.detalleFactura}>
                           Vence: {formatearFecha(factura.fechaVencimiento)}
                           {factura.diasVencidos > 0 && (
-                            <span className={styles.vencida}>
-                              {" "}
-                              ({factura.diasVencidos} días vencida)
-                            </span>
+                            <span className={styles.vencida}> ({factura.diasVencidos} días vencida)</span>
                           )}
                         </p>
                       </div>
                     </div>
                     <div className={styles.infoFacturaDer}>
-                      <p className={styles.montoFactura}>
-                        {formatearMoneda(factura.monto)}
-                      </p>
+                      <p className={styles.montoFactura}>{formatearMoneda(factura.monto)}</p>
                       <span
                         className={`${styles.badge} ${
-                          factura.diasVencidos > 0
-                            ? styles.badgeRojo
-                            : styles.badgeNaranja
+                          factura.diasVencidos > 0 ? styles.badgeRojo : styles.badgeNaranja
                         }`}
                       >
                         {factura.diasVencidos > 0 ? "VENCIDA" : "PENDIENTE"}
@@ -567,91 +548,20 @@ const ContadorDashboard: React.FC = () => {
             </div>
 
             <div className={styles.graficoBarras}>
-              {ingresosMensuales.map((mes, index) => {
+              {obtenerIngresosMensuales().map((mes, index) => {
+                const maxIngresos = Math.max(...obtenerIngresosMensuales().map((m) => m.ingresos), 0);
                 const porcentaje = maxIngresos > 0 ? (mes.ingresos / maxIngresos) * 100 : 0;
 
                 return (
                   <div key={index} className={styles.barraContenedor}>
                     <div className={styles.barraWrapper}>
-                      <div
-                        className={styles.barra}
-                        style={{ height: `${porcentaje}%` }}
-                      ></div>
+                      <div className={styles.barra} style={{ height: `${porcentaje}%` }}></div>
                     </div>
                     <p className={styles.labelMes}>{mes.mes}</p>
-                    <p className={styles.valorMes}>
-                      {formatearMoneda(mes.ingresos)}
-                    </p>
+                    <p className={styles.valorMes}>{formatearMoneda(mes.ingresos)}</p>
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Tabla de Procesamiento */}
-          <div className={styles.tarjetaSeccion}>
-            <div className={styles.headerSeccion}>
-              <div>
-                <h3>Procesamiento de Pagos</h3>
-                <p>Gestiona y procesa los pagos pendientes</p>
-              </div>
-              <select className={styles.selectFiltro}>
-                <option>Todos</option>
-                <option>Pendientes</option>
-                <option>Procesados</option>
-                <option>Rechazados</option>
-              </select>
-            </div>
-
-            <div className={styles.tablaWrapper}>
-              <table className={styles.tabla}>
-                <thead>
-                  <tr>
-                    <th>Inquilino</th>
-                    <th>Propiedad</th>
-                    <th>Monto</th>
-                    <th>Método</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pagosRecientes.slice(0, 5).map((pago) => (
-                    <tr key={pago.id}>
-                      <td>{pago.inquilino}</td>
-                      <td>{pago.propiedad}</td>
-                      <td className={styles.montoTabla}>
-                        {formatearMoneda(pago.monto)}
-                      </td>
-                      <td>{pago.metodo}</td>
-                      <td>{formatearFecha(pago.fecha)}</td>
-                      <td>
-                        <span
-                          className={`${styles.badge} ${
-                            pago.estado === "VERIFICADO"
-                              ? styles.badgeVerde
-                              : pago.estado === "RECHAZADO"
-                              ? styles.badgeRojo
-                              : styles.badgeNaranja
-                          }`}
-                        >
-                          {pago.estado}
-                        </span>
-                      </td>
-                      <td>
-                        <button className={styles.btnTabla}>Ver</button>
-                        {pago.estado === "PENDIENTE" && (
-                          <>
-                            <button className={styles.btnTabla}>Aprobar</button>
-                            <button className={styles.btnTabla}>Rechazar</button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         </div>

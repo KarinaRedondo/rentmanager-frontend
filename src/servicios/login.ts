@@ -8,13 +8,16 @@ export class AuthService {
     contrasena: string
   ): Promise<{
     token: string;
-    usuario: { rol: "ADMINISTRADOR" | "PROPIETARIO" | "INQUILINO" | "CONTADOR"; nombre?: string; correo?: string };
+    usuario: { 
+      idUsuario: number; 
+      rol: "ADMINISTRADOR" | "PROPIETARIO" | "INQUILINO" | "CONTADOR"; 
+      nombre?: string; 
+      correo?: string;
+    };
   }> {
     const { data } = await urlApi.post(`${API_URL}/login`, {
       correo,
       contrasena,
-
-      
     });
     return data;
   }

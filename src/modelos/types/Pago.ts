@@ -6,14 +6,14 @@ import type { Factura } from "./Factura";
 export interface Pago {
   idPago: number;
   factura: Factura;
-  fecha: Date;
+  fecha: string;
   monto: number;
-  metodoPago: MetodoPago;
+  metodoPago: MetodoPago | string;
   referenciaTransaccion: string;
-  comprobanteURL: string;
-  bancoOrigen: EntidadFinanciera;
-  bancoDestino: EntidadFinanciera;
-  estado: EstadoPago;
+  comprobanteUrl?: string; 
+  bancoOrigen?: EntidadFinanciera | string; 
+  bancoDestino?: EntidadFinanciera | string; 
+  estado: EstadoPago | string;
 }
 
 export type DTOPagoRegistro = Omit<Pago, "idPago">;

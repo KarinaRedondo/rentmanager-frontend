@@ -7,7 +7,7 @@ import type { DTOPropiedadRespuesta } from "../../../modelos/types/Propiedad";
 import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
 import { EstadoPropiedad } from "../../../modelos/enumeraciones/estadoPropiedad";
 import { PropiedadService } from "../../../servicios/propiedades";
-import styles from "./AdministradorPropiedades.module.css";
+import styles from "./PropietarioPropiedades.module.css";
 import {
   Home,
   MapPin,
@@ -20,7 +20,7 @@ import {
 import { ModalComponente } from "../../../componentes/Modal/index,";
 import InputCustom from "../../../componentes/ui/Input";
 
-const AdministradorPropiedades: React.FC = () => {
+const PropietarioPropiedades: React.FC = () => {
   const navigate = useNavigate();
 
   const [propiedades, setPropiedades] = useState<DTOPropiedadRespuesta[]>([]);
@@ -66,7 +66,7 @@ const AdministradorPropiedades: React.FC = () => {
       const usuario = JSON.parse(usuarioString);
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
-     if (rolUsuario !== "ADMINISTRADOR" && rolUsuario !== TipoUsuario.ADMINISTRADOR) {
+      if (rolUsuario !== "PROPIETARIO" && rolUsuario !== TipoUsuario.PROPIETARIO) {
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
@@ -350,9 +350,9 @@ const AdministradorPropiedades: React.FC = () => {
               <button className={styles.btnVolver} onClick={() => navigate(-1)}>
                 ← Volver
               </button>
-              <h1>Propiedades</h1>
+              <h1>Mis Propiedades</h1>
               <p className={styles.subtitulo}>
-               Propiedades en arriendo y gestión administrativa
+                Administra y gestiona tus propiedades en arriendo
               </p>
             </div>
             <button className={styles.btnNuevo} onClick={abrirModalCrear}>
@@ -649,4 +649,4 @@ const AdministradorPropiedades: React.FC = () => {
   );
 };
 
-export default AdministradorPropiedades
+export default PropietarioPropiedades;

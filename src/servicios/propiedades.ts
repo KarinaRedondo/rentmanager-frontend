@@ -28,13 +28,13 @@ export const PropiedadService = {
     return res.data;
   },
 
-  // Crear propiedad
+  // CREAR PROPIEDAD - Usa DTOPropiedadRegistro
   async crearPropiedad(data: DTOPropiedadRegistro): Promise<DTOPropiedadRespuesta> {
     const res = await urlApi.post(`${API_URL}/crear`, data);
     return res.data;
   },
 
-  // Actualizar propiedad
+  //  ACTUALIZAR PROPIEDAD - Usa DTOPropiedadActualizar
   async actualizarPropiedad(id: number, data: DTOPropiedadActualizar): Promise<DTOPropiedadRespuesta> {
     const res = await urlApi.put(`${API_URL}/actualizar/${id}`, data);
     return res.data;

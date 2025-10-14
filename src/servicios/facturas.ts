@@ -70,3 +70,8 @@ export const obtenerRecomendacionesFactura = async (id: number, evento: Evento):
   const res = await urlApi.get(`${API_URL}/${id}/recomendaciones/${evento}`);
   return res.data;
 };
+  // Obtener todas las facturas del propietario
+  export const  obtenerFacturasPropietario= async (): Promise<DTOFacturaRespuesta []> => {
+    const res = await urlApi.get(`${API_URL}/obtener`);
+    return res.data;
+  }

@@ -9,7 +9,7 @@ import { NivelAcceso } from "../../../modelos/enumeraciones/nivelAcceso";
 import { EspecialidadContador } from "../../../modelos/enumeraciones/especialidadContador";
 import { EstadoCivil } from "../../../modelos/enumeraciones/estadoCivil";
 import { TipoCuenta } from "../../../modelos/enumeraciones/tipoCuenta";
-import styles from "./Usuarios.module.css";
+ import styles from "./AdministradorUsuarios.module.css";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
 import { TablaBase } from "../../../componentes/ui/TablaBase";

@@ -15,10 +15,8 @@ export interface Propiedad {
   amoblado: boolean;
   pisos: number;
   descripcion: string;
-  anoCosnstruccion: number;
+  anoConstruccion: number;
   serviciosPublicos?: ServiciosPublicos[];
-
-
 }
 
 export type DTOPropiedadRegistro = Omit<Propiedad, "idPropiedad">;
