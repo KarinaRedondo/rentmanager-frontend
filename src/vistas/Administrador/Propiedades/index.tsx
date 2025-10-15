@@ -17,7 +17,7 @@ import {
   Plus,
   Search,
 } from "react-feather";
-import { ModalComponente } from "../../../componentes/Modal/index,";
+import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
 
 const AdministradorPropiedades: React.FC = () => {

@@ -1,0 +1,92 @@
+.contenedor {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
+  min-height: calc(100vh - 160px);
+  align-items: flex-start;
+}
+
+/* Imagen más proporcionada */
+.imagenContainer {
+  width: 90%; /* Antes 95% */
+  height: 180px; /* Antes 200px */
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(45deg, #e2e8f0, #f8fafc);
+}
+
+.imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.imagen:hover {
+  transform: scale(1.02);
+}
+
+/* Grid más compacto */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Antes 210px */
+  gap: 8px; /* Antes 10px */
+  color: #374151;
+  margin: 10px auto; /* Antes 14px */
+  font-size: 0.88rem; /* Ligeramente más pequeño */
+  max-width: 85%; /* Antes 90% */
+}
+
+.infoGrid p {
+  padding: 8px 12px; /* Más compacto */
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border-left: 3px solid #2563eb;
+  background: #f9fafb;
+}
+
+/* Descripción más angosta */
+.descripcion {
+  margin: 14px auto;
+  max-width: 85%; /* Antes 90% */
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  border-left: 3px solid #2563eb;
+  padding: 14px; /* Antes 16px */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  color: #334155;
+  line-height: 1.45;
+  font-size: 0.88rem;
+}
+
+/* Servicios más reducidos */
+.servicios {
+  margin: 12px auto;
+  max-width: 85%; /* Antes 90% */
+  background: #f1f5f9;
+  border-left: 3px solid #10b981;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+/* Botón centrado */
+.btnContenedor {
+  margin-top: 20px; /* Antes 24px */
+  padding-top: 14px; /* Antes 16px */
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: center;
+}
+
+.btnVolver {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  padding: 9px 20px; /* Antes 10px 22px */
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ModalComponente } from "../../../componentes/Modal/index,";
+import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
 import { BotonComponente } from "../../../componentes/ui/Boton";
 import { UsuarioService } from "../../../servicios/usuarios";

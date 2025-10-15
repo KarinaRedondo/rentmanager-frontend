@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
 import { BotonComponente } from "../../../componentes/ui/Boton";
-import { ModalComponente } from "../../../componentes/Modal/index,";
+import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
 import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
 import { obtenerFacturas, crearFactura, actualizarFactura } from "../../../servicios/facturas";

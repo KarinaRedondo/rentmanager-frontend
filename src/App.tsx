@@ -18,6 +18,7 @@ import DetalleContrato from "./vistas/Propietario/Contratos/Detalles";
 import PropietarioFacturas from "./vistas/Propietario/Facturas";
 import AdministradorPropiedades from "./vistas/Administrador/Propiedades";
 import ContadorFacturas from "./vistas/Contador/Facturas";
+import PropiedadDetalle from "./vistas/Propietario/Propiedades/Detalle";
 
 function App() {
   // Cargar usuario guardado en localStorage
@@ -41,8 +42,11 @@ function App() {
           }
         >
           <Route path="/administrador/dashboard" element={<AdminDashboard />} />
-           <Route path="/administrador/usuarios" element={<Usuarios />} />
-           <Route path="/administrador/propiedades" element={<AdministradorPropiedades />} />
+          <Route path="/administrador/usuarios" element={<Usuarios />} />
+          <Route
+            path="/administrador/propiedades"
+            element={<AdministradorPropiedades />}
+          />
         </Route>
 
         {/* PROPIETARIO */}
@@ -62,22 +66,22 @@ function App() {
             path="/propietario/propiedades"
             element={<PropietarioPropiedades />}
           />
-            <Route
+          <Route
             path="/propietario/contratos"
             element={<PropietarioHistorialContratos />}
           />
-           <Route
+          <Route
             path="/propietario/facturas"
             element={<PropietarioFacturas />}
           />
+          <Route path="/propietario/detalles" element={<DetalleContrato />} />
+           <Route path="/propietario/propiedades/:id"element={<PropiedadDetalle />}
+        />
 
-           <Route
-            path="/propietario/detalles"
-            element={<DetalleContrato/>}
-          />
         </Route>
+       
 
-         {/* INQUILINO */}
+        {/* INQUILINO */}
         <Route
           element={
             <ProtectedRoute
@@ -86,25 +90,19 @@ function App() {
             />
           }
         >
+          <Route path="/inquilino/dashboard" element={<InquilinoDashboard />} />
           <Route
-            path="/inquilino/dashboard"
-            element={<InquilinoDashboard />}
-          />
-           <Route
             path="/inquilino/pagos"
             element={<InquilinoHistorialPagos />}
           />
-           <Route
+          <Route
             path="/inquilino/pagos/nuevo"
             element={<InquilinoRegistrarPago />}
           />
-          <Route
-            path="/inquilino/facturas"
-            element={<InquilinoFacturas />}
-          />
+          <Route path="/inquilino/facturas" element={<InquilinoFacturas />} />
         </Route>
 
-         {/* CONTADOR */}
+        {/* CONTADOR */}
         <Route
           element={
             <ProtectedRoute
@@ -113,19 +111,10 @@ function App() {
             />
           }
         >
-          <Route
-            path="/contador/dashboard"
-            element={<ContadorDashboard />}
-          />
-          <Route
-            path="/contador/pagos"
-            element={<ContadorGestionPagos />}
-          />
+          <Route path="/contador/dashboard" element={<ContadorDashboard />} />
+          <Route path="/contador/pagos" element={<ContadorGestionPagos />} />
         </Route>
-         <Route
-            path="/contador/facturas"
-            element={<ContadorFacturas />}
-          />
+        <Route path="/contador/facturas" element={<ContadorFacturas />} />
       </Routes>
     </BrowserRouter>
   );

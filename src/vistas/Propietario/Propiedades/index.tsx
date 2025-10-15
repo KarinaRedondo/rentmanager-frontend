@@ -17,8 +17,9 @@ import {
   Plus,
   Search,
 } from "react-feather";
-import { ModalComponente } from "../../../componentes/Modal/index,";
+import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
+import { TipoPropiedad } from "../../../modelos/enumeraciones/tipoPropiedad";
 
 const PropietarioPropiedades: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ const PropietarioPropiedades: React.FC = () => {
   const [pisos, setPisos] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [anoConstruccion, setAnoConstruccion] = useState("");
+  const [tipo, setTipo] = useState<TipoPropiedad | "">("");
   const [estado, setEstado] = useState<EstadoPropiedad>(EstadoPropiedad.DISPONIBLE);
 
   useEffect(() => {
@@ -233,7 +235,8 @@ const PropietarioPropiedades: React.FC = () => {
           descripcion: descripcion.trim(),
           anoConstruccion: Number(anoConstruccion) || new Date().getFullYear(),
           estado: estado,
-          propietario: propietarioId
+          tipo: tipo || TipoPropiedad.APARTAMENTO,
+          idPropietario: propietarioId
         };
 
         console.log("📤 CREAR - Objeto completo:");
@@ -602,6 +605,32 @@ const PropietarioPropiedades: React.FC = () => {
               setValue={setAnoConstruccion}
               placeholder={`Ej: ${new Date().getFullYear()}`}
             />
+            {/* 🔹 Campo nuevo: Tipo de propiedad */}
+    <div className={styles.formGrupo}>
+      <label htmlFor="tipo">Tipo de Propiedad *</label>
+      <select
+        id="tipo"
+        value={tipo}
+        onChange={(e) => setTipo(e.target.value as TipoPropiedad)}
+        className={styles.select}
+      >
+        <option value="">Seleccione...</option>
+        <option value={TipoPropiedad.APARTAMENTO}>Apartamento</option>
+        <option value={TipoPropiedad.CASA}>Casa</option>
+        <option value={TipoPropiedad.DUPLEX}>Dúplex</option>
+        <option value={TipoPropiedad.PENTHOUSE}>Penthouse</option>
+        <option value={TipoPropiedad.APARTAMENTO_ESTUDIO}>Apartamento Estudio</option>
+        <option value={TipoPropiedad.CASA_PLAYA}>Casa de Playa</option>
+        <option value={TipoPropiedad.OFICINA}>Oficina</option>
+        <option value={TipoPropiedad.LOCAL_COMERCIAL}>Local Comercial</option>
+        <option value={TipoPropiedad.BODEGA}>Bodega</option>
+        <option value={TipoPropiedad.GALPON}>Galpón</option>
+        <option value={TipoPropiedad.CONSULTORIO}>Consultorio</option>
+        <option value={TipoPropiedad.TERRENO}>Terreno</option>
+        <option value={TipoPropiedad.FINCA}>Finca</option>
+        <option value={TipoPropiedad.GARAJE}>Garaje</option>
+      </select>
+    </div>
 
             <div className={styles.formGrupo}>
               <label htmlFor="estado">Estado *</label>
