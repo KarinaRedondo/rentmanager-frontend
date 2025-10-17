@@ -89,7 +89,10 @@ const PropietarioDashboard: React.FC = () => {
       const usuario = JSON.parse(usuarioString);
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
-      if (rolUsuario !== "PROPIETARIO" && rolUsuario !== TipoUsuario.PROPIETARIO) {
+      if (
+        rolUsuario !== "PROPIETARIO" &&
+        rolUsuario !== TipoUsuario.PROPIETARIO
+      ) {
         console.error("🚫 Acceso denegado: usuario no es propietario");
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
@@ -125,27 +128,48 @@ const PropietarioDashboard: React.FC = () => {
       // Procesar propiedades
       if (resultados[0].status === "fulfilled") {
         setPropiedades(resultados[0].value);
-        console.log("✅ Propiedades cargadas:", resultados[0].value.length, resultados[0].value);
+        console.log(
+          "✅ Propiedades cargadas:",
+          resultados[0].value.length,
+          resultados[0].value
+        );
       } else {
-        console.warn("⚠️ No se pudieron cargar propiedades:", resultados[0].reason);
+        console.warn(
+          "⚠️ No se pudieron cargar propiedades:",
+          resultados[0].reason
+        );
         setPropiedades([]);
       }
 
       // Procesar contratos
       if (resultados[1].status === "fulfilled") {
         setContratos(resultados[1].value);
-        console.log("✅ Contratos cargados:", resultados[1].value.length, resultados[1].value);
+        console.log(
+          "✅ Contratos cargados:",
+          resultados[1].value.length,
+          resultados[1].value
+        );
       } else {
-        console.warn("⚠️ No se pudieron cargar contratos:", resultados[1].reason);
+        console.warn(
+          "⚠️ No se pudieron cargar contratos:",
+          resultados[1].reason
+        );
         setContratos([]);
       }
 
       // Procesar facturas
       if (resultados[2].status === "fulfilled") {
         setFacturas(resultados[2].value);
-        console.log("✅ Facturas cargadas:", resultados[2].value.length, resultados[2].value);
+        console.log(
+          "✅ Facturas cargadas:",
+          resultados[2].value.length,
+          resultados[2].value
+        );
       } else {
-        console.warn("⚠️ No se pudieron cargar facturas:", resultados[2].reason);
+        console.warn(
+          "⚠️ No se pudieron cargar facturas:",
+          resultados[2].reason
+        );
         setFacturas([]);
       }
 
@@ -207,7 +231,7 @@ const PropietarioDashboard: React.FC = () => {
   // ============================================
   const calcularEstadisticas = () => {
     const totalPropiedades = propiedades.length;
-    
+
     const propiedadesArrendadas = propiedades.filter(
       (p) => p.estado === EstadoPropiedad.ARRENDADA
     ).length;
@@ -217,7 +241,9 @@ const PropietarioDashboard: React.FC = () => {
         if (!f.fechaEmision) return false;
         const fecha = new Date(f.fechaEmision);
         const mesActual = new Date().getMonth();
-        return fecha.getMonth() === mesActual && f.estado === EstadoFactura.PAGADA;
+        return (
+          fecha.getMonth() === mesActual && f.estado === EstadoFactura.PAGADA
+        );
       })
       .reduce((sum, f) => sum + (f.total || 0), 0);
 
@@ -238,9 +264,10 @@ const PropietarioDashboard: React.FC = () => {
       (p) => p.estado === EstadoPropiedad.RESERVADA
     ).length;
 
-    const porcentajeOcupacion = totalPropiedades > 0
-      ? Math.round((propiedadesArrendadas / totalPropiedades) * 100)
-      : 0;
+    const porcentajeOcupacion =
+      totalPropiedades > 0
+        ? Math.round((propiedadesArrendadas / totalPropiedades) * 100)
+        : 0;
 
     return {
       totalPropiedades,
@@ -294,7 +321,8 @@ const PropietarioDashboard: React.FC = () => {
     const estadoLower = estado.toLowerCase();
     if (estadoLower === "arrendada") return styles.estadoArrendada;
     if (estadoLower === "disponible") return styles.estadoDisponible;
-    if (estadoLower.includes("mantenimiento")) return styles.estadoMantenimiento;
+    if (estadoLower.includes("mantenimiento"))
+      return styles.estadoMantenimiento;
     if (estadoLower === "reservada") return styles.estadoReservada;
     return styles.estadoDefault;
   };
@@ -354,7 +382,10 @@ const PropietarioDashboard: React.FC = () => {
           <div className={styles.errorContenedor}>
             <h2>Error al cargar datos</h2>
             <p className={styles.error}>{error}</p>
-            <BotonComponente label="Reintentar" onClick={cargarDatosIniciales} />
+            <BotonComponente
+              label="Reintentar"
+              onClick={cargarDatosIniciales}
+            />
           </div>
         </main>
         <Footer />
@@ -385,10 +416,6 @@ const PropietarioDashboard: React.FC = () => {
               <BotonComponente
                 label="📊 Reportes"
                 onClick={() => navigate("/propietario/reportes")}
-              />
-              <BotonComponente
-                label="➕ Nueva Propiedad"
-                onClick={() => navigate("/propietario/propiedades/nueva")}
               />
             </div>
           </div>
@@ -421,7 +448,9 @@ const PropietarioDashboard: React.FC = () => {
                 <Users size={24} />
               </div>
               <div className={styles.contenidoEstadistica}>
-                <p className={styles.tituloEstadistica}>Propiedades Arrendadas</p>
+                <p className={styles.tituloEstadistica}>
+                  Propiedades Arrendadas
+                </p>
                 <h2 className={styles.valorEstadistica}>
                   {estadisticas.propiedadesArrendadas}
                 </h2>
@@ -465,7 +494,9 @@ const PropietarioDashboard: React.FC = () => {
                 <h2 className={styles.valorEstadistica}>
                   {estadisticas.contratosActivos}
                 </h2>
-                <p className={styles.descripcionEstadistica}>Contratos vigentes</p>
+                <p className={styles.descripcionEstadistica}>
+                  Contratos vigentes
+                </p>
                 <div className={styles.tendencia}>
                   <TrendingUp size={14} />
                   <span>+0% vs mes anterior</span>
@@ -501,14 +532,18 @@ const PropietarioDashboard: React.FC = () => {
             ) : (
               <div className={styles.gridPropiedades}>
                 {propiedades.slice(0, 4).map((propiedad, index) => (
-                  <div key={propiedad.idPropiedad} className={styles.tarjetaPropiedad}>
+                  <div
+                    key={propiedad.idPropiedad}
+                    className={styles.tarjetaPropiedad}
+                  >
                     {/* Imagen */}
                     <div className={styles.imagenPropiedad}>
                       <img
                         src={obtenerImagenPropiedad(index)}
                         alt={propiedad.direccion}
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x250/e5e7eb/6b7280?text=Propiedad";
+                          (e.target as HTMLImageElement).src =
+                            "https://via.placeholder.com/400x250/e5e7eb/6b7280?text=Propiedad";
                         }}
                       />
                       <span className={obtenerColorEstado(propiedad.estado)}>
@@ -529,10 +564,14 @@ const PropietarioDashboard: React.FC = () => {
 
                         {menuAbierto === propiedad.idPropiedad && (
                           <div className={styles.menuDesplegable}>
-                            <button onClick={() => handleVerPropiedad(propiedad)}>
+                            <button
+                              onClick={() => handleVerPropiedad(propiedad)}
+                            >
                               Ver detalles
                             </button>
-                            <button onClick={() => handleEditarPropiedad(propiedad)}>
+                            <button
+                              onClick={() => handleEditarPropiedad(propiedad)}
+                            >
                               Editar
                             </button>
                           </div>
@@ -552,7 +591,9 @@ const PropietarioDashboard: React.FC = () => {
                         </div>
 
                         <div className={styles.detalle}>
-                          <span className={styles.labelDetalle}>Propietario:</span>
+                          <span className={styles.labelDetalle}>
+                            Propietario:
+                          </span>
                           <span className={styles.valorDetalle}>
                             {propiedad.nombrePropietario || "Sin asignar"}
                           </span>
@@ -588,7 +629,8 @@ const PropietarioDashboard: React.FC = () => {
                 <div className={styles.estadisticaOcupacion}>
                   <span>Ocupación General</span>
                   <span className={styles.porcentajeOcupacion}>
-                    {estadisticas.porcentajeOcupacion}% ({estadisticas.propiedadesArrendadas}/
+                    {estadisticas.porcentajeOcupacion}% (
+                    {estadisticas.propiedadesArrendadas}/
                     {estadisticas.totalPropiedades})
                   </span>
                 </div>
@@ -598,7 +640,13 @@ const PropietarioDashboard: React.FC = () => {
                   <div
                     className={styles.progresoArrendadas}
                     style={{
-                      width: `${estadisticas.totalPropiedades > 0 ? (estadisticas.propiedadesArrendadas / estadisticas.totalPropiedades) * 100 : 0}%`,
+                      width: `${
+                        estadisticas.totalPropiedades > 0
+                          ? (estadisticas.propiedadesArrendadas /
+                              estadisticas.totalPropiedades) *
+                            100
+                          : 0
+                      }%`,
                     }}
                   ></div>
                 </div>
@@ -606,33 +654,53 @@ const PropietarioDashboard: React.FC = () => {
                 {/* Estados */}
                 <div className={styles.estadosGrid}>
                   <div className={styles.estadoItem}>
-                    <div className={styles.estadoIndicador} style={{ backgroundColor: "#10b981" }}></div>
+                    <div
+                      className={styles.estadoIndicador}
+                      style={{ backgroundColor: "#10b981" }}
+                    ></div>
                     <div>
-                      <p className={styles.estadoNumero}>{estadisticas.propiedadesArrendadas}</p>
+                      <p className={styles.estadoNumero}>
+                        {estadisticas.propiedadesArrendadas}
+                      </p>
                       <p className={styles.estadoLabel}>Arrendadas</p>
                     </div>
                   </div>
 
                   <div className={styles.estadoItem}>
-                    <div className={styles.estadoIndicador} style={{ backgroundColor: "#3b82f6" }}></div>
+                    <div
+                      className={styles.estadoIndicador}
+                      style={{ backgroundColor: "#3b82f6" }}
+                    ></div>
                     <div>
-                      <p className={styles.estadoNumero}>{estadisticas.disponibles}</p>
+                      <p className={styles.estadoNumero}>
+                        {estadisticas.disponibles}
+                      </p>
                       <p className={styles.estadoLabel}>Disponibles</p>
                     </div>
                   </div>
 
                   <div className={styles.estadoItem}>
-                    <div className={styles.estadoIndicador} style={{ backgroundColor: "#f59e0b" }}></div>
+                    <div
+                      className={styles.estadoIndicador}
+                      style={{ backgroundColor: "#f59e0b" }}
+                    ></div>
                     <div>
-                      <p className={styles.estadoNumero}>{estadisticas.mantenimiento}</p>
+                      <p className={styles.estadoNumero}>
+                        {estadisticas.mantenimiento}
+                      </p>
                       <p className={styles.estadoLabel}>Mantenimiento</p>
                     </div>
                   </div>
 
                   <div className={styles.estadoItem}>
-                    <div className={styles.estadoIndicador} style={{ backgroundColor: "#a855f7" }}></div>
+                    <div
+                      className={styles.estadoIndicador}
+                      style={{ backgroundColor: "#a855f7" }}
+                    ></div>
                     <div>
-                      <p className={styles.estadoNumero}>{estadisticas.reservadas}</p>
+                      <p className={styles.estadoNumero}>
+                        {estadisticas.reservadas}
+                      </p>
                       <p className={styles.estadoLabel}>Reservadas</p>
                     </div>
                   </div>
@@ -644,7 +712,9 @@ const PropietarioDashboard: React.FC = () => {
             <div className={styles.tarjeta}>
               <div className={styles.headerTarjeta}>
                 <h3>Contratos Activos</h3>
-                <p className={styles.subtituloTarjeta}>Últimos contratos registrados</p>
+                <p className={styles.subtituloTarjeta}>
+                  Últimos contratos registrados
+                </p>
               </div>
 
               <div className={styles.listaPagos}>
@@ -664,14 +734,21 @@ const PropietarioDashboard: React.FC = () => {
                           {contrato.nombreInquilino || "Sin inquilino asignado"}
                         </p>
                         <p className={styles.fechaPago}>
-                          <Calendar size={12} /> {formatearFecha(contrato.fechaInicio)} - {formatearFecha(contrato.fechaFin)}
+                          <Calendar size={12} />{" "}
+                          {formatearFecha(contrato.fechaInicio)} -{" "}
+                          {formatearFecha(contrato.fechaFin)}
                         </p>
                       </div>
                       <div className={styles.montoPago}>
                         <p className={styles.valorPago}>
-                          ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
+                          $
+                          {(contrato.valorMensual || 0).toLocaleString("es-CO")}
                         </p>
-                        <span className={obtenerColorEstadoContrato(contrato.estado)}>
+                        <span
+                          className={obtenerColorEstadoContrato(
+                            contrato.estado
+                          )}
+                        >
                           {formatearEstado(contrato.estado)}
                         </span>
                       </div>
@@ -716,7 +793,10 @@ const PropietarioDashboard: React.FC = () => {
                     <div key={factura.idFactura} className={styles.itemFactura}>
                       <div className={styles.iconoFactura}>
                         {factura.estado === EstadoFactura.PAGADA ? (
-                          <CheckCircle size={20} className={styles.iconoPagada} />
+                          <CheckCircle
+                            size={20}
+                            className={styles.iconoPagada}
+                          />
                         ) : factura.estado === EstadoFactura.PENDIENTE ? (
                           <Clock size={20} className={styles.iconoPendiente} />
                         ) : (

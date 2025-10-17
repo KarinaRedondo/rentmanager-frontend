@@ -26,7 +26,9 @@ const DetalleContrato: React.FC = () => {
   const [contrato, setContrato] = useState<DTOContratoRespuesta | null>(null);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [tabActiva, setTabActiva] = useState<"informacion" | "facturas" | "pagos">("informacion");
+  const [tabActiva, setTabActiva] = useState<
+    "informacion" | "facturas" | "pagos"
+  >("informacion");
 
   useEffect(() => {
     cargarContrato();
@@ -147,14 +149,18 @@ const DetalleContrato: React.FC = () => {
           {/* Tabs */}
           <div className={styles.tabs}>
             <button
-              className={tabActiva === "informacion" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "informacion" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("informacion")}
             >
               <FileText size={20} />
               Información General
             </button>
             <button
-              className={tabActiva === "facturas" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "facturas" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("facturas")}
             >
               <FileText size={20} />
@@ -181,7 +187,9 @@ const DetalleContrato: React.FC = () => {
                 <div className={styles.grid2}>
                   <div className={styles.campo}>
                     <span className={styles.label}>Tipo de Contrato</span>
-                    <span className={styles.valor}>{contrato.tipoContrato}</span>
+                    <span className={styles.valor}>
+                      {contrato.tipoContrato}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Forma de Pago</span>
@@ -189,11 +197,15 @@ const DetalleContrato: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Fecha de Inicio</span>
-                    <span className={styles.valor}>{formatearFecha(contrato.fechaInicio)}</span>
+                    <span className={styles.valor}>
+                      {formatearFecha(contrato.fechaInicio)}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Fecha de Fin</span>
-                    <span className={styles.valor}>{formatearFecha(contrato.fechaFin)}</span>
+                    <span className={styles.valor}>
+                      {formatearFecha(contrato.fechaFin)}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Valor Mensual</span>
@@ -203,7 +215,9 @@ const DetalleContrato: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Estado</span>
-                    <span className={styles.estadoBadge}>{contrato.estado}</span>
+                    <span className={styles.estadoBadge}>
+                      {contrato.estado}
+                    </span>
                   </div>
                 </div>
 
@@ -224,26 +238,39 @@ const DetalleContrato: React.FC = () => {
                 <div className={styles.grid2}>
                   <div className={styles.campo}>
                     <span className={styles.label}>Dirección</span>
-                    <span className={styles.valor}>{contrato.propiedad?.direccion || "N/A"}</span>
+                    <span className={styles.valor}>
+                      {contrato.propiedad?.direccion || "N/A"}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Ciudad</span>
-                    <span className={styles.valor}>{contrato.propiedad?.ciudad || "N/A"}</span>
+                    <span className={styles.valor}>
+                      {contrato.propiedad?.ciudad || "N/A"}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Tipo</span>
+                    <span className={styles.valor}>
+                      {contrato.propiedad?.tipo}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Área</span>
-                    <span className={styles.valor}>{contrato.propiedad?.area || "N/A"} m²</span>
+                    <span className={styles.valor}>
+                      {contrato.propiedad?.area || "N/A"} m²
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Habitaciones</span>
-                    <span className={styles.valor}>{contrato.propiedad?.habitaciones || 0}</span>
+                    <span className={styles.valor}>
+                      {contrato.propiedad?.habitaciones || 0}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Baños</span>
-                    <span className={styles.valor}>{contrato.propiedad?.banos || 0}</span>
+                    <span className={styles.valor}>
+                      {contrato.propiedad?.banos || 0}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -261,16 +288,21 @@ const DetalleContrato: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Correo</span>
-                    <span className={styles.valor}>{contrato.inquilino?.correo || "N/A"}</span>
+                    <span className={styles.valor}>
+                      {contrato.inquilino?.correo || "N/A"}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Teléfono</span>
-                    <span className={styles.valor}>{contrato.inquilino?.telefono || "N/A"}</span>
+                    <span className={styles.valor}>
+                      {contrato.inquilino?.telefono || "N/A"}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Documento</span>
                     <span className={styles.valor}>
-                      {contrato.inquilino?.tipoDocumento} {contrato.inquilino?.numeroDocumento}
+                      {contrato.inquilino?.tipoDocumento}{"N/A"}
+                      {contrato.inquilino?.numeroDocumento}
                     </span>
                   </div>
                 </div>
@@ -323,16 +355,22 @@ const DetalleContrato: React.FC = () => {
                   ].map((factura) => (
                     <div key={factura.id} className={styles.itemFactura}>
                       <div className={styles.iconoFactura}>
-                       <FileText size={20} />
+                        <FileText size={20} />
                       </div>
                       <div className={styles.infoFactura}>
                         <div className={styles.headerFactura}>
                           <h3>{factura.numero}</h3>
-                          <span className={`${styles.estadoFactura} ${styles[factura.estado.toLowerCase()]}`}>
+                          <span
+                            className={`${styles.estadoFactura} ${
+                              styles[factura.estado.toLowerCase()]
+                            }`}
+                          >
                             {factura.estado}
                           </span>
                         </div>
-                        <p className={styles.conceptoFactura}>{factura.concepto}</p>
+                        <p className={styles.conceptoFactura}>
+                          {factura.concepto}
+                        </p>
                         <div className={styles.detallesFactura}>
                           <span>
                             <Calendar size={14} />
@@ -376,22 +414,30 @@ const DetalleContrato: React.FC = () => {
                   <div className={styles.cardResumen}>
                     <CheckCircle size={32} className={styles.iconoVerde} />
                     <div>
-                      <span className={styles.labelResumen}>Pagos Realizados</span>
+                      <span className={styles.labelResumen}>
+                        Pagos Realizados
+                      </span>
                       <span className={styles.valorResumen}>2</span>
                     </div>
                   </div>
                   <div className={styles.cardResumen}>
                     <Clock size={32} className={styles.iconoAmarillo} />
                     <div>
-                      <span className={styles.labelResumen}>Pagos Pendientes</span>
+                      <span className={styles.labelResumen}>
+                        Pagos Pendientes
+                      </span>
                       <span className={styles.valorResumen}>1</span>
                     </div>
                   </div>
                   <div className={styles.cardResumen}>
                     <DollarSign size={32} className={styles.iconoAzul} />
                     <div>
-                      <span className={styles.labelResumen}>Total Recibido</span>
-                      <span className={styles.valorResumen}>{formatearMoneda(2400000)}</span>
+                      <span className={styles.labelResumen}>
+                        Total Recibido
+                      </span>
+                      <span className={styles.valorResumen}>
+                        {formatearMoneda(2400000)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -430,8 +476,14 @@ const DetalleContrato: React.FC = () => {
                       </div>
                       <div className={styles.infoPago}>
                         <div className={styles.headerPago}>
-                          <span className={styles.montoPago}>{formatearMoneda(pago.monto)}</span>
-                          <span className={`${styles.estadoPago} ${styles[pago.estado.toLowerCase()]}`}>
+                          <span className={styles.montoPago}>
+                            {formatearMoneda(pago.monto)}
+                          </span>
+                          <span
+                            className={`${styles.estadoPago} ${
+                              styles[pago.estado.toLowerCase()]
+                            }`}
+                          >
                             {pago.estado}
                           </span>
                         </div>
@@ -445,7 +497,9 @@ const DetalleContrato: React.FC = () => {
                             {pago.metodo}
                           </span>
                           {pago.referencia !== "N/A" && (
-                            <span className={styles.referencia}>Ref: {pago.referencia}</span>
+                            <span className={styles.referencia}>
+                              Ref: {pago.referencia}
+                            </span>
                           )}
                         </div>
                       </div>

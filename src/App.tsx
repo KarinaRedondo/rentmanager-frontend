@@ -74,7 +74,7 @@ function App() {
             path="/propietario/facturas"
             element={<PropietarioFacturas />}
           />
-          <Route path="/propietario/detalles" element={<DetalleContrato />} />
+          <Route path="/propietario/contratos/:id" element={<DetalleContrato />} />
            <Route path="/propietario/propiedades/:id"element={<PropiedadDetalle />}
         />
 

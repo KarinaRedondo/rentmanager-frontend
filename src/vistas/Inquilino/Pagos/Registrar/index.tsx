@@ -183,7 +183,7 @@ const InquilinoRegistrarPago: React.FC = () => {
 
       const nuevoPago: any = {
         factura: facturaSeleccionada,
-        fecha: new Date(formulario.fecha).toISOString(),
+        fecha: new Date(formulario.fecha).toISOString().slice(0, 19),
         monto: formulario.monto,
         metodoPago: formulario.metodoPago,
         referenciaTransaccion: formulario.referenciaTransaccion,
@@ -563,8 +563,8 @@ const InquilinoRegistrarPago: React.FC = () => {
                   <div className={styles.notaResumen}>
                     <AlertCircle size={16} />
                     <p>
-                      Tu pago será verificado por el contador. Recibirás
-                      una notificación una vez sea aprobado.
+                      Tu pago será verificado por el contador. Recibirás una
+                      notificación una vez sea aprobado.
                     </p>
                   </div>
                 </div>

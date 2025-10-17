@@ -5,10 +5,10 @@ import Footer from "../../../componentes/Footer";
 import { BotonComponente } from "../../../componentes/ui/Boton";
 import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
-import { 
-  obtenerContratos, 
-  crearContrato, 
-  actualizarContrato 
+import {
+  obtenerContratos,
+  crearContrato,
+  actualizarContrato,
 } from "../../../servicios/contratos";
 import { PropiedadService } from "../../../servicios/propiedades";
 import { UsuarioService } from "../../../servicios/usuarios";
@@ -38,17 +38,20 @@ const PropietarioContratos: React.FC = () => {
   const navigate = useNavigate();
 
   const [contratos, setContratos] = useState<DTOContratoRespuesta[]>([]);
-  const [contratosFiltrados, setContratosFiltrados] = useState<DTOContratoRespuesta[]>([]);
+  const [contratosFiltrados, setContratosFiltrados] = useState<
+    DTOContratoRespuesta[]
+  >([]);
   const [propiedades, setPropiedades] = useState<DTOPropiedadRespuesta[]>([]);
   const [inquilinos, setInquilinos] = useState<DTOUsuarioRespuesta[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [filtroEstado, setFiltroEstado] = useState<string>("TODOS");
-  
+
   // Estado del Modal
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [modoEdicion, setModoEdicion] = useState<boolean>(false);
-  const [contratoEditando, setContratoEditando] = useState<DTOContratoRespuesta | null>(null);
+  const [contratoEditando, setContratoEditando] =
+    useState<DTOContratoRespuesta | null>(null);
   const [guardando, setGuardando] = useState<boolean>(false);
 
   // Estados del formulario - ✅ CORREGIDO: Estado inicial "CREADO"
@@ -58,6 +61,9 @@ const PropietarioContratos: React.FC = () => {
   const [fechaFin, setFechaFin] = useState<string>("");
   const [valorMensual, setValorMensual] = useState<string>("0");
   const [estadoContrato, setEstadoContrato] = useState<string>("CREADO"); // ✅ CAMBIADO
+  const [tipoContrato, setTipoContrato] = useState<string>("RESIDENCIAL");
+  const [formaPago, setFormaPago] = useState<string>("MENSUAL");
+  const [observaciones, setObservaciones] = useState<string>("");
 
   useEffect(() => {
     verificarAcceso();
@@ -80,7 +86,10 @@ const PropietarioContratos: React.FC = () => {
       const usuario = JSON.parse(usuarioString);
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
-      if (rolUsuario !== "PROPIETARIO" && rolUsuario !== TipoUsuario.PROPIETARIO) {
+      if (
+        rolUsuario !== "PROPIETARIO" &&
+        rolUsuario !== TipoUsuario.PROPIETARIO
+      ) {
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
@@ -107,7 +116,9 @@ const PropietarioContratos: React.FC = () => {
       ]);
 
       const contratosArray = Array.isArray(contratosData) ? contratosData : [];
-      const propiedadesArray = Array.isArray(propiedadesData) ? propiedadesData : [];
+      const propiedadesArray = Array.isArray(propiedadesData)
+        ? propiedadesData
+        : [];
       const usuariosArray = Array.isArray(usuariosData) ? usuariosData : [];
 
       console.log("📊 Usuarios recibidos:", usuariosArray);
@@ -124,7 +135,11 @@ const PropietarioContratos: React.FC = () => {
         return tipo === "INQUILINO" || tipo === "INQUILINOS";
       });
 
-      console.log("✅ Inquilinos filtrados:", inquilinosArray.length, inquilinosArray);
+      console.log(
+        "✅ Inquilinos filtrados:",
+        inquilinosArray.length,
+        inquilinosArray
+      );
 
       setContratos(contratosOrdenados);
       setPropiedades(propiedadesArray);
@@ -133,13 +148,12 @@ const PropietarioContratos: React.FC = () => {
       console.log("✅ Datos cargados correctamente:", {
         contratos: contratosOrdenados.length,
         propiedades: propiedadesArray.length,
-        inquilinos: inquilinosArray.length
+        inquilinos: inquilinosArray.length,
       });
 
       if (inquilinosArray.length === 0) {
         console.warn("⚠️ No se encontraron inquilinos registrados");
       }
-
     } catch (err: any) {
       console.error("❌ Error al cargar datos:", err);
       setError("Error al cargar los datos");
@@ -168,6 +182,9 @@ const PropietarioContratos: React.FC = () => {
     setFechaFin("");
     setValorMensual("0");
     setEstadoContrato("CREADO"); // ✅ CAMBIADO
+    setFormaPago("MENSUAL");
+    setTipoContrato("RESIDENCIAL");
+    setObservaciones("");
     setModalAbierto(true);
   };
 
@@ -180,74 +197,82 @@ const PropietarioContratos: React.FC = () => {
     setFechaFin(contrato.fechaFin || "");
     setValorMensual(String(contrato.valorMensual || 0));
     setEstadoContrato(contrato.estado || "CREADO"); // ✅ CAMBIADO
+    setTipoContrato(contrato.tipoContrato || "RESIDENCIAL");
+    setFormaPago(contrato.formaPago || "MENSUAL");
+    setObservaciones(contrato.observaciones || "");
     setModalAbierto(true);
   };
 
- const handleGuardar = async () => {
-  if (!idPropiedad || parseInt(idPropiedad) === 0) {
-    alert("⚠️ Debe seleccionar una propiedad");
-    return;
-  }
-
-  if (!idInquilino || parseInt(idInquilino) === 0) {
-    alert("⚠️ Debe seleccionar un inquilino");
-    return;
-  }
-
-  if (!fechaInicio || !fechaFin) {
-    alert("⚠️ Debe ingresar las fechas de inicio y fin del contrato");
-    return;
-  }
-
-  if (!valorMensual || parseInt(valorMensual) <= 0) {
-    alert("⚠️ El valor mensual debe ser mayor a 0");
-    return;
-  }
-
-  try {
-    setGuardando(true);
-
-    const usuarioString = localStorage.getItem("usuario");
-    const usuario = JSON.parse(usuarioString!);
-    const propiedadSeleccionada = propiedades.find(p => p.idPropiedad === parseInt(idPropiedad));
-
-    const contratoData = {
-      propiedad: propiedadSeleccionada,
-      idInquilino: parseInt(idInquilino),
-      idPropietario: usuario.idUsuario,
-      fechaInicio,
-      fechaFin,
-      valorMensual: parseInt(valorMensual),
-      estado: estadoContrato,
-      tipoContrato: "RESIDENCIAL",
-      formaPago: "MENSUAL",
-    };
-
-    console.log("📤 Enviando:", contratoData);
-
-    if (modoEdicion && contratoEditando) {
-      await actualizarContrato(contratoEditando.idContrato || 0, contratoData as any);
-      alert("✅ Contrato actualizado");
-    } else {
-      await crearContrato(contratoData as any);
-      alert("✅ Contrato creado");
+  const handleGuardar = async () => {
+    if (!idPropiedad || parseInt(idPropiedad) === 0) {
+      alert("⚠️ Debe seleccionar una propiedad");
+      return;
     }
-    
-    setModalAbierto(false);
-    await cargarDatos();
-  } catch (err: any) {
-    console.error("❌ Error:", err);
-    alert(`❌ Error: ${err.response?.data?.message || err.message}`);
-  } finally {
-    setGuardando(false);
-  }
-};
 
+    if (!idInquilino || parseInt(idInquilino) === 0) {
+      alert("⚠️ Debe seleccionar un inquilino");
+      return;
+    }
+
+    if (!fechaInicio || !fechaFin) {
+      alert("⚠️ Debe ingresar las fechas de inicio y fin del contrato");
+      return;
+    }
+
+    if (!valorMensual || parseInt(valorMensual) <= 0) {
+      alert("⚠️ El valor mensual debe ser mayor a 0");
+      return;
+    }
+
+    try {
+      setGuardando(true);
+
+      const usuarioString = localStorage.getItem("usuario");
+      const usuario = JSON.parse(usuarioString!);
+      const propiedadSeleccionada = propiedades.find(
+        (p) => p.idPropiedad === parseInt(idPropiedad)
+      );
+
+      const contratoData = {
+        propiedad: propiedadSeleccionada,
+        idInquilino: parseInt(idInquilino),
+        idPropietario: usuario.idUsuario,
+        fechaInicio,
+        fechaFin,
+        valorMensual: parseInt(valorMensual),
+        estado: estadoContrato,
+        tipoContrato,
+        formaPago,
+        observaciones,
+      };
+
+      console.log("📤 Enviando:", contratoData);
+
+      if (modoEdicion && contratoEditando) {
+        await actualizarContrato(
+          contratoEditando.idContrato || 0,
+          contratoData as any
+        );
+        alert("✅ Contrato actualizado");
+      } else {
+        await crearContrato(contratoData as any);
+        alert("✅ Contrato creado");
+      }
+
+      setModalAbierto(false);
+      await cargarDatos();
+    } catch (err: any) {
+      console.error("❌ Error:", err);
+      alert(`❌ Error: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setGuardando(false);
+    }
+  };
 
   const formatearFecha = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
     try {
-      const partes = fecha.split('-');
+      const partes = fecha.split("-");
       if (partes.length !== 3) return "Fecha inválida";
       const [anio, mes, dia] = partes;
       const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
@@ -323,8 +348,12 @@ const PropietarioContratos: React.FC = () => {
       const estado = String(c.estado).toUpperCase();
       return estado === "ACTIVO" || estado === "RENOVADO";
     }).length,
-    pendientes: contratos.filter((c) => String(c.estado).toUpperCase() === "CREADO").length,
-    finalizados: contratos.filter((c) => String(c.estado).toUpperCase() === "TERMINADO").length,
+    pendientes: contratos.filter(
+      (c) => String(c.estado).toUpperCase() === "CREADO"
+    ).length,
+    finalizados: contratos.filter(
+      (c) => String(c.estado).toUpperCase() === "TERMINADO"
+    ).length,
   };
 
   return (
@@ -361,7 +390,9 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Total Contratos</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.total}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.total}
+                </h2>
               </div>
             </div>
 
@@ -371,7 +402,9 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Activos</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.activos}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.activos}
+                </h2>
               </div>
             </div>
 
@@ -381,7 +414,9 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Creados</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.pendientes}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.pendientes}
+                </h2>
               </div>
             </div>
 
@@ -391,7 +426,9 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Finalizados</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.finalizados}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.finalizados}
+                </h2>
               </div>
             </div>
           </div>
@@ -403,25 +440,41 @@ const PropietarioContratos: React.FC = () => {
               <span>Filtrar por estado:</span>
               <div className={styles.grupoFiltros}>
                 <button
-                  className={filtroEstado === "TODOS" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "TODOS"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("TODOS")}
                 >
                   Todos
                 </button>
                 <button
-                  className={filtroEstado === "ACTIVO" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "ACTIVO"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("ACTIVO")}
                 >
                   Activos
                 </button>
                 <button
-                  className={filtroEstado === "CREADO" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "CREADO"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("CREADO")}
                 >
                   Creados
                 </button>
                 <button
-                  className={filtroEstado === "TERMINADO" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "TERMINADO"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("TERMINADO")}
                 >
                   Terminados
@@ -442,14 +495,20 @@ const PropietarioContratos: React.FC = () => {
               <div className={styles.gridContratos}>
                 {contratosFiltrados.map((contrato) => {
                   const propiedad = contrato.propiedad;
-                  const direccion = propiedad?.direccion || "Propiedad no identificada";
+                  const direccion =
+                    propiedad?.direccion || "Propiedad no identificada";
                   const inquilino = contrato.inquilino;
-                  const nombreCompleto = inquilino 
-                    ? `${inquilino.nombre || ""} ${inquilino.apellido || ""}`.trim() 
+                  const nombreCompleto = inquilino
+                    ? `${inquilino.nombre || ""} ${
+                        inquilino.apellido || ""
+                      }`.trim()
                     : "N/A";
 
                   return (
-                    <div key={contrato.idContrato} className={styles.tarjetaContrato}>
+                    <div
+                      key={contrato.idContrato}
+                      className={styles.tarjetaContrato}
+                    >
                       <div className={styles.headerContrato}>
                         <div className={styles.infoHeaderContrato}>
                           <h3>Contrato #{contrato.idContrato}</h3>
@@ -502,11 +561,16 @@ const PropietarioContratos: React.FC = () => {
                             Valor Mensual:
                           </span>
                           <span className={styles.valorMensual}>
-                            ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
+                            $
+                            {(contrato.valorMensual || 0).toLocaleString(
+                              "es-CO"
+                            )}
                           </span>
                         </div>
 
-                        <span className={obtenerEstadoClase(contrato.estado || "")}>
+                        <span
+                          className={obtenerEstadoClase(contrato.estado || "")}
+                        >
                           {contrato.estado}
                         </span>
                       </div>
@@ -514,12 +578,16 @@ const PropietarioContratos: React.FC = () => {
                       <div className={styles.accionesContrato}>
                         <button
                           className={styles.btnAccion}
-                          onClick={() => navigate(`/propietario/contratos/${contrato.idContrato}`)}
+                          onClick={() =>
+                            navigate(
+                              `/propietario/contratos/${contrato.idContrato}`
+                            )
+                          }
                         >
                           <Eye size={16} />
                           Ver Detalle
                         </button>
-                        <button 
+                        <button
                           className={styles.btnAccion}
                           onClick={() => abrirModalEditar(contrato)}
                         >
@@ -545,7 +613,7 @@ const PropietarioContratos: React.FC = () => {
         recomendaciones={[
           "Verifica que las fechas sean correctas",
           "El valor mensual debe ser mayor a 0",
-          "Asegúrate de seleccionar la propiedad e inquilino correctos"
+          "Asegúrate de seleccionar la propiedad e inquilino correctos",
         ]}
       >
         <div className={styles.formModal}>
@@ -604,6 +672,41 @@ const PropietarioContratos: React.FC = () => {
             value={valorMensual}
             setValue={setValorMensual}
             placeholder="Ingrese el valor mensual"
+          />
+          <div className={styles.formGroup}>
+            <label>Tipo Contrato *</label>
+            <select
+              className={styles.selectModal}
+              value={tipoContrato}
+              onChange={(e) => setTipoContrato(e.target.value)}
+              disabled={guardando}
+            >
+              <option value="RESIDENCIAL">Residencial</option>
+              <option value="COMERCIAL">Comercial</option>
+              <option value="TEMPORADA_CORTA">Temporada Corta</option>
+              <option value="TEMPORADA_LARGA">Temporada Larga</option>
+            </select>
+          </div>
+           <div className={styles.formGroup}>
+            <label>Forma de Pago *</label>
+            <select
+              className={styles.selectModal}
+              value={formaPago}
+              onChange={(e) => setFormaPago(e.target.value)}
+              disabled={guardando}
+            >
+              <option value="MENSUAL">Mensual</option>
+              <option value="TRIMESTRAL">Trimestral</option>
+              <option value="SEMESTRAL">Semestral</option>
+              <option value="ANUAL">Anual</option>
+            </select>
+          </div>
+          <InputCustom
+            title="Observaciones *"
+            type="text"
+            value={observaciones}
+            setValue={setObservaciones}
+            placeholder="Opcional: Ingrese observaciones"
           />
 
           {/* ✅ CORREGIDO: Estados válidos del enum */}

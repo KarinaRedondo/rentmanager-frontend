@@ -1,11 +1,13 @@
 import type { EstadoPropiedad } from "../enumeraciones/estadoPropiedad";
 import type {  ServiciosPublicos } from "../enumeraciones/serviciosPublicos";
+import type { TipoPropiedad } from "../enumeraciones/tipoPropiedad";
 
 export interface Propiedad {
   idPropiedad: number;
   direccion: string;
   ciudad: string;
   estado: EstadoPropiedad;
+  tipo: TipoPropiedad;     
   propietario: number;
   propiedadPadre?: Propiedad;
   area: number;
