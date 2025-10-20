@@ -493,16 +493,18 @@ const PropietarioContratos: React.FC = () => {
               </div>
             ) : (
               <div className={styles.gridContratos}>
+        
                 {contratosFiltrados.map((contrato) => {
+                  console.log("Contrato recibido:", contrato);
                   const propiedad = contrato.propiedad;
                   const direccion =
                     propiedad?.direccion || "Propiedad no identificada";
-                  const inquilino = contrato.inquilino;
-                  const nombreCompleto = inquilino
-                    ? `${inquilino.nombre || ""} ${
-                        inquilino.apellido || ""
-                      }`.trim()
-                    : "N/A";
+                  const nombreCompleto =
+                    contrato.nombreInquilino && contrato.apellidoInquilino
+                      ? `${contrato.nombreInquilino} ${contrato.apellidoInquilino}`
+                      : `${contrato.nombreInquilino ?? ""} ${
+                          contrato.apellidoInquilino ?? ""
+                        }`.trim() || "N/A";
 
                   return (
                     <div
@@ -687,7 +689,7 @@ const PropietarioContratos: React.FC = () => {
               <option value="TEMPORADA_LARGA">Temporada Larga</option>
             </select>
           </div>
-           <div className={styles.formGroup}>
+          <div className={styles.formGroup}>
             <label>Forma de Pago *</label>
             <select
               className={styles.selectModal}
