@@ -27,4 +27,7 @@ export interface DTOContratoRespuesta extends DTOContratoActualizar {
   idInquilino: number;
   nombreInquilino?: string;
   apellidoInquilino?: string;
+  correoInquilino?: string;
+  telefonoInquilino?: string;
+  numeroDocumentoInquilino?: string;
 }

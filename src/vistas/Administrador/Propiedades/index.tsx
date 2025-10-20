@@ -8,15 +8,7 @@ import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
 import { EstadoPropiedad } from "../../../modelos/enumeraciones/estadoPropiedad";
 import { PropiedadService } from "../../../servicios/propiedades";
 import styles from "./AdministradorPropiedades.module.css";
-import {
-  Home,
-  MapPin,
-  Edit3,
-  Eye,
-  Trash2,
-  Plus,
-  Search,
-} from "react-feather";
+import { Home, MapPin, Edit3, Eye, Trash2, Plus, Search } from "react-feather";
 import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
 
@@ -24,15 +16,18 @@ const AdministradorPropiedades: React.FC = () => {
   const navigate = useNavigate();
 
   const [propiedades, setPropiedades] = useState<DTOPropiedadRespuesta[]>([]);
-  const [propiedadesFiltradas, setPropiedadesFiltradas] = useState<DTOPropiedadRespuesta[]>([]);
+  const [propiedadesFiltradas, setPropiedadesFiltradas] = useState<
+    DTOPropiedadRespuesta[]
+  >([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [busqueda, setBusqueda] = useState<string>("");
   const [filtroEstado, setFiltroEstado] = useState<string>("TODAS");
-  
+
   const [mostrarModal, setMostrarModal] = useState<boolean>(false);
-  const [propiedadSeleccionada, setPropiedadSeleccionada] = useState<DTOPropiedadRespuesta | null>(null);
-  
+  const [propiedadSeleccionada, setPropiedadSeleccionada] =
+    useState<DTOPropiedadRespuesta | null>(null);
+
   const [direccion, setDireccion] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [area, setArea] = useState("");
@@ -43,7 +38,9 @@ const AdministradorPropiedades: React.FC = () => {
   const [pisos, setPisos] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [anoConstruccion, setAnoConstruccion] = useState("");
-  const [estado, setEstado] = useState<EstadoPropiedad>(EstadoPropiedad.DISPONIBLE);
+  const [estado, setEstado] = useState<EstadoPropiedad>(
+    EstadoPropiedad.DISPONIBLE
+  );
 
   useEffect(() => {
     verificarAcceso();
@@ -66,7 +63,10 @@ const AdministradorPropiedades: React.FC = () => {
       const usuario = JSON.parse(usuarioString);
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
-     if (rolUsuario !== "ADMINISTRADOR" && rolUsuario !== TipoUsuario.ADMINISTRADOR) {
+      if (
+        rolUsuario !== "ADMINISTRADOR" &&
+        rolUsuario !== TipoUsuario.ADMINISTRADOR
+      ) {
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
@@ -117,8 +117,12 @@ const AdministradorPropiedades: React.FC = () => {
 
   const calcularEstadisticas = () => {
     const totalPropiedades = propiedades.length;
-    const disponibles = propiedades.filter((p) => p.estado === EstadoPropiedad.DISPONIBLE).length;
-    const ocupadas = propiedades.filter((p) => p.estado === EstadoPropiedad.ARRENDADA).length;
+    const disponibles = propiedades.filter(
+      (p) => p.estado === EstadoPropiedad.DISPONIBLE
+    ).length;
+    const ocupadas = propiedades.filter(
+      (p) => p.estado === EstadoPropiedad.ARRENDADA
+    ).length;
     const areaTotal = propiedades.reduce((sum, p) => sum + (p.area || 0), 0);
 
     return {
@@ -152,7 +156,7 @@ const AdministradorPropiedades: React.FC = () => {
     console.log("  - anoConstruccion:", propiedad.anoConstruccion);
     // @ts-ignore
     console.log("  - ano_construccion:", propiedad.ano_construccion);
-    
+
     setDireccion(propiedad.direccion || "");
     setCiudad(propiedad.ciudad || "");
     setArea(String(propiedad.area || ""));
@@ -163,13 +167,17 @@ const AdministradorPropiedades: React.FC = () => {
     // @ts-ignore
     setPisos(String(propiedad.piso || propiedad.pisos || ""));
     setDescripcion(propiedad.descripcion || "");
-    
+
     // ✅ Buscar año en todos los posibles nombres
     // @ts-ignore
-    const ano = propiedad.anoConstruccion || propiedad.anoConstruccion || propiedad.ano_construccion || "";
+    const ano =
+      propiedad.anoConstruccion ||
+      propiedad.anoConstruccion ||
+      propiedad.anoConstruccion ||
+      "";
     console.log("🔍 CARGAR DATOS - Año encontrado:", ano);
     setAnoConstruccion(String(ano));
-    
+
     setEstado(propiedad.estado || EstadoPropiedad.DISPONIBLE);
   };
 
@@ -233,7 +241,7 @@ const AdministradorPropiedades: React.FC = () => {
           descripcion: descripcion.trim(),
           anoConstruccion: Number(anoConstruccion) || new Date().getFullYear(),
           estado: estado,
-          propietario: propietarioId
+          propietario: propietarioId,
         };
 
         console.log("📤 CREAR - Objeto completo:");
@@ -243,7 +251,7 @@ const AdministradorPropiedades: React.FC = () => {
         const resultado = await PropiedadService.crearPropiedad(datos);
         console.log("✅ CREAR - Respuesta completa:");
         console.log(JSON.stringify(resultado, null, 2));
-        
+
         alert("✅ Propiedad creada correctamente");
       } else {
         // ✅ ACTUALIZAR
@@ -258,21 +266,24 @@ const AdministradorPropiedades: React.FC = () => {
           piso: Number(pisos) || 1,
           descripcion: descripcion.trim(),
           anoConstruccion: Number(anoConstruccion) || new Date().getFullYear(),
-          estado: estado
+          estado: estado,
         };
 
         console.log("📤 ACTUALIZAR - ID:", propiedadSeleccionada.idPropiedad);
         console.log("📤 ACTUALIZAR - Objeto completo:");
         console.log(JSON.stringify(datosActualizar, null, 2));
-        console.log("📤 ACTUALIZAR - anoConstruccion:", datosActualizar.anoConstruccion);
+        console.log(
+          "📤 ACTUALIZAR - anoConstruccion:",
+          datosActualizar.anoConstruccion
+        );
 
         const resultado = await PropiedadService.actualizarPropiedad(
-          propiedadSeleccionada.idPropiedad || 0, 
+          propiedadSeleccionada.idPropiedad || 0,
           datosActualizar
         );
         console.log("✅ ACTUALIZAR - Respuesta completa:");
         console.log(JSON.stringify(resultado, null, 2));
-        
+
         alert("✅ Propiedad actualizada correctamente");
       }
 
@@ -282,11 +293,10 @@ const AdministradorPropiedades: React.FC = () => {
     } catch (err: any) {
       console.error("❌ ERROR COMPLETO:", err);
       console.error("❌ Respuesta:", err.response?.data);
-      
-      const mensajeError = err.response?.data?.message || 
-                           err.response?.data?.error ||
-                           err.message;
-      
+
+      const mensajeError =
+        err.response?.data?.message || err.response?.data?.error || err.message;
+
       alert(`❌ Error: ${mensajeError}`);
     }
   };
@@ -304,6 +314,17 @@ const AdministradorPropiedades: React.FC = () => {
       alert(`❌ Error al eliminar: ${mensajeError}`);
     }
   };
+  const imagenes = [
+    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=250&fit=crop",
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=250&fit=crop",
+    "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=400&h=250&fit=crop",
+    "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=400&h=250&fit=crop",
+    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=250&fit=crop",
+    "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=400&h=250&fit=crop",
+    "https://images.unsplash.com/photo-1599423300746-b62533397364?w=400&h=250&fit=crop",
+    "https://images.unsplash.com/photo-1600585154603-03e2a5b81c28?w=400&h=250&fit=crop",
+    "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=250&fit=crop",
+  ];
 
   if (cargando) {
     return (
@@ -352,7 +373,7 @@ const AdministradorPropiedades: React.FC = () => {
               </button>
               <h1>Propiedades</h1>
               <p className={styles.subtitulo}>
-               Propiedades en arriendo y gestión administrativa
+                Propiedades en arriendo y gestión administrativa
               </p>
             </div>
             <button className={styles.btnNuevo} onClick={abrirModalCrear}>
@@ -368,30 +389,46 @@ const AdministradorPropiedades: React.FC = () => {
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Total Propiedades</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.totalPropiedades}</h2>
-                <p className={styles.descripcionEstadistica}>Propiedades registradas</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.totalPropiedades}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  Propiedades registradas
+                </p>
               </div>
             </div>
 
             <div className={styles.tarjetaEstadistica}>
-              <div className={`${styles.iconoEstadistica} ${styles.iconoVerde}`}>
+              <div
+                className={`${styles.iconoEstadistica} ${styles.iconoVerde}`}
+              >
                 <Home size={24} />
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Disponibles</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.disponibles}</h2>
-                <p className={styles.descripcionEstadistica}>Listas para arrendar</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.disponibles}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  Listas para arrendar
+                </p>
               </div>
             </div>
 
             <div className={styles.tarjetaEstadistica}>
-              <div className={`${styles.iconoEstadistica} ${styles.iconoNaranja}`}>
+              <div
+                className={`${styles.iconoEstadistica} ${styles.iconoNaranja}`}
+              >
                 <Home size={24} />
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Arrendadas</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.ocupadas}</h2>
-                <p className={styles.descripcionEstadistica}>En arriendo actualmente</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.ocupadas}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  En arriendo actualmente
+                </p>
               </div>
             </div>
 
@@ -401,8 +438,12 @@ const AdministradorPropiedades: React.FC = () => {
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Área Total</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.areaTotal} m²</h2>
-                <p className={styles.descripcionEstadistica}>Metros cuadrados totales</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.areaTotal} m²
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  Metros cuadrados totales
+                </p>
               </div>
             </div>
           </div>
@@ -427,9 +468,13 @@ const AdministradorPropiedades: React.FC = () => {
               <option value="TODAS">Todas</option>
               <option value={EstadoPropiedad.DISPONIBLE}>Disponibles</option>
               <option value={EstadoPropiedad.ARRENDADA}>Arrendadas</option>
-              <option value={EstadoPropiedad.EN_MANTENIMIENTO}>En Mantenimiento</option>
+              <option value={EstadoPropiedad.EN_MANTENIMIENTO}>
+                En Mantenimiento
+              </option>
               <option value={EstadoPropiedad.RESERVADA}>Reservadas</option>
-              <option value={EstadoPropiedad.EN_VERIFICACION}>En Verificación</option>
+              <option value={EstadoPropiedad.EN_VERIFICACION}>
+                En Verificación
+              </option>
             </select>
           </div>
 
@@ -441,10 +486,18 @@ const AdministradorPropiedades: React.FC = () => {
           ) : (
             <div className={styles.gridPropiedades}>
               {propiedadesFiltradas.map((propiedad) => (
-                <div key={propiedad.idPropiedad} className={styles.tarjetaPropiedad}>
+                <div
+                  key={propiedad.idPropiedad}
+                  className={styles.tarjetaPropiedad}
+                >
                   <div className={styles.imagenPropiedad}>
                     <img
-                      src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=250&fit=crop"
+                      src={
+                        imagenes[
+                          propiedadesFiltradas.indexOf(propiedad) %
+                            imagenes.length
+                        ]
+                      }
                       alt="Propiedad"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
@@ -460,11 +513,16 @@ const AdministradorPropiedades: React.FC = () => {
                           : styles.badgeMantenimiento
                       }`}
                     >
-                      {propiedad.estado === EstadoPropiedad.DISPONIBLE && "Disponible"}
-                      {propiedad.estado === EstadoPropiedad.ARRENDADA && "Arrendada"}
-                      {propiedad.estado === EstadoPropiedad.EN_MANTENIMIENTO && "Mantenimiento"}
-                      {propiedad.estado === EstadoPropiedad.RESERVADA && "Reservada"}
-                      {propiedad.estado === EstadoPropiedad.EN_VERIFICACION && "En Verificación"}
+                      {propiedad.estado === EstadoPropiedad.DISPONIBLE &&
+                        "Disponible"}
+                      {propiedad.estado === EstadoPropiedad.ARRENDADA &&
+                        "Arrendada"}
+                      {propiedad.estado === EstadoPropiedad.EN_MANTENIMIENTO &&
+                        "Mantenimiento"}
+                      {propiedad.estado === EstadoPropiedad.RESERVADA &&
+                        "Reservada"}
+                      {propiedad.estado === EstadoPropiedad.EN_VERIFICACION &&
+                        "En Verificación"}
                     </span>
                   </div>
 
@@ -504,7 +562,11 @@ const AdministradorPropiedades: React.FC = () => {
                     <div className={styles.acciones}>
                       <button
                         className={styles.btnAccion}
-                        onClick={() => navigate(`/propietario/propiedades/${propiedad.idPropiedad}`)}
+                        onClick={() =>
+                          navigate(
+                            `/propietario/propiedades/${propiedad.idPropiedad}`
+                          )
+                        }
                       >
                         <Eye size={16} />
                         Ver
@@ -518,7 +580,9 @@ const AdministradorPropiedades: React.FC = () => {
                       </button>
                       <button
                         className={styles.btnEliminar}
-                        onClick={() => handleEliminar(propiedad.idPropiedad || 0)}
+                        onClick={() =>
+                          handleEliminar(propiedad.idPropiedad || 0)
+                        }
                       >
                         <Trash2 size={16} />
                       </button>
@@ -613,9 +677,13 @@ const AdministradorPropiedades: React.FC = () => {
               >
                 <option value={EstadoPropiedad.DISPONIBLE}>Disponible</option>
                 <option value={EstadoPropiedad.ARRENDADA}>Arrendada</option>
-                <option value={EstadoPropiedad.EN_MANTENIMIENTO}>En Mantenimiento</option>
+                <option value={EstadoPropiedad.EN_MANTENIMIENTO}>
+                  En Mantenimiento
+                </option>
                 <option value={EstadoPropiedad.RESERVADA}>Reservada</option>
-                <option value={EstadoPropiedad.EN_VERIFICACION}>En Verificación</option>
+                <option value={EstadoPropiedad.EN_VERIFICACION}>
+                  En Verificación
+                </option>
               </select>
             </div>
 
@@ -649,4 +717,4 @@ const AdministradorPropiedades: React.FC = () => {
   );
 };
 
-export default AdministradorPropiedades
+export default AdministradorPropiedades;

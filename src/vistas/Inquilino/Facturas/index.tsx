@@ -408,10 +408,6 @@ const InquilinoFacturas: React.FC = () => {
                           <Eye size={16} />
                           Ver Detalle
                         </button>
-                        <button className={styles.btnAccion}>
-                          <Download size={16} />
-                          Descargar
-                        </button>
                         {(String(factura.estado).toUpperCase() === "PENDIENTE" ||
                           String(factura.estado).toUpperCase() === "GENERADA") && (
                           <button

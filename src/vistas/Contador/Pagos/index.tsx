@@ -424,10 +424,6 @@ const ContadorGestionPagos: React.FC = () => {
                 Administra, verifica y gestiona todos los pagos del sistema
               </p>
             </div>
-            <button className={styles.btnExportar}>
-              <Download size={18} />
-              Exportar Reporte
-            </button>
           </div>
 
           {/* Tarjetas de estadísticas */}
@@ -478,10 +474,10 @@ const ContadorGestionPagos: React.FC = () => {
           {estadisticas.pagosPendientes > 0 && (
             <div className={styles.alerta}>
               <AlertCircle size={20} />
-              <p>
+              <>
                 Tienes <strong>{estadisticas.pagosPendientes} pagos pendientes</strong>{" "}
                 por verificar
-              </p>
+              </>
             </div>
           )}
 

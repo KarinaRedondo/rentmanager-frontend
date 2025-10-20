@@ -132,7 +132,7 @@ const DetallePropiedad: React.FC = () => {
             <h3>{error || "Propiedad no encontrada"}</h3>
             <BotonComponente
               label="Volver a Propiedades"
-              onClick={() => navigate("/propietario/propiedades")}
+              onClick={() => navigate("/administrador/propiedades")}
             />
           </div>
         </main>
@@ -151,7 +151,7 @@ const DetallePropiedad: React.FC = () => {
           <div className={styles.encabezado}>
             <button
               className={styles.btnVolver}
-              onClick={() => navigate("/propietario/propiedades")}
+              onClick={() => navigate("/administrador/propiedades")}
             >
               <ArrowLeft size={20} />
               Volver a Propiedades
@@ -163,7 +163,7 @@ const DetallePropiedad: React.FC = () => {
             <div className={styles.acciones}>
               <BotonComponente
                 label="Editar"
-                onClick={() => navigate(`/propietario/propiedades/editar/${id}`)}
+                onClick={() => navigate(`/administrador/propiedades/editar/${id}`)}
               />
             </div>
           </div>
@@ -304,7 +304,7 @@ const DetallePropiedad: React.FC = () => {
                         </div>
                         <button
                           className={styles.btnVer}
-                          onClick={() => navigate(`/propietario/contratos/${contrato.idContrato}`)}
+                          onClick={() => navigate(`/administrador/contratos/${contrato.idContrato}`)}
                         >
                           <Eye size={16} />
                           Ver Detalles
@@ -354,7 +354,7 @@ const DetallePropiedad: React.FC = () => {
                         </div>
                         <button
                           className={styles.btnVer}
-                          onClick={() => navigate(`/propietario/facturas/${factura.idFactura}`)}
+                          onClick={() => navigate(`/administrador/facturas/${factura.idFactura}`)}
                         >
                           <Eye size={16} />
                           Ver Detalles

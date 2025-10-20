@@ -37,6 +37,9 @@ const IMAGENES_PROPIEDADES = [
   "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1599423300746-b62533397364?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1600585154603-03e2a5b81c28?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=250&fit=crop",
 ];
 
 const PropietarioDashboard: React.FC = () => {
@@ -352,6 +355,12 @@ const PropietarioDashboard: React.FC = () => {
       day: "2-digit",
     });
   };
+console.log("🔍 Contratos completos con inquilinos:", contratos.map(c => ({
+  id: c.idContrato,
+  inquilino: c.inquilino,
+  nombreInquilino: c.nombreInquilino,
+  apellidoInquilino: c.apellidoInquilino
+})));
 
   // ============================================
   // RENDERIZADO - LOADING
@@ -413,10 +422,6 @@ const PropietarioDashboard: React.FC = () => {
               </p>
             </div>
             <div className={styles.accionesEncabezado}>
-              <BotonComponente
-                label="📊 Reportes"
-                onClick={() => navigate("/propietario/reportes")}
-              />
             </div>
           </div>
 
@@ -724,36 +729,38 @@ const PropietarioDashboard: React.FC = () => {
                     <p>No hay contratos registrados</p>
                   </div>
                 ) : (
-                  contratos.slice(0, 3).map((contrato) => (
-                    <div key={contrato.idContrato} className={styles.itemPago}>
-                      <div className={styles.infoPago}>
-                        <p className={styles.propiedadPago}>
-                          Contrato #{contrato.idContrato}
-                        </p>
-                        <p className={styles.inquilinoPago}>
-                          {contrato.nombreInquilino || "Sin inquilino asignado"}
-                        </p>
-                        <p className={styles.fechaPago}>
-                          <Calendar size={12} />{" "}
-                          {formatearFecha(contrato.fechaInicio)} -{" "}
-                          {formatearFecha(contrato.fechaFin)}
-                        </p>
-                      </div>
-                      <div className={styles.montoPago}>
-                        <p className={styles.valorPago}>
-                          $
-                          {(contrato.valorMensual || 0).toLocaleString("es-CO")}
-                        </p>
-                        <span
-                          className={obtenerColorEstadoContrato(
-                            contrato.estado
-                          )}
-                        >
-                          {formatearEstado(contrato.estado)}
-                        </span>
-                      </div>
-                    </div>
-                  ))
+              contratos.slice(0, 3).map((contrato) => {
+  // Construir nombre completo del inquilino
+  const nombreCompleto = contrato.inquilino
+    ? `${contrato.inquilino.nombre || ""} ${contrato.inquilino.apellido || ""}`.trim()
+    : `${contrato.nombreInquilino || ""} ${contrato.apellidoInquilino || ""}`.trim() || "Sin inquilino asignado";
+
+  return (
+    <div key={contrato.idContrato} className={styles.itemPago}>
+      <div className={styles.infoPago}>
+        <p className={styles.propiedadPago}>
+          Contrato #{contrato.idContrato}
+        </p>
+        <p className={styles.inquilinoPago}>
+          {nombreCompleto}
+        </p>
+        <p className={styles.fechaPago}>
+          <Calendar size={12} />{" "}
+          {formatearFecha(contrato.fechaInicio)} -{" "}
+          {formatearFecha(contrato.fechaFin)}
+        </p>
+      </div>
+      <div className={styles.montoPago}>
+        <p className={styles.valorPago}>
+          ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
+        </p>
+        <span className={obtenerColorEstadoContrato(contrato.estado)}>
+          {formatearEstado(contrato.estado)}
+        </span>
+      </div>
+    </div>
+  );
+})
                 )}
 
                 <button

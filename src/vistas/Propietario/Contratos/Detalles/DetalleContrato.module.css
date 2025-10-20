@@ -7,7 +7,7 @@
 .main {
   flex: 1;
   padding: 2rem;
-  background: linear-gradient(135deg, #7366ea 0%, #4c4ba2 100%);
+  background: linear-gradient(135deg, #d3d2da 0%, #e2e7da 100%);
 }
 
 .contenedor {
@@ -50,7 +50,7 @@
 }
 
 .tituloSeccion h1 {
-  color: white;
+  color: rgb(46, 44, 44);
   margin: 0;
   font-size: 2rem;
 }
@@ -92,7 +92,7 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(51, 45, 45, 0.1);
   padding: 0.5rem;
   border-radius: 12px;
 }

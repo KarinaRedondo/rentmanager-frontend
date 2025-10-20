@@ -19,7 +19,7 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Download,
+  MoreVertical,
 } from "react-feather";
 
 const IMAGENES_PROPIEDADES = [
@@ -27,6 +27,11 @@ const IMAGENES_PROPIEDADES = [
   "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1599423300746-b62533397364?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1600585154603-03e2a5b81c28?w=400&h=250&fit=crop",
+  "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=250&fit=crop",
 ];
 
 const InquilinoDashboard: React.FC = () => {
@@ -652,8 +657,8 @@ const InquilinoDashboard: React.FC = () => {
                                 navigate(`/inquilino/contratos/${contrato.idContrato}`)
                               }
                             >
-                              <Download size={16} />
-                              Descargar Contrato
+                              <MoreVertical size={16} />
+                              Ver detalles
                             </button>
                           </div>
                         </div>

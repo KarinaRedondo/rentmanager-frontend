@@ -611,10 +611,6 @@ const AdminDashboard: React.FC = () => {
               </p>
             </div>
             <div className={styles.accionesEncabezado}>
-              <BotonComponente
-                label="📊 Reportes"
-                onClick={handleVerReportes}
-              />
             </div>
           </div>
 
@@ -704,39 +700,6 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Alertas del Sistema */}
-          {alertas.length > 0 && (
-            <div className={styles.seccionAlertas}>
-              <div className={styles.tarjeta}>
-                <div className={styles.headerTarjeta}>
-                  <div className={styles.tituloConIcono}>
-                    <AlertTriangle size={20} className={styles.iconoTitulo} />
-                    <h3>Alertas del Sistema</h3>
-                  </div>
-                  <p className={styles.subtituloTarjeta}>
-                    Notificaciones importantes que requieren atención
-                  </p>
-                </div>
-                <div className={styles.contenidoTarjeta}>
-                  {alertas.map((alerta) => (
-                    <div
-                      key={alerta.id}
-                      className={`${styles.alerta} ${styles[alerta.tipo]}`}
-                    >
-                      <div className={styles.iconoAlerta}>
-                        {obtenerIconoAlerta(alerta.tipo)}
-                      </div>
-                      <div className={styles.contenidoAlerta}>
-                        <p className={styles.mensajeAlerta}>{alerta.mensaje}</p>
-                        <p className={styles.tiempoAlerta}>{alerta.tiempo}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Grid de Tablas */}
           <div className={styles.gridTablas}>

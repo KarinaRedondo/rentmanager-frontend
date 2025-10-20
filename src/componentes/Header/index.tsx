@@ -85,6 +85,7 @@ const Header: React.FC = () => {
       case "INQUILINO":
         return [
           { nombre: "Dashboard", ruta: "/inquilino/dashboard" },
+          { nombre: "Contratos", ruta: "/inquilino/contratos" },
           { nombre: "Pagos", ruta: "/inquilino/pagos" },
           { nombre: "Facturas", ruta: "/inquilino/facturas" },
         ];

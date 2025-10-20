@@ -171,12 +171,6 @@ const ContadorFacturas: React.FC = () => {
                             >
                               <Eye size={18} /> Ver
                             </button>
-                            <button
-                              className={styles.botonDescargar}
-                              onClick={() => handleDescargarPDF(factura.idFactura)}
-                            >
-                              <Download size={18} /> Descargar PDF
-                            </button>
                           </div>
                         </td>
                       </tr>

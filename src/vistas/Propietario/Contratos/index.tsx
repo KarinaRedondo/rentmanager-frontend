@@ -499,7 +499,7 @@ const PropietarioContratos: React.FC = () => {
                   const propiedad = contrato.propiedad;
                   const direccion =
                     propiedad?.direccion || "Propiedad no identificada";
-                  const nombreCompleto =
+                   const nombreCompleto =
                     contrato.nombreInquilino && contrato.apellidoInquilino
                       ? `${contrato.nombreInquilino} ${contrato.apellidoInquilino}`
                       : `${contrato.nombreInquilino ?? ""} ${

@@ -337,18 +337,6 @@ const ContadorDashboard: React.FC = () => {
               </p>
             </div>
             <div className={styles.botonesAccion}>
-              <button className={styles.btnSecundario}>
-                <Filter size={18} />
-                Filtros
-              </button>
-              <button className={styles.btnSecundario}>
-                <Download size={18} />
-                Exportar
-              </button>
-              <button className={styles.btnPrimario}>
-                <BarChart2 size={18} />
-                Generar Reporte
-              </button>
             </div>
           </div>
 

@@ -484,10 +484,10 @@ const PropietarioFacturas: React.FC = () => {
                     <div className={styles.accionesFactura}>
                       <button 
                         className={styles.btnAccion}
-                        onClick={() => navigate(`/propietario/contratos/${factura.contrato?.idContrato}`)}
+                        onClick={() => navigate(`/propietario/facturas/${factura.idFactura}`)}
                       >
                         <Eye size={16} />
-                        Ver Contrato
+                        Ver Factura
                       </button>
                       <button className={styles.btnAccion} onClick={() => abrirModalEditar(factura)}>
                         <Edit size={16} />
