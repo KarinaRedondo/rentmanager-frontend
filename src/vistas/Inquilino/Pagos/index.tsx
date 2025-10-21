@@ -101,11 +101,11 @@ const InquilinoHistorialPagos: React.FC = () => {
       });
     }
 
-    // ✅ CORREGIDO: Filtro por fecha usando pago.fecha
+    //  : Filtro por fecha usando pago.fecha
     if (filtroFecha !== "TODOS") {
       const hoy = new Date();
       resultado = resultado.filter((pago) => {
-        // ✅ Usar pago.fecha en lugar de fechaCreacion
+        //  Usar pago.fecha en lugar de fechaCreacion
         const fechaPago = new Date(pago.fecha || "");
         const diff = Math.floor(
           (hoy.getTime() - fechaPago.getTime()) / (1000 * 60 * 60 * 24)
@@ -126,7 +126,7 @@ const InquilinoHistorialPagos: React.FC = () => {
       });
     }
 
-    // ✅ CORREGIDO: Ordenar por fecha usando pago.fecha
+    //  Ordenar por fecha usando pago.fecha
     resultado.sort((a, b) => {
       const fechaA = new Date(a.fecha || "").getTime();
       const fechaB = new Date(b.fecha || "").getTime();
@@ -187,18 +187,18 @@ const InquilinoHistorialPagos: React.FC = () => {
     }
   };
 
-  // ✅ MEJORADO: Formatear fecha con manejo de errores
+  // Formatear fecha con manejo de errores
   const formatearFecha = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
-    
+
     try {
       const date = new Date(fecha);
-      
+
       // Verificar si la fecha es válida
       if (isNaN(date.getTime())) {
         return "Fecha inválida";
       }
-      
+
       return date.toLocaleDateString("es-CO", {
         year: "numeric",
         month: "long",
@@ -272,10 +272,6 @@ const InquilinoHistorialPagos: React.FC = () => {
                 Consulta todos tus pagos realizados y pendientes
               </p>
             </div>
-            <button className={styles.btnExportar}>
-              <Download size={18} />
-              Exportar PDF
-            </button>
           </div>
 
           {/* Tarjetas de estadísticas */}
@@ -465,4 +461,3 @@ const InquilinoHistorialPagos: React.FC = () => {
 };
 
 export default InquilinoHistorialPagos;
-

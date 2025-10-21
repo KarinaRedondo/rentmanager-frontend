@@ -564,7 +564,7 @@ const AdministradorPropiedades: React.FC = () => {
                         className={styles.btnAccion}
                         onClick={() =>
                           navigate(
-                            `/propietario/propiedades/${propiedad.idPropiedad}`
+                            `/administrador/propiedades/${propiedad.idPropiedad}`
                           )
                         }
                       >

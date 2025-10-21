@@ -5,7 +5,8 @@ import Footer from "../../componentes/Footer";
 import { BotonComponente } from "../../componentes/ui/Boton";
 import { UsuarioService } from "../../servicios/usuarios";
 import { PropiedadService } from "../../servicios/propiedades";
-const { obtenerPropiedades, eliminarPropiedad, actualizarPropiedad } = PropiedadService;
+const { obtenerPropiedades, eliminarPropiedad, actualizarPropiedad } =
+  PropiedadService;
 import { obtenerContratos } from "../../servicios/contratos";
 import { obtenerFacturas } from "../../servicios/facturas";
 import type { DTOPropiedadRespuesta } from "../../modelos/types/Propiedad";
@@ -610,8 +611,7 @@ const AdminDashboard: React.FC = () => {
                 Gestiona usuarios, propiedades y supervisa el sistema completo
               </p>
             </div>
-            <div className={styles.accionesEncabezado}>
-            </div>
+            <div className={styles.accionesEncabezado}></div>
           </div>
 
           {/* Grid de estadísticas */}
@@ -836,12 +836,6 @@ const AdminDashboard: React.FC = () => {
                         </button>
                         {menuAbierto === propiedad.idPropiedad && (
                           <div className={styles.menuDesplegable}>
-                            <button
-                              onClick={() => handleVerPropiedad(propiedad)}
-                            >
-                              <Eye size={16} />
-                              Ver detalles
-                            </button>
                             <button
                               onClick={() => handleEditarPropiedad(propiedad)}
                             >

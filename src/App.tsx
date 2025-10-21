@@ -25,6 +25,10 @@ import DetalleFacturaInquilino from "./vistas/Inquilino/Facturas/Detalles";
 import ContratosInquilino from "./vistas/Inquilino/Contratos";
 import DetallePropiedad from "./vistas/Administrador/Propiedades/Detalle";
 import DetalleFacturaContador from "./vistas/Contador/Facturas/Detalles";
+import InquilinoRegistrarPago from "./vistas/Inquilino/Pagos/Registrar";
+import DetalleContratoContador from "./vistas/Contador/DetalleContratoContador";
+import DetallesPagoContador from "./vistas/Contador/DetallePagoContador";
+import DetallePropiedadContador from "./vistas/Contador/DetallePropiedadContador";
 
 function App() {
   // Cargar usuario guardado en localStorage
@@ -116,6 +120,11 @@ function App() {
             element={<ContratosInquilino />}
           />
           <Route path="/inquilino/facturas" element={<InquilinoFacturas />} />
+
+           <Route
+            path="/inquilino/pagos/nuevo"
+            element={<InquilinoRegistrarPago />}
+          />
         </Route>
 
         <Route path="/inquilino/pagos/:id" element={<DetallePagoInquilino />} />
@@ -138,6 +147,9 @@ function App() {
         <Route path="/contador/facturas" element={<ContadorFacturas />} />
 
         <Route path="/contador/facturas/:id" element={<DetalleFacturaContador />} />
+        <Route path="/contador/contratos/:id" element={<DetalleContratoContador />} />
+        <Route path="/contador/pagos/:id" element={<DetallesPagoContador />} />
+        <Route path="/contador/propiedades/:id" element={<DetallePropiedadContador />} />
       </Routes>
     </BrowserRouter>
   );

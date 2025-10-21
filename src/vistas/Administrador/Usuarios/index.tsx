@@ -208,7 +208,7 @@ const Usuarios = () => {
       <div className={styles.header}>
         <h1>Gestión de Usuarios</h1>
         <BotonComponente
-          label="Nuevo Usuario"
+          label=" ➕ Nuevo Usuario"
           onClick={() => abrirModalEditar()}
         />
       </div>
