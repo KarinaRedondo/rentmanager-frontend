@@ -493,10 +493,7 @@ const PropietarioFacturas: React.FC = () => {
                         <Edit size={16} />
                         Editar
                       </button>
-                      <button className={styles.btnAccion}>
-                        <Download size={16} />
-                        PDF
-                      </button>
+                     
                     </div>
                   </div>
                 ))}

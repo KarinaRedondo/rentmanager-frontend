@@ -25,7 +25,9 @@ const DetalleFactura: React.FC = () => {
   const [pago, setPago] = useState<DTOPagoRespuesta | null>(null);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [tabActiva, setTabActiva] = useState<"informacion" | "contrato" | "pago">("informacion");
+  const [tabActiva, setTabActiva] = useState<
+    "informacion" | "contrato" | "pago"
+  >("informacion");
 
   useEffect(() => {
     cargarDatos();
@@ -51,7 +53,6 @@ const DetalleFactura: React.FC = () => {
         (p) => p.factura?.idFactura === parseInt(id)
       );
       setPago(pagoAsociado || null);
-
     } catch (err: any) {
       console.error("Error al cargar datos:", err);
       setError("Error al cargar la información de la factura");
@@ -61,7 +62,7 @@ const DetalleFactura: React.FC = () => {
   };
 
   const formatearFecha = (fecha: string | undefined): string => {
-    if (!fecha) return "N/A";
+    if (!fecha) return "";
     try {
       const date = new Date(fecha);
       return date.toLocaleDateString("es-CO", {
@@ -70,7 +71,7 @@ const DetalleFactura: React.FC = () => {
         day: "numeric",
       });
     } catch {
-      return "Fecha inválida";
+      return "";
     }
   };
 
@@ -158,14 +159,18 @@ const DetalleFactura: React.FC = () => {
           {/* Tabs */}
           <div className={styles.tabs}>
             <button
-              className={tabActiva === "informacion" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "informacion" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("informacion")}
             >
               <FileText size={20} />
               Información de Factura
             </button>
             <button
-              className={tabActiva === "contrato" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "contrato" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("contrato")}
             >
               <FileText size={20} />
@@ -199,23 +204,29 @@ const DetalleFactura: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Fecha de Emisión</span>
-                    <span className={styles.valor}>{formatearFecha(factura.fechaEmision)}</span>
+                    <span className={styles.valor}>
+                      {formatearFecha(factura.fechaEmision)}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Fecha de Vencimiento</span>
-                    <span className={styles.valor}>{formatearFecha(factura.fechaVencimiento)}</span>
+                    <span className={styles.valor}>
+                      {formatearFecha(factura.fechaVencimiento)}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Subtotal</span>
-                    <span className={styles.valor}>{formatearMoneda(factura.total)}</span>
+                    <span className={styles.valor}>
+                      {formatearMoneda(factura.total)}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Total</span>
-                    <span className={styles.valorDestacado}>{formatearMoneda(factura.total)}</span>
+                    <span className={styles.valorDestacado}>
+                      {formatearMoneda(factura.total)}
+                    </span>
                   </div>
                 </div>
-
-
               </div>
             </div>
           )}
@@ -233,19 +244,27 @@ const DetalleFactura: React.FC = () => {
                     <div className={styles.grid2}>
                       <div className={styles.campo}>
                         <span className={styles.label}>ID Contrato</span>
-                        <span className={styles.valor}>#{factura.contrato.idContrato}</span>
+                        <span className={styles.valor}>
+                          #{factura.contrato.idContrato}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Estado</span>
-                        <span className={styles.estadoBadge}>{factura.contrato.estado}</span>
+                        <span className={styles.estadoBadge}>
+                          {factura.contrato.estado}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Fecha de Inicio</span>
-                        <span className={styles.valor}>{formatearFecha(factura.contrato.fechaInicio)}</span>
+                        <span className={styles.valor}>
+                          {formatearFecha(factura.contrato.fechaInicio)}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Fecha de Fin</span>
-                        <span className={styles.valor}>{formatearFecha(factura.contrato.fechaFin)}</span>
+                        <span className={styles.valor}>
+                          {formatearFecha(factura.contrato.fechaFin)}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Valor Mensual</span>
@@ -255,14 +274,20 @@ const DetalleFactura: React.FC = () => {
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Tipo de Contrato</span>
-                        <span className={styles.valor}>{factura.contrato.tipoContrato}</span>
+                        <span className={styles.valor}>
+                          {factura.contrato.tipoContrato}
+                        </span>
                       </div>
                     </div>
 
                     <div className={styles.accionesSeccion}>
                       <BotonComponente
                         label="Ver Detalles Completos del Contrato"
-                        onClick={() => navigate(`/propietario/contratos/${factura.contrato?.idContrato}`)}
+                        onClick={() =>
+                          navigate(
+                            `/propietario/contratos/${factura.contrato?.idContrato}`
+                          )
+                        }
                       />
                     </div>
                   </>
@@ -293,26 +318,36 @@ const DetalleFactura: React.FC = () => {
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Estado</span>
-                        <span className={styles.estadoBadge}>{pago.estado}</span>
+                        <span className={styles.estadoBadge}>
+                          {pago.estado}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Monto</span>
-                        <span className={styles.valorDestacado}>{formatearMoneda(pago.monto)}</span>
+                        <span className={styles.valorDestacado}>
+                          {formatearMoneda(pago.monto)}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Método de Pago</span>
-                        <span className={styles.valor}>{pago.metodoPago || "N/A"}</span>
+                        <span className={styles.valor}>
+                          {pago.metodoPago || "N/A"}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Fecha de Pago</span>
                         <span className={styles.valor}>
-                          {formatearFecha((pago as any).fechaCreacion)}
+                          <span className={styles.valor}>
+                            {formatearFecha(pago.fecha)}
+                          </span>
                         </span>
                       </div>
                       {pago.referenciaTransaccion && (
                         <div className={styles.campo}>
                           <span className={styles.label}>Referencia</span>
-                          <span className={styles.valor}>{pago.referenciaTransaccion}</span>
+                          <span className={styles.valor}>
+                            {pago.referenciaTransaccion}
+                          </span>
                         </div>
                       )}
                     </div>

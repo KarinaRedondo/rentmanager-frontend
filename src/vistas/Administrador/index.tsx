@@ -28,9 +28,6 @@ import {
   Info,
   MoreVertical,
   Home,
-  Eye,
-  Edit2,
-  Trash2,
   CheckCircle,
   XCircle,
 } from "react-feather";
@@ -754,25 +751,7 @@ const AdminDashboard: React.FC = () => {
                           <MoreVertical size={18} />
                         </button>
                         {menuAbierto === usuario.idUsuario && (
-                          <div className={styles.menuDesplegable}>
-                            <button onClick={() => handleVerUsuario(usuario)}>
-                              <Eye size={16} />
-                              Ver detalles
-                            </button>
-                            <button
-                              onClick={() => handleEditarUsuario(usuario)}
-                            >
-                              <Edit2 size={16} />
-                              Editar
-                            </button>
-                            <button
-                              className={styles.btnEliminar}
-                              onClick={() => handleEliminarUsuario(usuario)}
-                            >
-                              <Trash2 size={16} />
-                              Suspender
-                            </button>
-                          </div>
+                          <div className={styles.menuDesplegable}></div>
                         )}
                       </div>
                     </div>
@@ -836,12 +815,6 @@ const AdminDashboard: React.FC = () => {
                         </button>
                         {menuAbierto === propiedad.idPropiedad && (
                           <div className={styles.menuDesplegable}>
-                            <button
-                              onClick={() => handleEditarPropiedad(propiedad)}
-                            >
-                              <Edit2 size={16} />
-                              Editar
-                            </button>
                             {propiedad.estado ===
                               EstadoPropiedad.EN_VERIFICACION && (
                               <button
@@ -854,13 +827,6 @@ const AdminDashboard: React.FC = () => {
                                 Aprobar
                               </button>
                             )}
-                            <button
-                              className={styles.btnEliminar}
-                              onClick={() => handleEliminarPropiedad(propiedad)}
-                            >
-                              <Trash2 size={16} />
-                              Eliminar
-                            </button>
                           </div>
                         )}
                       </div>

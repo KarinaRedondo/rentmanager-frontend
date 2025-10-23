@@ -15,9 +15,6 @@ import {
   Clock,
   XCircle,
   TrendingUp,
-  Filter,
-  Download,
-  BarChart2,
   FileText,
 } from "react-feather";
 
@@ -174,16 +171,18 @@ const ContadorDashboard: React.FC = () => {
         const propiedad = contrato?.propiedad;
         const inquilino = contrato?.inquilino;
 
+        const nombreCompleto = inquilino
+          ? `${inquilino.nombre || ""} ${inquilino.apellido || ""}`.trim()
+          : "Sin inquilino";
+
         return {
           id: pago.idPago || 0,
-          inquilino: inquilino?.nombre || "N/A",
+          inquilino: nombreCompleto,
           propiedad:
-            (contrato as any)?.direccionPropiedad ||
-            propiedad?.direccion ||
-            "N/A",
+            (contrato as any)?.direccionPropiedad || propiedad?.direccion || "",
           monto: pago.monto || 0,
-          metodo: pago.metodoPago || "N/A",
-          referencia: pago.referenciaTransaccion || "N/A",
+          metodo: pago.metodoPago || "",
+          referencia: pago.referenciaTransaccion || "",
           fecha: (pago as any).fechaCreacion || "",
           estado: String(pago.estado || "PENDIENTE").toUpperCase(),
         };
@@ -200,8 +199,12 @@ const ContadorDashboard: React.FC = () => {
         return estado === "PENDIENTE" || estado === "GENERADA";
       })
       .sort((a, b) => {
-        const fechaA = new Date(a.fechaVencimiento || a.fechaEmision || "").getTime();
-        const fechaB = new Date(b.fechaVencimiento || b.fechaEmision || "").getTime();
+        const fechaA = new Date(
+          a.fechaVencimiento || a.fechaEmision || ""
+        ).getTime();
+        const fechaB = new Date(
+          b.fechaVencimiento || b.fechaEmision || ""
+        ).getTime();
         return fechaA - fechaB;
       })
       .slice(0, 3)
@@ -210,20 +213,24 @@ const ContadorDashboard: React.FC = () => {
         const propiedad = contrato?.propiedad;
         const inquilino = contrato?.inquilino;
 
+        const nombreCompleto = inquilino
+          ? `${inquilino.nombre || ""} ${inquilino.apellido || ""}`.trim()
+          : "Sin inquilino";
+
         const diasVencidos = Math.floor(
-          (new Date().getTime() - new Date(factura.fechaVencimiento || "").getTime()) /
-          (1000 * 60 * 60 * 24)
+          (new Date().getTime() -
+            new Date(factura.fechaVencimiento || "").getTime()) /
+            (1000 * 60 * 60 * 24)
         );
 
         return {
           id: factura.idFactura || 0,
-          inquilino: inquilino?.nombre || "N/A",
+          inquilino: nombreCompleto,
           propiedad:
-            (contrato as any)?.direccionPropiedad ||
-            propiedad?.direccion ||
-            "N/A",
+            (contrato as any)?.direccionPropiedad || propiedad?.direccion || "",
           monto: factura.total || 0,
-          fechaVencimiento: factura.fechaVencimiento || factura.fechaEmision || "",
+          fechaVencimiento:
+            factura.fechaVencimiento || factura.fechaEmision || "",
           diasVencidos: diasVencidos > 0 ? diasVencidos : 0,
           estado: String(factura.estado).toUpperCase(),
         };
@@ -235,7 +242,18 @@ const ContadorDashboard: React.FC = () => {
   // ============================================
   const obtenerIngresosMensuales = () => {
     const meses = [
-      "Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
     ];
 
     const mesActual = new Date().getMonth();
@@ -272,13 +290,15 @@ const ContadorDashboard: React.FC = () => {
   };
 
   const formatearFecha = (fecha: string | undefined): string => {
-    if (!fecha) return "N/A";
+    if (!fecha) return "";
     const date = new Date(fecha);
-    return date.toLocaleDateString("es-CO", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+    return isNaN(date.getTime())
+      ? ""
+      : date.toLocaleDateString("es-CO", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
   };
 
   const formatearMoneda = (monto: number): string => {
@@ -308,7 +328,10 @@ const ContadorDashboard: React.FC = () => {
           <div className={styles.errorContenedor}>
             <h2>Error al cargar datos</h2>
             <p className={styles.error}>{error}</p>
-            <BotonComponente label="Reintentar" onClick={cargarDatosIniciales} />
+            <BotonComponente
+              label="Reintentar"
+              onClick={cargarDatosIniciales}
+            />
           </div>
         </main>
         <Footer />
@@ -336,8 +359,7 @@ const ContadorDashboard: React.FC = () => {
                 Gestiona facturación, pagos y genera reportes financieros
               </p>
             </div>
-            <div className={styles.botonesAccion}>
-            </div>
+            <div className={styles.botonesAccion}></div>
           </div>
 
           {/* Grid de estadísticas */}
@@ -383,7 +405,9 @@ const ContadorDashboard: React.FC = () => {
                 <h2 className={styles.valorEstadistica}>
                   {estadisticas.pagosPendientes}
                 </h2>
-                <p className={styles.descripcionEstadistica}>Requieren procesamiento</p>
+                <p className={styles.descripcionEstadistica}>
+                  Requieren procesamiento
+                </p>
               </div>
             </div>
 
@@ -396,7 +420,9 @@ const ContadorDashboard: React.FC = () => {
                 <h2 className={styles.valorEstadistica}>
                   {estadisticas.pagosRechazados}
                 </h2>
-                <p className={styles.descripcionEstadistica}>Pagos con problemas</p>
+                <p className={styles.descripcionEstadistica}>
+                  Pagos con problemas
+                </p>
               </div>
             </div>
           </div>
@@ -412,7 +438,10 @@ const ContadorDashboard: React.FC = () => {
                   </h3>
                   <p>Últimos pagos procesados y pendientes</p>
                 </div>
-                <button className={styles.btnLink} onClick={() => navigate("/contador/pagos")}>
+                <button
+                  className={styles.btnLink}
+                  onClick={() => navigate("/contador/pagos")}
+                >
                   Ver todos
                 </button>
               </div>
@@ -439,7 +468,9 @@ const ContadorDashboard: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <p className={styles.nombreInquilino}>{pago.inquilino}</p>
+                        <p className={styles.nombreInquilino}>
+                          {pago.inquilino}
+                        </p>
                         <p className={styles.propiedadPago}>{pago.propiedad}</p>
                         <p className={styles.detallePago}>
                           {pago.metodo} • {pago.referencia}
@@ -447,7 +478,9 @@ const ContadorDashboard: React.FC = () => {
                       </div>
                     </div>
                     <div className={styles.infoPagoDer}>
-                      <p className={styles.montoPago}>{formatearMoneda(pago.monto)}</p>
+                      <p className={styles.montoPago}>
+                        {formatearMoneda(pago.monto)}
+                      </p>
                       <span
                         className={`${styles.badge} ${
                           pago.estado === "VERIFICADO"
@@ -459,7 +492,9 @@ const ContadorDashboard: React.FC = () => {
                       >
                         {pago.estado}
                       </span>
-                      <p className={styles.fechaPago}>{formatearFecha(pago.fecha)}</p>
+                      <p className={styles.fechaPago}>
+                        {formatearFecha(pago.fecha)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -475,7 +510,10 @@ const ContadorDashboard: React.FC = () => {
                   </h3>
                   <p>Facturas por cobrar y vencidas</p>
                 </div>
-                <button className={styles.btnLink} onClick={() => navigate("/contador/facturas")}>
+                <button
+                  className={styles.btnLink}
+                  onClick={() => navigate("/contador/facturas")}
+                >
                   Ver todas
                 </button>
               </div>
@@ -486,25 +524,38 @@ const ContadorDashboard: React.FC = () => {
                     <div className={styles.infoFacturaIzq}>
                       <div
                         className={`${styles.indicadorFactura} ${
-                          factura.diasVencidos > 0 ? styles.indicadorRojo : styles.indicadorNaranja
+                          factura.diasVencidos > 0
+                            ? styles.indicadorRojo
+                            : styles.indicadorNaranja
                         }`}
                       ></div>
                       <div>
-                        <p className={styles.nombreInquilino}>{factura.inquilino}</p>
-                        <p className={styles.propiedadFactura}>{factura.propiedad}</p>
+                        <p className={styles.nombreInquilino}>
+                          {factura.inquilino}
+                        </p>
+                        <p className={styles.propiedadFactura}>
+                          {factura.propiedad}
+                        </p>
                         <p className={styles.detalleFactura}>
                           Vence: {formatearFecha(factura.fechaVencimiento)}
                           {factura.diasVencidos > 0 && (
-                            <span className={styles.vencida}> ({factura.diasVencidos} días vencida)</span>
+                            <span className={styles.vencida}>
+                              {" "}
+                              ({factura.diasVencidos} días vencida)
+                            </span>
                           )}
                         </p>
                       </div>
                     </div>
                     <div className={styles.infoFacturaDer}>
-                      <p className={styles.montoFactura}>{formatearMoneda(factura.monto)}</p>
+                      <p className={styles.montoFactura}>
+                        {formatearMoneda(factura.monto)}
+                      </p>
                       <span
                         className={`${styles.badge} ${
-                          factura.diasVencidos > 0 ? styles.badgeRojo : styles.badgeNaranja
+                          factura.diasVencidos > 0
+                            ? styles.badgeRojo
+                            : styles.badgeNaranja
                         }`}
                       >
                         {factura.diasVencidos > 0 ? "VENCIDA" : "PENDIENTE"}
@@ -537,16 +588,25 @@ const ContadorDashboard: React.FC = () => {
 
             <div className={styles.graficoBarras}>
               {obtenerIngresosMensuales().map((mes, index) => {
-                const maxIngresos = Math.max(...obtenerIngresosMensuales().map((m) => m.ingresos), 0);
-                const porcentaje = maxIngresos > 0 ? (mes.ingresos / maxIngresos) * 100 : 0;
+                const maxIngresos = Math.max(
+                  ...obtenerIngresosMensuales().map((m) => m.ingresos),
+                  0
+                );
+                const porcentaje =
+                  maxIngresos > 0 ? (mes.ingresos / maxIngresos) * 100 : 0;
 
                 return (
                   <div key={index} className={styles.barraContenedor}>
                     <div className={styles.barraWrapper}>
-                      <div className={styles.barra} style={{ height: `${porcentaje}%` }}></div>
+                      <div
+                        className={styles.barra}
+                        style={{ height: `${porcentaje}%` }}
+                      ></div>
                     </div>
                     <p className={styles.labelMes}>{mes.mes}</p>
-                    <p className={styles.valorMes}>{formatearMoneda(mes.ingresos)}</p>
+                    <p className={styles.valorMes}>
+                      {formatearMoneda(mes.ingresos)}
+                    </p>
                   </div>
                 );
               })}

@@ -54,7 +54,7 @@ export const TablaBase: React.FC<Props> = ({
                         className={styles.botonEditar}
                         onClick={() => onEditar(fila)}
                       >
-                        ✏️
+                        Editar
                       </button>
                     )}
                     {onEliminar && (
@@ -62,7 +62,7 @@ export const TablaBase: React.FC<Props> = ({
                         className={styles.botonEliminar}
                         onClick={() => onEliminar(fila)}
                       >
-                        🗑️
+                        Cambiar Estado
                       </button>
                     )}
                   </td>

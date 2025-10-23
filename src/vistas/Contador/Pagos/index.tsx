@@ -353,15 +353,23 @@ const ContadorGestionPagos: React.FC = () => {
     }
   };
 
-  const formatearFecha = (fecha: string | undefined): string => {
-    if (!fecha) return "N/A";
-    const date = new Date(fecha);
+ const formatearFecha = (fecha: any): string => {
+  if (!fecha) return ""; // ← en blanco si no existe
+  try {
+    // Manejo flexible para diferentes formatos (LocalDateTime o ISO)
+    const date =
+      typeof fecha === "string" ? new Date(fecha) : new Date(String(fecha));
+    if (isNaN(date.getTime())) return ""; // Si no es válida, vacío
     return date.toLocaleDateString("es-CO", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
-  };
+  } catch {
+    return "";
+  }
+};
+
 
   const formatearMoneda = (monto: number): string => {
     return `$${monto.toLocaleString("es-CO")}`;
@@ -572,7 +580,8 @@ const ContadorGestionPagos: React.FC = () => {
                           <td>
                             <div className={styles.celdaFecha}>
                               <Calendar size={16} />
-                              {formatearFecha((pago as any).fechaCreacion)}
+                             {formatearFecha((pago as any).fecha || (pago as any).fechaCreacion)}
+
                             </div>
                           </td>
                           <td className={styles.celdaInquilino}>
