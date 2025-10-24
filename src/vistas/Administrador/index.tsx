@@ -628,10 +628,6 @@ const AdminDashboard: React.FC = () => {
                 <p className={styles.descripcionEstadistica}>
                   Total de propiedades en el sistema
                 </p>
-                <div className={styles.tendencia}>
-                  <TrendingUp size={14} />
-                  <span>+12% vs mes anterior</span>
-                </div>
               </div>
             </div>
 
@@ -648,10 +644,6 @@ const AdminDashboard: React.FC = () => {
                 <p className={styles.descripcionEstadistica}>
                   Contratos vigentes
                 </p>
-                <div className={styles.tendencia}>
-                  <TrendingUp size={14} />
-                  <span>+8% vs mes anterior</span>
-                </div>
               </div>
             </div>
 
@@ -668,32 +660,6 @@ const AdminDashboard: React.FC = () => {
                 <p className={styles.descripcionEstadistica}>
                   Propietarios, inquilinos y contadores
                 </p>
-                <div className={styles.tendencia}>
-                  <TrendingUp size={14} />
-                  <span>+15% vs mes anterior</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Tarjeta 4: Pagos */}
-            <div className={styles.tarjetaEstadistica}>
-              <div className={styles.iconoEstadistica}>
-                <DollarSign size={24} />
-              </div>
-              <div className={styles.contenidoEstadistica}>
-                <p className={styles.tituloEstadistica}>Pagos Pendientes</p>
-                <h2 className={styles.valorEstadistica}>
-                  ${estadisticas.pagosPendientes.toLocaleString("es-CO")}
-                </h2>
-                <p className={styles.descripcionEstadistica}>
-                  Facturas por cobrar
-                </p>
-                <div
-                  className={`${styles.tendencia} ${styles.tendenciaNegativa}`}
-                >
-                  <TrendingDown size={14} />
-                  <span>-5% vs mes anterior</span>
-                </div>
               </div>
             </div>
           </div>
@@ -743,13 +709,6 @@ const AdminDashboard: React.FC = () => {
                         </span>
                       </div>
                       <div className={styles.menuContainer}>
-                        <button
-                          className={styles.btnMenu}
-                          onClick={() => toggleMenu(usuario.idUsuario)}
-                          title="Más opciones"
-                        >
-                          <MoreVertical size={18} />
-                        </button>
                         {menuAbierto === usuario.idUsuario && (
                           <div className={styles.menuDesplegable}></div>
                         )}
@@ -806,13 +765,6 @@ const AdminDashboard: React.FC = () => {
                         </span>
                       </div>
                       <div className={styles.menuContainer}>
-                        <button
-                          className={styles.btnMenu}
-                          onClick={() => toggleMenu(propiedad.idPropiedad!)}
-                          title="Más opciones"
-                        >
-                          <MoreVertical size={18} />
-                        </button>
                         {menuAbierto === propiedad.idPropiedad && (
                           <div className={styles.menuDesplegable}>
                             {propiedad.estado ===

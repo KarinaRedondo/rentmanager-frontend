@@ -7,6 +7,7 @@ interface Usuario {
   id: number;
   nombre: string;
   email: string;
+  apellido: string;
   rol: "ADMINISTRADOR" | "PROPIETARIO" | "INQUILINO" | "CONTADOR";
 }
 
@@ -155,26 +156,6 @@ const Header: React.FC = () => {
                 Iniciar Sesión
               </a>
             </li>
-            <li>
-              <a
-                href="/nosotros"
-                className={
-                  location.pathname === "/nosotros" ? styles.active : ""
-                }
-              >
-                Quiénes Somos
-              </a>
-            </li>
-            <li>
-              <a
-                href="/contacto"
-                className={
-                  location.pathname === "/contacto" ? styles.active : ""
-                }
-              >
-                Contacto
-              </a>
-            </li>
           </ul>
         </nav>
       )}
@@ -222,7 +203,11 @@ const Header: React.FC = () => {
                   </div>
                   <div className={styles.menuUserInfo}>
                     <div className={styles.menuName}>
-                      {usuario.nombre || "Usuario"}
+                      {usuario && (usuario.nombre || usuario.apellido)
+                        ? `${usuario.nombre || ""}${
+                            usuario.apellido ? " " + usuario.apellido : ""
+                          }`
+                        : "Usuario"}
                     </div>
                     <div className={styles.menuEmail}>{usuario.email}</div>
                     <div className={styles.menuType}>{usuario.rol}</div>

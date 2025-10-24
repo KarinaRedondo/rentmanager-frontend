@@ -20,7 +20,6 @@ import {
   Users,
   DollarSign,
   FileText,
-  TrendingUp,
   MoreVertical,
   Calendar,
   MapPin,
@@ -440,10 +439,6 @@ console.log("🔍 Contratos completos con inquilinos:", contratos.map(c => ({
                 <p className={styles.descripcionEstadistica}>
                   Total de propiedades registradas
                 </p>
-                <div className={styles.tendencia}>
-                  <TrendingUp size={14} />
-                  <span>+2% vs mes anterior</span>
-                </div>
               </div>
             </div>
 
@@ -462,30 +457,6 @@ console.log("🔍 Contratos completos con inquilinos:", contratos.map(c => ({
                 <p className={styles.descripcionEstadistica}>
                   {estadisticas.porcentajeOcupacion}% de ocupación
                 </p>
-                <div className={styles.tendencia}>
-                  <TrendingUp size={14} />
-                  <span>+12% vs mes anterior</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Tarjeta 3: Ingresos del Mes */}
-            <div className={styles.tarjetaEstadistica}>
-              <div className={styles.iconoEstadistica}>
-                <DollarSign size={24} />
-              </div>
-              <div className={styles.contenidoEstadistica}>
-                <p className={styles.tituloEstadistica}>Ingresos del Mes</p>
-                <h2 className={styles.valorEstadistica}>
-                  ${estadisticas.ingresosMes.toLocaleString("es-CO")}
-                </h2>
-                <p className={styles.descripcionEstadistica}>
-                  Pagos recibidos este mes
-                </p>
-                <div className={styles.tendencia}>
-                  <TrendingUp size={14} />
-                  <span>+8% vs mes anterior</span>
-                </div>
               </div>
             </div>
 
@@ -502,10 +473,6 @@ console.log("🔍 Contratos completos con inquilinos:", contratos.map(c => ({
                 <p className={styles.descripcionEstadistica}>
                   Contratos vigentes
                 </p>
-                <div className={styles.tendencia}>
-                  <TrendingUp size={14} />
-                  <span>+0% vs mes anterior</span>
-                </div>
               </div>
             </div>
           </div>

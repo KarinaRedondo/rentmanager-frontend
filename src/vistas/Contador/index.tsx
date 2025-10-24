@@ -373,10 +373,6 @@ const ContadorDashboard: React.FC = () => {
                 <h2 className={styles.valorEstadistica}>
                   {formatearMoneda(estadisticas.ingresosMes)}
                 </h2>
-                <p className={styles.descripcionEstadistica}>
-                  <TrendingUp size={14} className={styles.iconoPositivo} />
-                  +12% vs mes anterior
-                </p>
               </div>
             </div>
 
@@ -389,10 +385,6 @@ const ContadorDashboard: React.FC = () => {
                 <h2 className={styles.valorEstadistica}>
                   {estadisticas.pagosProcesados}
                 </h2>
-                <p className={styles.descripcionEstadistica}>
-                  <TrendingUp size={14} className={styles.iconoPositivo} />
-                  +8% vs mes anterior
-                </p>
               </div>
             </div>
 

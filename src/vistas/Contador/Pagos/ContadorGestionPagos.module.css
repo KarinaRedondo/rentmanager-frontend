@@ -835,3 +835,90 @@
     justify-content: center;
   }
 }
+
+/* Estados de pago corregidos */
+.estadoCompletado {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #10b981;
+}
+
+.estadoProcesando {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #3b82f6;
+}
+
+.estadoPendiente {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #f59e0b;
+}
+
+.estadoFallido {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #ef4444;
+}
+
+.estadoReversado {
+  background: #fce7f3;
+  color: #831843;
+  border-color: #ec4899;
+}
+
+.estadoCancelado {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #9ca3af;
+}
+
+.valor {
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.celdaId {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 1.3rem;
+}
+
+.linkComprobante {
+  color: var(--primary-color);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.linkComprobante:hover {
+  color: var(--primary-dark);
+}
+
+.separadorInfo {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: var(--border-color);
+  margin: 1rem 0;
+}
+
+.select {
+  width: 100%;
+  padding: 1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 1.4rem;
+  transition: all var(--transition);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.formulario h3 {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+

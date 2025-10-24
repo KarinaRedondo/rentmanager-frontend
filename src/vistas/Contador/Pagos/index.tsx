@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
 import { BotonComponente } from "../../../componentes/ui/Boton";
-import { obtenerPagos } from "../../../servicios/pagos";
+import { obtenerPagos, actualizarPago } from "../../../servicios/pagos";
 import type { DTOPagoRespuesta } from "../../../modelos/types/Pago";
+import { EstadoPago } from "../../../modelos/enumeraciones/estadoPago";
 import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
 import styles from "./ContadorGestionPagos.module.css";
 import {
@@ -15,123 +16,182 @@ import {
   Clock,
   XCircle,
   Edit3,
-  Check,
-  X,
   AlertCircle,
+  AlertTriangle,
+  RefreshCw,
+  FileText,
+  CreditCard,
 } from "react-feather";
 
 interface ModalEditarProps {
   pago: DTOPagoRespuesta | null;
   onClose: () => void;
-  onGuardar: (pagoId: number, nuevoEstado: string, observaciones: string) => void;
+  onGuardar: (pagoId: number, datos: any) => Promise<void>;
 }
 
 const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) => {
-  const [estado, setEstado] = useState<string>("");
-  const [observaciones, setObservaciones] = useState<string>("");
+  const [estado, setEstado] = useState<EstadoPago>(EstadoPago.PENDIENTE);
+  const [guardando, setGuardando] = useState<boolean>(false);
 
   useEffect(() => {
     if (pago) {
-      setEstado(String(pago.estado || "PENDIENTE"));
-      setObservaciones((pago as any).observaciones || "");
+      setEstado((pago.estado as EstadoPago) || EstadoPago.PENDIENTE);
     }
   }, [pago]);
 
   if (!pago) return null;
 
-  const handleGuardar = () => {
-    if (!estado) {
-      alert("Debes seleccionar un estado");
-      return;
+  const handleGuardar = async () => {
+    setGuardando(true);
+    try {
+      await onGuardar(pago.idPago || 0, { estado });
+    } catch (error: any) {
+      alert(error.message || "Error al guardar");
+    } finally {
+      setGuardando(false);
     }
-    onGuardar(pago.idPago || 0, estado, observaciones);
   };
 
   const factura = pago.factura;
   const contrato = factura?.contrato;
   const inquilino = contrato?.inquilino;
   const propiedad = contrato?.propiedad;
-  const direccion = (contrato as any)?.direccionPropiedad || propiedad?.direccion || "N/A";
+  const direccion = propiedad?.direccion || "N/A";
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h2>Editar Pago</h2>
-          <button className={styles.btnCerrar} onClick={onClose}>
-            <X size={24} />
-          </button>
+          <h2>
+            <FileText size={20} />
+            Detalles del Pago
+          </h2>
+          <button className={styles.btnCerrar} onClick={onClose}>×</button>
         </div>
 
         <div className={styles.modalBody}>
-          {/* Información del pago */}
+          {/* CAMPOS REALES DEL MODELO PAGO */}
           <div className={styles.infoPago}>
             <div className={styles.campo}>
-              <label>Inquilino:</label>
-              <p>{inquilino?.nombre || "N/A"} {inquilino?.apellido || ""}</p>
+              <label>
+                <CreditCard size={14} />
+                ID Pago:
+              </label>
+              <p className={styles.valor}><strong>#{pago.idPago}</strong></p>
             </div>
+
             <div className={styles.campo}>
-              <label>Propiedad:</label>
-              <p>{direccion}</p>
+              <label>Factura ID:</label>
+              <p className={styles.valor}>#{factura?.idFactura || "N/A"}</p>
             </div>
+
+            <div className={styles.campo}>
+              <label>Fecha:</label>
+              <p className={styles.valor}>
+                {pago.fecha ? new Date(pago.fecha).toLocaleString("es-CO", {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) : "N/A"}
+              </p>
+            </div>
+
             <div className={styles.campo}>
               <label>Monto:</label>
               <p className={styles.monto}>${(pago.monto || 0).toLocaleString("es-CO")}</p>
             </div>
+
             <div className={styles.campo}>
               <label>Método de Pago:</label>
-              <p>{pago.metodoPago || "N/A"}</p>
+              <p className={styles.valor}>{pago.metodoPago || "N/A"}</p>
             </div>
+
             <div className={styles.campo}>
-              <label>Referencia:</label>
+              <label>Referencia Transacción:</label>
               <p className={styles.referencia}>{pago.referenciaTransaccion || "N/A"}</p>
             </div>
+
+            {pago.bancoOrigen && (
+              <div className={styles.campo}>
+                <label>Banco Origen:</label>
+                <p className={styles.valor}>{pago.bancoOrigen}</p>
+              </div>
+            )}
+
+            {pago.bancoDestino && (
+              <div className={styles.campo}>
+                <label>Banco Destino:</label>
+                <p className={styles.valor}>{pago.bancoDestino}</p>
+              </div>
+            )}
+
+            {pago.comprobanteUrl && (
+              <div className={styles.campo}>
+                <label>Comprobante:</label>
+                <a 
+                  href={pago.comprobanteUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={styles.linkComprobante}
+                >
+                  Ver Comprobante
+                </a>
+              </div>
+            )}
+
             <div className={styles.campo}>
-              <label>Fecha:</label>
-              <p>{new Date((pago as any).fechaCreacion || "").toLocaleDateString("es-CO")}</p>
+              <label>Estado Actual:</label>
+              <p className={styles.estadoActual}>{pago.estado}</p>
+            </div>
+
+            <div className={styles.separadorInfo}></div>
+
+            {/* Información relacionada (factura/inquilino) */}
+            <div className={styles.campo}>
+              <label>Inquilino:</label>
+              <p className={styles.valor}>
+                {inquilino?.nombre || "N/A"} {inquilino?.apellido || ""}
+              </p>
+            </div>
+
+            <div className={styles.campo}>
+              <label>Propiedad:</label>
+              <p className={styles.valor}>{direccion}</p>
             </div>
           </div>
 
           <div className={styles.separador}></div>
 
           {/* Formulario de edición */}
-          <div className={styles.formularioEdicion}>
+          <div className={styles.formulario}>
+            <h3>Cambiar Estado</h3>
             <div className={styles.formGrupo}>
-              <label htmlFor="estado">Estado del Pago *</label>
+              <label>Nuevo Estado</label>
               <select
-                id="estado"
                 value={estado}
-                onChange={(e) => setEstado(e.target.value)}
-                className={styles.selectEstado}
+                onChange={(e) => setEstado(e.target.value as EstadoPago)}
+                disabled={guardando}
+                className={styles.select}
               >
-                <option value="PENDIENTE">PENDIENTE</option>
-                <option value="VERIFICADO">VERIFICADO</option>
-                <option value="RECHAZADO">RECHAZADO</option>
-                <option value="APROBADO">APROBADO</option>
+                <option value={EstadoPago.PENDIENTE}>Pendiente</option>
+                <option value={EstadoPago.PROCESANDO}>Procesando</option>
+                <option value={EstadoPago.COMPLETADO}>Completado</option>
+                <option value={EstadoPago.FALLIDO}>Fallido</option>
+                <option value={EstadoPago.REVERSADO}>Reversado</option>
+                <option value={EstadoPago.CANCELADO}>Cancelado</option>
               </select>
-            </div>
-
-            <div className={styles.formGrupo}>
-              <label htmlFor="observaciones">Observaciones</label>
-              <textarea
-                id="observaciones"
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-                className={styles.textarea}
-                rows={4}
-                placeholder="Agregar comentarios u observaciones sobre el pago..."
-              ></textarea>
             </div>
           </div>
         </div>
 
         <div className={styles.modalFooter}>
-          <button className={styles.btnCancelar} onClick={onClose}>
+          <button className={styles.btnCancelar} onClick={onClose} disabled={guardando}>
             Cancelar
           </button>
-          <button className={styles.btnGuardar} onClick={handleGuardar}>
-            <Check size={18} />
-            Guardar Cambios
+          <button className={styles.btnGuardar} onClick={handleGuardar} disabled={guardando}>
+            {guardando ? "Guardando..." : "Guardar Cambios"}
           </button>
         </div>
       </div>
@@ -141,14 +201,12 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
 
 const ContadorGestionPagos: React.FC = () => {
   const navigate = useNavigate();
-
   const [pagos, setPagos] = useState<DTOPagoRespuesta[]>([]);
   const [pagosFiltrados, setPagosFiltrados] = useState<DTOPagoRespuesta[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [busqueda, setBusqueda] = useState<string>("");
   const [filtroEstado, setFiltroEstado] = useState<string>("TODOS");
-  const [filtroFecha, setFiltroFecha] = useState<string>("TODOS");
   const [pagoSeleccionado, setPagoSeleccionado] = useState<DTOPagoRespuesta | null>(null);
   const [mostrarModal, setMostrarModal] = useState<boolean>(false);
 
@@ -158,7 +216,7 @@ const ContadorGestionPagos: React.FC = () => {
 
   useEffect(() => {
     aplicarFiltros();
-  }, [pagos, busqueda, filtroEstado, filtroFecha]);
+  }, [pagos, busqueda, filtroEstado]);
 
   const verificarAcceso = async () => {
     try {
@@ -196,8 +254,10 @@ const ContadorGestionPagos: React.FC = () => {
       setCargando(true);
       setError("");
       const data = await obtenerPagos();
+      console.log("Pagos recibidos:", data);
       setPagos(Array.isArray(data) ? data : []);
     } catch (err: any) {
+      console.error("Error:", err);
       setError("Error al cargar los pagos");
     } finally {
       setCargando(false);
@@ -212,46 +272,24 @@ const ContadorGestionPagos: React.FC = () => {
         const inquilino = pago.factura?.contrato?.inquilino;
         const nombreCompleto = `${inquilino?.nombre || ""} ${inquilino?.apellido || ""}`.toLowerCase();
         const referencia = (pago.referenciaTransaccion || "").toLowerCase();
-        const monto = (pago.monto || 0).toString();
+        const idPago = String(pago.idPago || "");
         return (
           nombreCompleto.includes(busqueda.toLowerCase()) ||
           referencia.includes(busqueda.toLowerCase()) ||
-          monto.includes(busqueda)
+          idPago.includes(busqueda)
         );
       });
     }
 
     if (filtroEstado !== "TODOS") {
-      resultado = resultado.filter((pago) => {
-        const estado = String(pago.estado || "").toUpperCase();
-        return estado === filtroEstado;
-      });
-    }
-
-    if (filtroFecha !== "TODOS") {
-      const hoy = new Date();
-      resultado = resultado.filter((pago) => {
-        const fechaPago = new Date((pago as any).fechaCreacion || "");
-        const diff = Math.floor((hoy.getTime() - fechaPago.getTime()) / (1000 * 60 * 60 * 24));
-
-        switch (filtroFecha) {
-          case "HOY":
-            return diff === 0;
-          case "SEMANA":
-            return diff <= 7;
-          case "MES":
-            return diff <= 30;
-          case "TRIMESTRE":
-            return diff <= 90;
-          default:
-            return true;
-        }
-      });
+      resultado = resultado.filter((pago) => 
+        String(pago.estado).toUpperCase() === filtroEstado
+      );
     }
 
     resultado.sort((a, b) => {
-      const fechaA = new Date((a as any).fechaCreacion || "").getTime();
-      const fechaB = new Date((b as any).fechaCreacion || "").getTime();
+      const fechaA = a.fecha ? new Date(a.fecha).getTime() : 0;
+      const fechaB = b.fecha ? new Date(b.fecha).getTime() : 0;
       return fechaB - fechaA;
     });
 
@@ -259,126 +297,52 @@ const ContadorGestionPagos: React.FC = () => {
   };
 
   const calcularEstadisticas = () => {
-    const totalVerificado = pagos
-      .filter((p) => String(p.estado).toUpperCase() === "VERIFICADO")
+    const totalCompletado = pagos
+      .filter((p) => String(p.estado).toUpperCase() === EstadoPago.COMPLETADO)
       .reduce((sum, p) => sum + (p.monto || 0), 0);
 
     const totalPendiente = pagos
-      .filter((p) => String(p.estado).toUpperCase() === "PENDIENTE")
-      .reduce((sum, p) => sum + (p.monto || 0), 0);
-
-    const totalRechazado = pagos
-      .filter((p) => String(p.estado).toUpperCase() === "RECHAZADO")
+      .filter((p) => String(p.estado).toUpperCase() === EstadoPago.PENDIENTE)
       .reduce((sum, p) => sum + (p.monto || 0), 0);
 
     const pagosPendientes = pagos.filter(
-      (p) => String(p.estado).toUpperCase() === "PENDIENTE"
+      (p) => String(p.estado).toUpperCase() === EstadoPago.PENDIENTE
     ).length;
 
-    return {
-      totalVerificado,
-      totalPendiente,
-      totalRechazado,
-      pagosPendientes,
-    };
+    return { totalCompletado, totalPendiente, pagosPendientes };
   };
 
-  const abrirModalEditar = (pago: DTOPagoRespuesta) => {
-    setPagoSeleccionado(pago);
-    setMostrarModal(true);
-  };
-
-  const cerrarModal = () => {
-    setPagoSeleccionado(null);
-    setMostrarModal(false);
-  };
-
-  const handleGuardarCambios = async (
-    pagoId: number,
-    nuevoEstado: string,
-    observaciones: string
-  ) => {
+  const handleGuardarCambios = async (pagoId: number, datos: any) => {
     try {
-      // Aquí debes llamar al servicio de actualización
-      console.log("Actualizando pago:", { pagoId, nuevoEstado, observaciones });
-      
-      // Simulación de actualización exitosa
-      alert(`Pago actualizado correctamente a estado: ${nuevoEstado}`);
-      
-      // Recargar pagos
+      console.log("Actualizando pago:", pagoId, datos);
+      await actualizarPago(pagoId, datos);
+      alert("Pago actualizado correctamente");
       await cargarPagos();
-      cerrarModal();
-    } catch (err) {
-      alert("Error al actualizar el pago");
-      console.error(err);
+      setMostrarModal(false);
+      setPagoSeleccionado(null);
+    } catch (err: any) {
+      console.error("Error:", err);
+      throw new Error(err.response?.data?.message || "Error al actualizar");
     }
   };
 
-  const cambiarEstadoRapido = async (pagoId: number, nuevoEstado: string) => {
-    if (!confirm(`¿Confirmar cambio de estado a ${nuevoEstado}?`)) return;
-
-    try {
-      console.log("Cambio rápido:", { pagoId, nuevoEstado });
-      alert(`Estado cambiado a ${nuevoEstado}`);
-      await cargarPagos();
-    } catch (err) {
-      alert("Error al cambiar el estado");
-      console.error(err);
-    }
+  const obtenerIconoEstado = (estado: any) => {
+    const estadoStr = String(estado).toUpperCase();
+    if (estadoStr === EstadoPago.COMPLETADO) return <CheckCircle size={16} />;
+    if (estadoStr === EstadoPago.PROCESANDO) return <RefreshCw size={16} />;
+    if (estadoStr === EstadoPago.FALLIDO) return <XCircle size={16} />;
+    if (estadoStr === EstadoPago.REVERSADO) return <AlertTriangle size={16} />;
+    return <Clock size={16} />;
   };
 
-  const obtenerIconoEstado = (estado: string) => {
-    const estadoUpper = String(estado).toUpperCase();
-    switch (estadoUpper) {
-      case "VERIFICADO":
-      case "APROBADO":
-        return <CheckCircle size={18} />;
-      case "RECHAZADO":
-        return <XCircle size={18} />;
-      default:
-        return <Clock size={18} />;
-    }
-  };
-
-  const obtenerClaseEstado = (estado: string) => {
-    const estadoUpper = String(estado).toUpperCase();
-    switch (estadoUpper) {
-      case "VERIFICADO":
-      case "APROBADO":
-        return styles.estadoVerificado;
-      case "RECHAZADO":
-        return styles.estadoRechazado;
-      default:
-        return styles.estadoPendiente;
-    }
-  };
-
- const formatearFecha = (fecha: any): string => {
-  if (!fecha) return ""; // ← en blanco si no existe
-  try {
-    // Manejo flexible para diferentes formatos (LocalDateTime o ISO)
-    const date =
-      typeof fecha === "string" ? new Date(fecha) : new Date(String(fecha));
-    if (isNaN(date.getTime())) return ""; // Si no es válida, vacío
-    return date.toLocaleDateString("es-CO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch {
-    return "";
-  }
-};
-
-
-  const formatearMoneda = (monto: number): string => {
-    return `$${monto.toLocaleString("es-CO")}`;
-  };
-
-  const limpiarFiltros = () => {
-    setBusqueda("");
-    setFiltroEstado("TODOS");
-    setFiltroFecha("TODOS");
+  const obtenerClaseEstado = (estado: any) => {
+    const estadoStr = String(estado).toUpperCase();
+    if (estadoStr === EstadoPago.COMPLETADO) return styles.estadoCompletado;
+    if (estadoStr === EstadoPago.PROCESANDO) return styles.estadoProcesando;
+    if (estadoStr === EstadoPago.FALLIDO) return styles.estadoFallido;
+    if (estadoStr === EstadoPago.REVERSADO) return styles.estadoReversado;
+    if (estadoStr === EstadoPago.CANCELADO) return styles.estadoCancelado;
+    return styles.estadoPendiente;
   };
 
   if (cargando) {
@@ -402,8 +366,9 @@ const ContadorGestionPagos: React.FC = () => {
         <Header />
         <main className={styles.main}>
           <div className={styles.errorContenedor}>
-            <h2>Error al cargar datos</h2>
-            <p className={styles.error}>{error}</p>
+            <AlertCircle size={48} />
+            <h2>Error</h2>
+            <p>{error}</p>
             <BotonComponente label="Reintentar" onClick={cargarPagos} />
           </div>
         </main>
@@ -420,7 +385,6 @@ const ContadorGestionPagos: React.FC = () => {
 
       <main className={styles.main}>
         <div className={styles.contenedor}>
-          {/* Encabezado */}
           <div className={styles.encabezado}>
             <div>
               <button className={styles.btnVolver} onClick={() => navigate(-1)}>
@@ -428,23 +392,21 @@ const ContadorGestionPagos: React.FC = () => {
               </button>
               <h1>Gestión de Pagos</h1>
               <p className={styles.subtitulo}>
-                Administra, verifica y gestiona todos los pagos del sistema
+                Administra y verifica todos los pagos del sistema
               </p>
             </div>
           </div>
 
-          {/* Tarjetas de estadísticas */}
           <div className={styles.gridEstadisticas}>
             <div className={styles.tarjetaEstadistica}>
               <div className={`${styles.iconoEstadistica} ${styles.iconoVerde}`}>
                 <CheckCircle size={24} />
               </div>
               <div>
-                <p className={styles.labelEstadistica}>Total Verificado</p>
+                <p className={styles.labelEstadistica}>Total Completado</p>
                 <h2 className={styles.valorEstadistica}>
-                  {formatearMoneda(estadisticas.totalVerificado)}
+                  ${estadisticas.totalCompletado.toLocaleString("es-CO")}
                 </h2>
-                <p className={styles.descripcionEstadistica}>Pagos confirmados</p>
               </div>
             </div>
 
@@ -455,108 +417,72 @@ const ContadorGestionPagos: React.FC = () => {
               <div>
                 <p className={styles.labelEstadistica}>Total Pendiente</p>
                 <h2 className={styles.valorEstadistica}>
-                  {formatearMoneda(estadisticas.totalPendiente)}
+                  ${estadisticas.totalPendiente.toLocaleString("es-CO")}
                 </h2>
                 <p className={styles.descripcionEstadistica}>
-                  {estadisticas.pagosPendientes} pagos por verificar
+                  {estadisticas.pagosPendientes} pagos
                 </p>
-              </div>
-            </div>
-
-            <div className={styles.tarjetaEstadistica}>
-              <div className={`${styles.iconoEstadistica} ${styles.iconoRojo}`}>
-                <XCircle size={24} />
-              </div>
-              <div>
-                <p className={styles.labelEstadistica}>Total Rechazado</p>
-                <h2 className={styles.valorEstadistica}>
-                  {formatearMoneda(estadisticas.totalRechazado)}
-                </h2>
-                <p className={styles.descripcionEstadistica}>Pagos no válidos</p>
               </div>
             </div>
           </div>
 
-          {/* Alerta de pagos pendientes */}
           {estadisticas.pagosPendientes > 0 && (
             <div className={styles.alerta}>
               <AlertCircle size={20} />
-              <>
-                Tienes <strong>{estadisticas.pagosPendientes} pagos pendientes</strong>{" "}
-                por verificar
-              </>
+              <span>
+                Tienes <strong>{estadisticas.pagosPendientes} pagos pendientes</strong> por verificar
+              </span>
             </div>
           )}
 
-          {/* Filtros */}
           <div className={styles.seccionFiltros}>
             <div className={styles.barraBusqueda}>
               <Search size={20} />
               <input
                 type="text"
-                placeholder="Buscar por inquilino, referencia o monto..."
+                placeholder="Buscar por ID, inquilino o referencia..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className={styles.inputBusqueda}
               />
             </div>
 
-            <div className={styles.filtros}>
-              <select
-                value={filtroEstado}
-                onChange={(e) => setFiltroEstado(e.target.value)}
-                className={styles.selectFiltro}
-              >
-                <option value="TODOS">Todos los estados</option>
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="VERIFICADO">Verificado</option>
-                <option value="RECHAZADO">Rechazado</option>
-                <option value="APROBADO">Aprobado</option>
-              </select>
-
-              <select
-                value={filtroFecha}
-                onChange={(e) => setFiltroFecha(e.target.value)}
-                className={styles.selectFiltro}
-              >
-                <option value="TODOS">Todas las fechas</option>
-                <option value="HOY">Hoy</option>
-                <option value="SEMANA">Última semana</option>
-                <option value="MES">Último mes</option>
-                <option value="TRIMESTRE">Último trimestre</option>
-              </select>
-
-              {(busqueda || filtroEstado !== "TODOS" || filtroFecha !== "TODOS") && (
-                <button className={styles.btnLimpiar} onClick={limpiarFiltros}>
-                  Limpiar filtros
-                </button>
-              )}
-            </div>
+            <select
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              className={styles.selectFiltro}
+            >
+              <option value="TODOS">Todos los estados</option>
+              <option value={EstadoPago.PENDIENTE}>Pendiente</option>
+              <option value={EstadoPago.PROCESANDO}>Procesando</option>
+              <option value={EstadoPago.COMPLETADO}>Completado</option>
+              <option value={EstadoPago.FALLIDO}>Fallido</option>
+              <option value={EstadoPago.REVERSADO}>Reversado</option>
+              <option value={EstadoPago.CANCELADO}>Cancelado</option>
+            </select>
           </div>
 
-          {/* Tabla de pagos */}
           <div className={styles.tarjetaTabla}>
             <div className={styles.headerTabla}>
               <h3>
                 <DollarSign size={20} />
                 Lista de Pagos
               </h3>
-              <p>{pagosFiltrados.length} registros encontrados</p>
+              <p>{pagosFiltrados.length} registros</p>
             </div>
 
             {pagosFiltrados.length === 0 ? (
               <div className={styles.sinDatos}>
                 <DollarSign size={48} />
-                <p>No se encontraron pagos con los filtros seleccionados</p>
+                <p>No se encontraron pagos</p>
               </div>
             ) : (
               <div className={styles.tablaWrapper}>
                 <table className={styles.tabla}>
                   <thead>
                     <tr>
+                      <th>ID</th>
                       <th>Fecha</th>
                       <th>Inquilino</th>
-                      <th>Propiedad</th>
                       <th>Referencia</th>
                       <th>Método</th>
                       <th>Monto</th>
@@ -566,77 +492,39 @@ const ContadorGestionPagos: React.FC = () => {
                   </thead>
                   <tbody>
                     {pagosFiltrados.map((pago) => {
-                      const factura = pago.factura;
-                      const contrato = factura?.contrato;
-                      const inquilino = contrato?.inquilino;
-                      const propiedad = contrato?.propiedad;
-                      const direccion =
-                        (contrato as any)?.direccionPropiedad ||
-                        propiedad?.direccion ||
-                        "N/A";
-
+                      const inquilino = pago.factura?.contrato?.inquilino;
                       return (
                         <tr key={pago.idPago}>
+                          <td className={styles.celdaId}>#{pago.idPago}</td>
                           <td>
-                            <div className={styles.celdaFecha}>
-                              <Calendar size={16} />
-                             {formatearFecha((pago as any).fecha || (pago as any).fechaCreacion)}
-
-                            </div>
+                            <Calendar size={14} />
+                            {pago.fecha ? new Date(pago.fecha).toLocaleDateString("es-CO") : "N/A"}
                           </td>
-                          <td className={styles.celdaInquilino}>
+                          <td>
                             {inquilino?.nombre || "N/A"} {inquilino?.apellido || ""}
                           </td>
-                          <td className={styles.celdaPropiedad}>{direccion}</td>
-                          <td className={styles.celdaReferencia}>
-                            {pago.referenciaTransaccion || "N/A"}
-                          </td>
+                          <td className={styles.referencia}>{pago.referenciaTransaccion || "N/A"}</td>
                           <td>{pago.metodoPago || "N/A"}</td>
-                          <td className={styles.celdaMonto}>
-                            {formatearMoneda(pago.monto || 0)}
+                          <td className={styles.monto}>
+                            ${(pago.monto || 0).toLocaleString("es-CO")}
                           </td>
                           <td>
-                            <span
-                              className={`${styles.badge} ${obtenerClaseEstado(
-                                pago.estado || ""
-                              )}`}
-                            >
-                              {obtenerIconoEstado(pago.estado || "")}
+                            <span className={`${styles.badge} ${obtenerClaseEstado(pago.estado)}`}>
+                              {obtenerIconoEstado(pago.estado)}
                               {pago.estado}
                             </span>
                           </td>
                           <td>
-                            <div className={styles.accionesGrupo}>
-                              <button
-                                className={styles.btnEditar}
-                                onClick={() => abrirModalEditar(pago)}
-                                title="Editar"
-                              >
-                                <Edit3 size={16} />
-                              </button>
-                              {String(pago.estado).toUpperCase() === "PENDIENTE" && (
-                                <>
-                                  <button
-                                    className={styles.btnAprobar}
-                                    onClick={() =>
-                                      cambiarEstadoRapido(pago.idPago || 0, "VERIFICADO")
-                                    }
-                                    title="Aprobar"
-                                  >
-                                    <Check size={16} />
-                                  </button>
-                                  <button
-                                    className={styles.btnRechazar}
-                                    onClick={() =>
-                                      cambiarEstadoRapido(pago.idPago || 0, "RECHAZADO")
-                                    }
-                                    title="Rechazar"
-                                  >
-                                    <X size={16} />
-                                  </button>
-                                </>
-                              )}
-                            </div>
+                            <button
+                              className={styles.btnEditar}
+                              onClick={() => {
+                                setPagoSeleccionado(pago);
+                                setMostrarModal(true);
+                              }}
+                              title="Ver detalles"
+                            >
+                              <Edit3 size={16} />
+                            </button>
                           </td>
                         </tr>
                       );
@@ -651,11 +539,13 @@ const ContadorGestionPagos: React.FC = () => {
 
       <Footer />
 
-      {/* Modal de edición */}
       {mostrarModal && (
         <ModalEditar
           pago={pagoSeleccionado}
-          onClose={cerrarModal}
+          onClose={() => {
+            setMostrarModal(false);
+            setPagoSeleccionado(null);
+          }}
           onGuardar={handleGuardarCambios}
         />
       )}
@@ -664,3 +554,4 @@ const ContadorGestionPagos: React.FC = () => {
 };
 
 export default ContadorGestionPagos;
+
