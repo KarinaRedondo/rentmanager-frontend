@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Header from "../../../componentes/Header";
-import Footer from "../../../componentes/Footer";
-import { obtenerContratos } from "../../../servicios/contratos";
-import { PropiedadService } from "../../../servicios/propiedades";
-import type { DTOPropiedadRespuesta } from "../../../modelos/types/Propiedad";
+import Header from "../../../../../componentes/Header";
+import Footer from "../../../../../componentes/Footer";
+import { obtenerContratos } from "../../../../../servicios/contratos";
+import { PropiedadService } from "../../../../../servicios/propiedades";
+import type { DTOPropiedadRespuesta } from "../../../../../modelos/types/Propiedad";
 import styles from "./DetallePropiedadContador.module.css";
 import { ArrowLeft, Home } from "react-feather";
 

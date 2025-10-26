@@ -37,7 +37,7 @@ const ContadorDashboard: React.FC = () => {
       const token = localStorage.getItem("token");
 
       if (!usuarioString || !token) {
-        console.error("❌ No hay sesión activa");
+        console.error("No hay sesión activa");
         navigate("/login");
         return;
       }
@@ -46,7 +46,7 @@ const ContadorDashboard: React.FC = () => {
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
       if (rolUsuario !== "CONTADOR" && rolUsuario !== TipoUsuario.CONTADOR) {
-        console.error("🚫 Acceso denegado: usuario no es contador");
+        console.error("Acceso denegado: usuario no es contador");
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
@@ -54,7 +54,7 @@ const ContadorDashboard: React.FC = () => {
 
       await cargarDatosIniciales();
     } catch (err: any) {
-      console.error("❌ Error al verificar acceso:", err);
+      console.error("Error al verificar acceso:", err);
       navigate("/login");
     }
   };
@@ -237,58 +237,6 @@ const ContadorDashboard: React.FC = () => {
       });
   };
 
-  // ============================================
-  // OBTENER INGRESOS MENSUALES
-  // ============================================
-  const obtenerIngresosMensuales = () => {
-    const meses = [
-      "Ene",
-      "Feb",
-      "Mar",
-      "Abr",
-      "May",
-      "Jun",
-      "Jul",
-      "Ago",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dic",
-    ];
-
-    const mesActual = new Date().getMonth();
-    const añoActual = new Date().getFullYear();
-
-    const ingresosPorMes: { mes: string; ingresos: number }[] = [];
-
-    for (let i = filtroMeses - 1; i >= 0; i--) {
-      let mes = mesActual - i;
-      let año = añoActual;
-
-      if (mes < 0) {
-        mes += 12;
-        año -= 1;
-      }
-
-      const ingresos = pagos
-        .filter((p) => {
-          const fecha = new Date((p as any).fechaCreacion || "");
-          return (
-            fecha.getMonth() === mes &&
-            fecha.getFullYear() === año &&
-            String(p.estado).toUpperCase() === "VERIFICADO"
-          );
-        })
-        .reduce((sum, p) => sum + (p.monto || 0), 0);
-
-      ingresosPorMes.push({
-        mes: meses[mes],
-        ingresos,
-      });
-    }
-    return ingresosPorMes;
-  };
-
   const formatearFecha = (fecha: string | undefined): string => {
     if (!fecha) return "";
     const date = new Date(fecha);
@@ -342,8 +290,6 @@ const ContadorDashboard: React.FC = () => {
   const estadisticas = calcularEstadisticas();
   const pagosRecientes = obtenerPagosRecientes();
   const facturasPendientes = obtenerFacturasPendientes();
-  const ingresosMensuales = obtenerIngresosMensuales();
-  const maxIngresos = Math.max(...ingresosMensuales.map((m) => m.ingresos));
 
   return (
     <div className={styles.dashboard}>
@@ -576,32 +522,6 @@ const ContadorDashboard: React.FC = () => {
                 <option value={6}>Últimos 6 meses</option>
                 <option value={12}>Últimos 12 meses</option>
               </select>
-            </div>
-
-            <div className={styles.graficoBarras}>
-              {obtenerIngresosMensuales().map((mes, index) => {
-                const maxIngresos = Math.max(
-                  ...obtenerIngresosMensuales().map((m) => m.ingresos),
-                  0
-                );
-                const porcentaje =
-                  maxIngresos > 0 ? (mes.ingresos / maxIngresos) * 100 : 0;
-
-                return (
-                  <div key={index} className={styles.barraContenedor}>
-                    <div className={styles.barraWrapper}>
-                      <div
-                        className={styles.barra}
-                        style={{ height: `${porcentaje}%` }}
-                      ></div>
-                    </div>
-                    <p className={styles.labelMes}>{mes.mes}</p>
-                    <p className={styles.valorMes}>
-                      {formatearMoneda(mes.ingresos)}
-                    </p>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>

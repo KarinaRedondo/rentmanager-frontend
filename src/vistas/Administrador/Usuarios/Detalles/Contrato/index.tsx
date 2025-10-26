@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { obtenerContratoPorId } from "../../../servicios/contratos";
-import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato";
-import styles from "./DetalleContratoContador.module.css";
+import { obtenerContratoPorId } from "../../../../../servicios/contratos"; 
+import type { DTOContratoRespuesta } from "../../../../../modelos/types/Contrato";
+import styles from "./DetalleContratoAdministrador.module.css";
 import { ArrowLeft, FileText } from "react-feather";
-import Header from "../../../componentes/Header";
-import Footer from "../../../componentes/Footer";
+import Header from "../../../../../componentes/Header";
+import Footer from "../../../../../componentes/Footer";
 
-const DetalleContratoContador: React.FC = () => {
+const DetalleContratoAdministrador: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [contrato, setContrato] = useState<DTOContratoRespuesta | null>(null);
@@ -88,7 +88,7 @@ const DetalleContratoContador: React.FC = () => {
           <div className={styles.encabezado}>
             <button
               className={styles.btnVolver}
-              onClick={() => navigate("/contador/facturas/1")}
+              onClick={() => navigate("/administrador/propiedades/1")}
             >
               <ArrowLeft size={20} />
               Volver
@@ -148,5 +148,5 @@ const DetalleContratoContador: React.FC = () => {
   );
 };
 
-export default DetalleContratoContador;
+export default DetalleContratoAdministrador;
 

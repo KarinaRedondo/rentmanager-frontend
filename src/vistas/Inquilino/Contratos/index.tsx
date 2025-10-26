@@ -39,44 +39,44 @@ const ContratosInquilino: React.FC = () => {
     setCargando(true);
     setError("");
 
-    console.log("🔄 Iniciando carga de contratos...");
+    console.log("Iniciando carga de contratos...");
 
     const todosContratos = await obtenerContratos();
-    console.log("📦 Contratos obtenidos del servicio:", todosContratos);
+    console.log("Contratos obtenidos del servicio:", todosContratos);
 
     // Verificar usuario logueado
     const usuarioStr = localStorage.getItem("usuario");
     if (!usuarioStr) {
-      console.warn("⚠️ No se encontró usuario en localStorage");
+      console.warn("No se encontró usuario en localStorage");
       setError("No hay usuario logueado");
       return;
     }
 
     const usuario = JSON.parse(usuarioStr);
-    console.log("👤 Usuario logueado:", usuario);
+    console.log("Usuario logueado:", usuario);
 
     // Mostrar información de los IDs para verificar coincidencias
-    console.log("🔍 ID del usuario logueado:", usuario.id || usuario.idUsuario || usuario.idInquilino);
+    console.log("ID del usuario logueado:", usuario.id || usuario.idUsuario || usuario.idInquilino);
 
     // Filtrar contratos del inquilino
     const contratosInquilino = todosContratos.filter((c: any) => {
-      console.log(`🧾 Comparando contrato ${c.idContrato}: idInquilino=${c.idInquilino} con usuario.id=${usuario.id}`);
+      console.log(`Comparando contrato ${c.idContrato}: idInquilino=${c.idInquilino} con usuario.id=${usuario.id}`);
       return Number(c.idInquilino) === Number(usuario.id || usuario.idUsuario || usuario.idInquilino);
     });
 
-    console.log("✅ Contratos filtrados para el inquilino:", contratosInquilino);
+    console.log("Contratos filtrados para el inquilino:", contratosInquilino);
 
     if (contratosInquilino.length === 0) {
-      console.warn("⚠️ No se encontraron contratos para este inquilino.");
+      console.warn("No se encontraron contratos para este inquilino.");
     }
 
     setContratos(contratosInquilino);
   } catch (err: any) {
-    console.error("❌ Error al cargar contratos:", err);
+    console.error("Error al cargar contratos:", err);
     setError("Error al cargar los contratos");
   } finally {
     setCargando(false);
-    console.log("🏁 Proceso de carga de contratos finalizado.");
+    console.log("Proceso de carga de contratos finalizado.");
   }
 };
 

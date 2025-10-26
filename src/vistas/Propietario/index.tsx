@@ -83,7 +83,7 @@ const PropietarioDashboard: React.FC = () => {
       const token = localStorage.getItem("token");
 
       if (!usuarioString || !token) {
-        console.error("❌ No hay sesión activa");
+        console.error("No hay sesión activa");
         navigate("/login");
         return;
       }
@@ -95,16 +95,16 @@ const PropietarioDashboard: React.FC = () => {
         rolUsuario !== "PROPIETARIO" &&
         rolUsuario !== TipoUsuario.PROPIETARIO
       ) {
-        console.error("🚫 Acceso denegado: usuario no es propietario");
+        console.error("Acceso denegado: usuario no es propietario");
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
       }
 
-      console.log("✅ Acceso verificado - Usuario:", usuario.nombre);
+      console.log("Acceso verificado - Usuario:", usuario.nombre);
       await cargarDatosIniciales();
     } catch (err: any) {
-      console.error("❌ Error al verificar acceso:", err);
+      console.error("Error al verificar acceso:", err);
       navigate("/login");
     }
   };
@@ -117,7 +117,7 @@ const PropietarioDashboard: React.FC = () => {
       setCargando(true);
       setError("");
 
-      console.log("🔄 Iniciando carga de datos del propietario...");
+      console.log("Iniciando carga de datos del propietario...");
 
       const resultados = await Promise.allSettled([
         cargarPropiedades(),
@@ -125,19 +125,19 @@ const PropietarioDashboard: React.FC = () => {
         cargarFacturas(),
       ]);
 
-      console.log("📦 Resultados de Promise.allSettled:", resultados);
+      console.log("Resultados de Promise.allSettled:", resultados);
 
       // Procesar propiedades
       if (resultados[0].status === "fulfilled") {
         setPropiedades(resultados[0].value);
         console.log(
-          "✅ Propiedades cargadas:",
+          "Propiedades cargadas:",
           resultados[0].value.length,
           resultados[0].value
         );
       } else {
         console.warn(
-          "⚠️ No se pudieron cargar propiedades:",
+          "No se pudieron cargar propiedades:",
           resultados[0].reason
         );
         setPropiedades([]);
@@ -147,13 +147,13 @@ const PropietarioDashboard: React.FC = () => {
       if (resultados[1].status === "fulfilled") {
         setContratos(resultados[1].value);
         console.log(
-          "✅ Contratos cargados:",
+          "Contratos cargados:",
           resultados[1].value.length,
           resultados[1].value
         );
       } else {
         console.warn(
-          "⚠️ No se pudieron cargar contratos:",
+          "No se pudieron cargar contratos:",
           resultados[1].reason
         );
         setContratos([]);
@@ -163,26 +163,26 @@ const PropietarioDashboard: React.FC = () => {
       if (resultados[2].status === "fulfilled") {
         setFacturas(resultados[2].value);
         console.log(
-          "✅ Facturas cargadas:",
+          "Facturas cargadas:",
           resultados[2].value.length,
           resultados[2].value
         );
       } else {
         console.warn(
-          "⚠️ No se pudieron cargar facturas:",
+          "No se pudieron cargar facturas:",
           resultados[2].reason
         );
         setFacturas([]);
       }
 
-      console.log("📊 Estado final:");
+      console.log("Estado final:");
       console.log("  - Propiedades:", propiedades.length);
       console.log("  - Contratos:", contratos.length);
       console.log("  - Facturas:", facturas.length);
 
-      console.log("✅ Carga de datos completada");
+      console.log("Carga de datos completada");
     } catch (err: any) {
-      console.error("❌ Error al cargar datos:", err);
+      console.error("Error al cargar datos:", err);
       setError("Error al cargar los datos del portfolio");
     } finally {
       setCargando(false);
@@ -194,36 +194,36 @@ const PropietarioDashboard: React.FC = () => {
   // ============================================
   const cargarPropiedades = async (): Promise<DTOPropiedadRespuesta[]> => {
     try {
-      console.log("📡 Llamando a obtenerPropiedades()...");
+      console.log(" Llamando a obtenerPropiedades()...");
       const data = await obtenerPropiedades();
-      console.log("🔍 Propiedades recibidas:", data);
+      console.log("Propiedades recibidas:", data);
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.error("❌ Error al cargar propiedades:", error);
+      console.error("Error al cargar propiedades:", error);
       return [];
     }
   };
 
   const cargarContratos = async (): Promise<DTOContratoRespuesta[]> => {
     try {
-      console.log("📡 Llamando a obtenerContratos()...");
+      console.log("Llamando a obtenerContratos()...");
       const data = await obtenerContratos();
-      console.log("🔍 Contratos recibidos:", data);
+      console.log("Contratos recibidos:", data);
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.error("❌ Error al cargar contratos:", error);
+      console.error("Error al cargar contratos:", error);
       return [];
     }
   };
 
   const cargarFacturas = async (): Promise<DTOFacturaRespuesta[]> => {
     try {
-      console.log("📡 Llamando a obtenerFacturas()...");
+      console.log(" Llamando a obtenerFacturas()...");
       const data = await obtenerFacturas();
-      console.log("🔍 Facturas recibidas:", data);
+      console.log("Facturas recibidas:", data);
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.error("❌ Error al cargar facturas:", error);
+      console.error("Error al cargar facturas:", error);
       return [];
     }
   };

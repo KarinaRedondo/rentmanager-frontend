@@ -93,13 +93,13 @@ const AdminDashboard: React.FC = () => {
       const token = localStorage.getItem("token");
 
       if (!usuarioString || !token) {
-        console.error("❌ No hay sesión activa");
+        console.error("No hay sesión activa");
         navigate("/login");
         return;
       }
 
       const usuario = JSON.parse(usuarioString);
-      console.log("👤 Usuario parseado:", usuario);
+      console.log("Usuario parseado:", usuario);
 
       // Verificar tanto 'rol' como 'tipoUsuario' para compatibilidad
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
@@ -108,7 +108,7 @@ const AdminDashboard: React.FC = () => {
         rolUsuario !== "ADMINISTRADOR" &&
         rolUsuario !== TipoUsuario.ADMINISTRADOR
       ) {
-        console.error("🚫 Acceso denegado: usuario no es administrador");
+        console.error("Acceso denegado: usuario no es administrador");
         console.error("Rol encontrado:", rolUsuario);
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
@@ -116,14 +116,14 @@ const AdminDashboard: React.FC = () => {
       }
 
       console.log(
-        "✅ Acceso verificado - Usuario:",
+        "Acceso verificado - Usuario:",
         usuario.nombre,
         "| Rol:",
         rolUsuario
       );
       await cargarDatosIniciales();
     } catch (err: any) {
-      console.error("❌ Error al verificar acceso:", err);
+      console.error("Error al verificar acceso:", err);
       navigate("/login");
     }
   };
@@ -136,7 +136,7 @@ const AdminDashboard: React.FC = () => {
       setCargando(true);
       setError("");
 
-      console.log("🔄 Iniciando carga de datos del dashboard...");
+      console.log("Iniciando carga de datos del dashboard...");
 
       const resultados = await Promise.allSettled([
         cargarUsuarios(),
@@ -148,10 +148,10 @@ const AdminDashboard: React.FC = () => {
       // Procesar usuarios
       if (resultados[0].status === "fulfilled") {
         setUsuarios(resultados[0].value);
-        console.log("✅ Usuarios cargados:", resultados[0].value.length);
+        console.log("Usuarios cargados:", resultados[0].value.length);
       } else {
         console.warn(
-          "⚠️ No se pudieron cargar usuarios:",
+          "No se pudieron cargar usuarios:",
           resultados[0].reason
         );
         setUsuarios([]);
@@ -160,10 +160,10 @@ const AdminDashboard: React.FC = () => {
       // Procesar propiedades
       if (resultados[1].status === "fulfilled") {
         setPropiedades(resultados[1].value);
-        console.log("✅ Propiedades cargadas:", resultados[1].value.length);
+        console.log("Propiedades cargadas:", resultados[1].value.length);
       } else {
         console.warn(
-          "⚠️ No se pudieron cargar propiedades:",
+          "No se pudieron cargar propiedades:",
           resultados[1].reason
         );
         setPropiedades([]);
@@ -172,10 +172,10 @@ const AdminDashboard: React.FC = () => {
       // Procesar contratos
       if (resultados[2].status === "fulfilled") {
         setContratos(resultados[2].value);
-        console.log("✅ Contratos cargados:", resultados[2].value.length);
+        console.log("Contratos cargados:", resultados[2].value.length);
       } else {
         console.warn(
-          "⚠️ No se pudieron cargar contratos:",
+          "No se pudieron cargar contratos:",
           resultados[2].reason
         );
         setContratos([]);
@@ -184,10 +184,10 @@ const AdminDashboard: React.FC = () => {
       // Procesar facturas
       if (resultados[3].status === "fulfilled") {
         setFacturas(resultados[3].value);
-        console.log("✅ Facturas cargadas:", resultados[3].value.length);
+        console.log("Facturas cargadas:", resultados[3].value.length);
       } else {
         console.warn(
-          "⚠️ No se pudieron cargar facturas:",
+          "No se pudieron cargar facturas:",
           resultados[3].reason
         );
         setFacturas([]);
@@ -200,9 +200,9 @@ const AdminDashboard: React.FC = () => {
         resultados[1].status === "fulfilled" ? resultados[1].value : [];
       generarAlertas(contratosValidos, propiedadesValidas);
 
-      console.log("✅ Carga de datos completada exitosamente");
+      console.log(" Carga de datos completada exitosamente");
     } catch (err: any) {
-      console.error("❌ Error crítico al cargar datos:", err);
+      console.error("Error crítico al cargar datos:", err);
       setError(err.message || "Error al cargar los datos del dashboard");
     } finally {
       setCargando(false);
@@ -214,14 +214,14 @@ const AdminDashboard: React.FC = () => {
   // ============================================
   const cargarUsuarios = async (): Promise<Usuario[]> => {
     try {
-      console.log("🔄 Llamando a UsuarioService.listarTodos()...");
+      console.log("Llamando a UsuarioService.listarTodos()...");
       const data = await UsuarioService.listarTodos();
-      console.log("📦 Datos recibidos:", data);
-      console.log("📊 Cantidad de usuarios:", data.length);
-      console.log("👤 Primer usuario:", data[0]);
+      console.log("Datos recibidos:", data);
+      console.log("Cantidad de usuarios:", data.length);
+      console.log("Primer usuario:", data[0]);
       return data;
     } catch (err: any) {
-      console.error("❌ Error al cargar usuarios:", err);
+      console.error("Error al cargar usuarios:", err);
       throw new Error("No se pudieron cargar los usuarios");
     }
   };
@@ -340,13 +340,13 @@ const AdminDashboard: React.FC = () => {
   // HANDLERS - USUARIOS
   // ============================================
   const handleVerUsuario = (usuario: Usuario) => {
-    console.log("👁️ Ver usuario:", usuario.idUsuario);
+    console.log("Ver usuario:", usuario.idUsuario);
     setMenuAbierto(null);
     navigate(`/administrador/usuarios/${usuario.idUsuario}`);
   };
 
   const handleEditarUsuario = (usuario: Usuario) => {
-    console.log("✏️ Editar usuario:", usuario.idUsuario);
+    console.log("Editar usuario:", usuario.idUsuario);
     setMenuAbierto(null);
     navigate(`/administrador/usuarios/editar/${usuario.idUsuario}`);
   };
@@ -364,7 +364,7 @@ const AdminDashboard: React.FC = () => {
 
     try {
       setProcesando(true);
-      console.log("🗑️ Suspendiendo usuario:", usuario.idUsuario);
+      console.log("Suspendiendo usuario:", usuario.idUsuario);
 
       await UsuarioService.eliminar(usuario.idUsuario);
 
@@ -372,10 +372,10 @@ const AdminDashboard: React.FC = () => {
       const usuariosActualizados = await cargarUsuarios();
       setUsuarios(usuariosActualizados);
 
-      alert("✅ Usuario suspendido correctamente");
+      alert("Usuario suspendido correctamente");
     } catch (err: any) {
-      console.error("❌ Error al suspender usuario:", err);
-      alert(`❌ Error al suspender el usuario: ${err.message}`);
+      console.error("Error al suspender usuario:", err);
+      alert(`Error al suspender el usuario: ${err.message}`);
     } finally {
       setProcesando(false);
     }
@@ -385,13 +385,13 @@ const AdminDashboard: React.FC = () => {
   // HANDLERS - PROPIEDADES
   // ============================================
   const handleVerPropiedad = (propiedad: DTOPropiedadRespuesta) => {
-    console.log("👁️ Ver propiedad:", propiedad.idPropiedad);
+    console.log("Ver propiedad:", propiedad.idPropiedad);
     setMenuAbierto(null);
     navigate(`/administrador/propiedades/${propiedad.idPropiedad}`);
   };
 
   const handleEditarPropiedad = (propiedad: DTOPropiedadRespuesta) => {
-    console.log("✏️ Editar propiedad:", propiedad.idPropiedad);
+    console.log("Editar propiedad:", propiedad.idPropiedad);
     setMenuAbierto(null);
     navigate(`/administrador/propiedades/editar/${propiedad.idPropiedad}`);
   };
@@ -407,7 +407,7 @@ const AdminDashboard: React.FC = () => {
 
     try {
       setProcesando(true);
-      console.log("✅ Aprobando propiedad:", propiedad.idPropiedad);
+      console.log("Aprobando propiedad:", propiedad.idPropiedad);
 
       if (!propiedad.idPropiedad) {
         throw new Error("ID de propiedad inválido");
@@ -425,10 +425,10 @@ const AdminDashboard: React.FC = () => {
       // Actualizar alertas
       generarAlertas(contratos, propiedadesActualizadas);
 
-      alert("✅ Propiedad aprobada correctamente");
+      alert("Propiedad aprobada correctamente");
     } catch (err: any) {
-      console.error("❌ Error al aprobar propiedad:", err);
-      alert(`❌ Error al aprobar la propiedad: ${err.message}`);
+      console.error("Error al aprobar propiedad:", err);
+      alert(`Error al aprobar la propiedad: ${err.message}`);
     } finally {
       setProcesando(false);
     }
@@ -445,7 +445,7 @@ const AdminDashboard: React.FC = () => {
 
     try {
       setProcesando(true);
-      console.log("🗑️ Eliminando propiedad:", propiedad.idPropiedad);
+      console.log("Eliminando propiedad:", propiedad.idPropiedad);
 
       if (!propiedad.idPropiedad) {
         throw new Error("ID de propiedad inválido");
@@ -457,10 +457,10 @@ const AdminDashboard: React.FC = () => {
       const propiedadesActualizadas = await cargarPropiedades();
       setPropiedades(propiedadesActualizadas);
 
-      alert("✅ Propiedad eliminada correctamente");
+      alert("Propiedad eliminada correctamente");
     } catch (err: any) {
-      console.error("❌ Error al eliminar propiedad:", err);
-      alert(`❌ Error al eliminar la propiedad: ${err.message}`);
+      console.error("Error al eliminar propiedad:", err);
+      alert(`Error al eliminar la propiedad: ${err.message}`);
     } finally {
       setProcesando(false);
     }
@@ -470,22 +470,22 @@ const AdminDashboard: React.FC = () => {
   // HANDLERS - NAVEGACIÓN
   // ============================================
   const handleNuevoUsuario = () => {
-    console.log("➕ Navegando a nuevo usuario");
+    console.log("Navegando a nuevo usuario");
     navigate("/administrador/usuarios/nuevo");
   };
 
   const handleVerReportes = () => {
-    console.log("📊 Navegando a reportes");
+    console.log("Navegando a reportes");
     navigate("/administrador/reportes");
   };
 
   const handleVerTodosUsuarios = () => {
-    console.log("👥 Navegando a todos los usuarios");
+    console.log("Navegando a todos los usuarios");
     navigate("/administrador/usuarios");
   };
 
   const handleVerTodasPropiedades = () => {
-    console.log("🏘️ Navegando a todas las propiedades");
+    console.log(" Navegando a todas las propiedades");
     navigate("/administrador/propiedades");
   };
 

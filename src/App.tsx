@@ -26,9 +26,6 @@ import ContratosInquilino from "./vistas/Inquilino/Contratos";
 import DetallePropiedad from "./vistas/Administrador/Propiedades/Detalle";
 import DetalleFacturaContador from "./vistas/Contador/Facturas/Detalles";
 import InquilinoRegistrarPago from "./vistas/Inquilino/Pagos/Registrar";
-import DetalleContratoContador from "./vistas/Contador/DetalleContratoContador";
-import DetallesPagoContador from "./vistas/Contador/DetallePagoContador";
-import DetallePropiedadContador from "./vistas/Contador/DetallePropiedadContador";
 import AcercaDeNosotros from "./componentes/Footer/Empresa/Acerca de Nosotros";
 import Carreras from "./componentes/Footer/Empresa/Carreras";
 import Prensa from "./componentes/Footer/Empresa/Prensa";
@@ -42,6 +39,12 @@ import Terminos from "./componentes/Footer/Legal/Terminos de Servicio";
 import Privacidad from "./componentes/Footer/Legal/Politica de Privacidad";
 import Perfil from "./componentes/Header/Avatar/Perfil";
 import Configuracion from "./componentes/Header/Avatar/Configuracion";
+import DetalleContratoAdministrador from "./vistas/Administrador/Usuarios/Detalles/Contrato";
+import DetallePropiedadAdministrador from "./vistas/Administrador/Usuarios/Detalles/Propiedad";
+import DetalleFacturaAdministrador from "./vistas/Administrador/Usuarios/Detalles/Factura";
+import DetalleContratoContador from "./vistas/Contador/Facturas/Detalles/DetalleContratoContador";
+import DetallesPagoContador from "./vistas/Contador/Facturas/Detalles/DetallePagoContador";
+import DetallePropiedadContador from "./vistas/Contador/Facturas/Detalles/DetallePropiedadContador";
 
 function App() {
   // Cargar usuario guardado en localStorage
@@ -92,8 +95,20 @@ function App() {
             path="/administrador/propiedades/:id"
             element={<DetallePropiedad />}
           />
+           <Route
+            path="/administrador/contratos/:id"
+            element={<DetalleContratoAdministrador/>}
+          />
+           <Route
+            path="/administrador/facturas/:id"
+            element={<DetalleFacturaAdministrador />}
+          />
+           <Route
+            path="/administrador/propiedades/:id"
+            element={<DetallePropiedadAdministrador />}
+          />
         </Route>
-
+      
         {/* PROPIETARIO */}
         <Route
           element={

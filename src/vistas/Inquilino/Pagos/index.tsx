@@ -68,7 +68,7 @@ const InquilinoHistorialPagos: React.FC = () => {
       setCargando(true);
       setError("");
       const data = await obtenerPagos();
-      console.log("Pagos obtenidos:", data); // ✅ Debug: Ver estructura de datos
+      console.log("Pagos obtenidos:", data); // Debug: Ver estructura de datos
       setPagos(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error("Error al cargar pagos:", err);
@@ -412,7 +412,7 @@ const InquilinoHistorialPagos: React.FC = () => {
                           <td>
                             <div className={styles.celdaFecha}>
                               <Calendar size={16} />
-                              {/* ✅ CORREGIDO: Usar pago.fecha */}
+                              {/* : Usar pago.fecha */}
                               {formatearFecha(pago.fecha)}
                             </div>
                           </td>

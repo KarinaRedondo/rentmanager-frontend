@@ -86,7 +86,7 @@ const PropietarioPropiedades: React.FC = () => {
       setCargando(true);
       setError("");
       const data = await PropiedadService.obtenerPropiedades();
-      console.log("📥 Propiedades recibidas del backend:", data);
+      console.log("Propiedades recibidas del backend:", data);
       setPropiedades(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError("Error al cargar las propiedades");
@@ -150,8 +150,8 @@ const PropietarioPropiedades: React.FC = () => {
   };
 
   const cargarDatosEnFormulario = (propiedad: DTOPropiedadRespuesta) => {
-    console.log("🔍 CARGAR DATOS - Propiedad completa:", propiedad);
-    console.log("🔍 CARGAR DATOS - Buscar campo año:");
+    console.log("CARGAR DATOS - Propiedad completa:", propiedad);
+    console.log("CARGAR DATOS - Buscar campo año:");
     // @ts-ignore
     console.log("  - anoConstruccion:", propiedad.anoConstruccion);
     // @ts-ignore
@@ -170,14 +170,14 @@ const PropietarioPropiedades: React.FC = () => {
     setPisos(String(propiedad.piso || propiedad.pisos || ""));
     setDescripcion(propiedad.descripcion || "");
 
-    // ✅ Buscar año en todos los posibles nombres
+    // Buscar año en todos los posibles nombres
     // @ts-ignore
     const ano =
       propiedad.anoConstruccion ||
       propiedad.anoConstruccion ||
       propiedad.anoConstruccion ||
       "";
-    console.log("🔍 CARGAR DATOS - Año encontrado:", ano);
+    console.log("CARGAR DATOS - Año encontrado:", ano);
     setAnoConstruccion(String(ano));
 
     setEstado(propiedad.estado || EstadoPropiedad.DISPONIBLE);
@@ -198,7 +198,7 @@ const PropietarioPropiedades: React.FC = () => {
   const handleGuardar = async () => {
     try {
       if (!direccion || !ciudad) {
-        alert("⚠️ Dirección y ciudad son obligatorios");
+        alert("Dirección y ciudad son obligatorios");
         return;
       }
 
@@ -207,13 +207,13 @@ const PropietarioPropiedades: React.FC = () => {
       const banosNum = Number(banos);
 
       if (areaNum <= 0) {
-        alert("⚠️ El área debe ser mayor a 0");
+        alert("El área debe ser mayor a 0");
         return;
       }
 
       const usuarioString = localStorage.getItem("usuario");
       if (!usuarioString) {
-        alert("⚠️ No se pudo obtener la información del usuario");
+        alert("No se pudo obtener la información del usuario");
         return;
       }
 
@@ -221,16 +221,16 @@ const PropietarioPropiedades: React.FC = () => {
       const propietarioId = usuario.idUsuario || usuario.id;
 
       if (!propietarioId) {
-        alert("⚠️ No se pudo obtener el ID del propietario");
+        alert("No se pudo obtener el ID del propietario");
         return;
       }
 
-      console.log("🔍 Valor de anoConstruccion (estado):", anoConstruccion);
-      console.log("🔍 Tipo:", typeof anoConstruccion);
-      console.log("🔍 Número convertido:", Number(anoConstruccion));
+      console.log("Valor de anoConstruccion (estado):", anoConstruccion);
+      console.log("Tipo:", typeof anoConstruccion);
+      console.log("Número convertido:", Number(anoConstruccion));
 
       if (propiedadSeleccionada === null) {
-        // ✅ CREAR
+        //  CREAR
         const datos: any = {
           direccion: direccion.trim(),
           ciudad: ciudad.trim(),
@@ -247,17 +247,17 @@ const PropietarioPropiedades: React.FC = () => {
           idPropietario: propietarioId,
         };
 
-        console.log("📤 CREAR - Objeto completo:");
+        console.log("CREAR - Objeto completo:");
         console.log(JSON.stringify(datos, null, 2));
-        console.log("📤 CREAR - anoConstruccion:", datos.anoConstruccion);
+        console.log("CREAR - anoConstruccion:", datos.anoConstruccion);
 
         const resultado = await PropiedadService.crearPropiedad(datos);
-        console.log("✅ CREAR - Respuesta completa:");
+        console.log(" CREAR - Respuesta completa:");
         console.log(JSON.stringify(resultado, null, 2));
 
-        alert("✅ Propiedad creada correctamente");
+        alert("Propiedad creada correctamente");
       } else {
-        // ✅ ACTUALIZAR
+        // ACTUALIZAR
         const datosActualizar: any = {
           direccion: direccion.trim(),
           ciudad: ciudad.trim(),
@@ -272,11 +272,11 @@ const PropietarioPropiedades: React.FC = () => {
           estado: estado,
         };
 
-        console.log("📤 ACTUALIZAR - ID:", propiedadSeleccionada.idPropiedad);
-        console.log("📤 ACTUALIZAR - Objeto completo:");
+        console.log("ACTUALIZAR - ID:", propiedadSeleccionada.idPropiedad);
+        console.log("ACTUALIZAR - Objeto completo:");
         console.log(JSON.stringify(datosActualizar, null, 2));
         console.log(
-          "📤 ACTUALIZAR - anoConstruccion:",
+          "ACTUALIZAR - anoConstruccion:",
           datosActualizar.anoConstruccion
         );
 
@@ -284,23 +284,23 @@ const PropietarioPropiedades: React.FC = () => {
           propiedadSeleccionada.idPropiedad || 0,
           datosActualizar
         );
-        console.log("✅ ACTUALIZAR - Respuesta completa:");
+        console.log("ACTUALIZAR - Respuesta completa:");
         console.log(JSON.stringify(resultado, null, 2));
 
-        alert("✅ Propiedad actualizada correctamente");
+        alert("Propiedad actualizada correctamente");
       }
 
       await cargarPropiedades();
       setMostrarModal(false);
       limpiarFormulario();
     } catch (err: any) {
-      console.error("❌ ERROR COMPLETO:", err);
-      console.error("❌ Respuesta:", err.response?.data);
+      console.error("ERROR COMPLETO:", err);
+      console.error("Respuesta:", err.response?.data);
 
       const mensajeError =
         err.response?.data?.message || err.response?.data?.error || err.message;
 
-      alert(`❌ Error: ${mensajeError}`);
+      alert(`Error: ${mensajeError}`);
     }
   };
 
@@ -309,12 +309,12 @@ const PropietarioPropiedades: React.FC = () => {
 
     try {
       await PropiedadService.eliminarPropiedad(propiedadId);
-      alert("✅ Propiedad eliminada correctamente");
+      alert("Propiedad eliminada correctamente");
       await cargarPropiedades();
     } catch (err: any) {
-      console.error("❌ Error al eliminar:", err);
+      console.error("Error al eliminar:", err);
       const mensajeError = err.response?.data?.message || err.message;
-      alert(`❌ Error al eliminar: ${mensajeError}`);
+      alert(`Error al eliminar: ${mensajeError}`);
     }
   };
 

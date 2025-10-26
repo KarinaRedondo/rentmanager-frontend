@@ -173,8 +173,7 @@
     grid-template-columns: 1fr;
     row-gap: 1.3rem;
   }
-
-  .dt {
+.dt {
     text-align: left;
     border-right: none;
     border-bottom: 2.5px solid rgba(59, 130, 246, 0.25);
@@ -310,10 +309,3 @@
     flex: 1;
   }
 }
-
-
-
-
-
-
-

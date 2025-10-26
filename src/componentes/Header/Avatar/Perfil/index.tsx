@@ -24,8 +24,6 @@ const Perfil: React.FC = () => {
 
   // Guardar cambios
   const handleGuardar = () => {
-    // Aquí puedes hacer una llamada a tu API para actualizar los datos
-    // Por ahora solo actualiza el localStorage y el estado
     localStorage.setItem("usuario", JSON.stringify(datosEditados));
     setUsuario(datosEditados);
     setModoEdicion(false);
@@ -37,7 +35,7 @@ const Perfil: React.FC = () => {
     setDatosEditados({ ...datosEditados, [campo]: valor });
   };
 
-  // Renderizar campo (modo lectura o edición)
+  // Renderizar campo
   const renderField = (
     label: string,
     campo: string,
@@ -45,7 +43,7 @@ const Perfil: React.FC = () => {
     isBadge: boolean = false,
     editable: boolean = true
   ) => {
-    const displayValue = value || "No disponible";
+    const displayValue = value ?? "No disponible";
 
     return (
       <>
@@ -55,7 +53,7 @@ const Perfil: React.FC = () => {
             <input
               type="text"
               className={styles.input}
-              value={datosEditados[campo] || ""}
+              value={datosEditados[campo] ?? ""}
               onChange={(e) => handleChange(campo, e.target.value)}
             />
           ) : isBadge ? (

@@ -53,7 +53,7 @@ const InquilinoDashboard: React.FC = () => {
       const token = localStorage.getItem("token");
 
       if (!usuarioString || !token) {
-        console.error("❌ No hay sesión activa");
+        console.error("No hay sesión activa");
         navigate("/login");
         return;
       }
@@ -62,16 +62,16 @@ const InquilinoDashboard: React.FC = () => {
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
       if (rolUsuario !== "INQUILINO" && rolUsuario !== TipoUsuario.INQUILINO) {
-        console.error("🚫 Acceso denegado: usuario no es inquilino");
+        console.error("Acceso denegado: usuario no es inquilino");
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
       }
 
-      console.log("✅ Acceso verificado - Inquilino:", usuario.nombre);
+      console.log("Acceso verificado - Inquilino:", usuario.nombre);
       await cargarDatosIniciales();
     } catch (err: any) {
-      console.error("❌ Error al verificar acceso:", err);
+      console.error("Error al verificar acceso:", err);
       navigate("/login");
     }
   };
@@ -81,7 +81,7 @@ const InquilinoDashboard: React.FC = () => {
       setCargando(true);
       setError("");
 
-      console.log("🔄 Iniciando carga de datos del inquilino...");
+      console.log("Iniciando carga de datos del inquilino...");
 
       const resultados = await Promise.allSettled([
         cargarContratos(),
@@ -89,35 +89,35 @@ const InquilinoDashboard: React.FC = () => {
         cargarPagos(),
       ]);
 
-      console.log("📦 Resultados de carga:", resultados);
+      console.log("Resultados de carga:", resultados);
 
       if (resultados[0].status === "fulfilled") {
         setContratos(resultados[0].value);
-        console.log("✅ Contratos cargados:", resultados[0].value.length, resultados[0].value);
+        console.log("Contratos cargados:", resultados[0].value.length, resultados[0].value);
       } else {
-        console.warn("⚠️ Error al cargar contratos:", resultados[0].reason);
+        console.warn("Error al cargar contratos:", resultados[0].reason);
         setContratos([]);
       }
 
       if (resultados[1].status === "fulfilled") {
         setFacturas(resultados[1].value);
-        console.log("✅ Facturas cargadas:", resultados[1].value.length, resultados[1].value);
+        console.log("Facturas cargadas:", resultados[1].value.length, resultados[1].value);
       } else {
-        console.warn("⚠️ Error al cargar facturas:", resultados[1].reason);
+        console.warn("Error al cargar facturas:", resultados[1].reason);
         setFacturas([]);
       }
 
       if (resultados[2].status === "fulfilled") {
         setPagos(resultados[2].value);
-        console.log("✅ Pagos cargados:", resultados[2].value.length, resultados[2].value);
+        console.log("Pagos cargados:", resultados[2].value.length, resultados[2].value);
       } else {
-        console.warn("⚠️ Error al cargar pagos:", resultados[2].reason);
+        console.warn("Error al cargar pagos:", resultados[2].reason);
         setPagos([]);
       }
 
-      console.log("✅ Carga de datos completada");
+      console.log("Carga de datos completada");
     } catch (err: any) {
-      console.error("❌ Error al cargar datos:", err);
+      console.error("Error al cargar datos:", err);
       setError("Error al cargar los datos");
     } finally {
       setCargando(false);
@@ -126,41 +126,41 @@ const InquilinoDashboard: React.FC = () => {
 
   const cargarContratos = async (): Promise<DTOContratoRespuesta[]> => {
     try {
-      console.log("📡 Llamando a obtenerContratos()...");
+      console.log("Llamando a obtenerContratos()...");
       const data = await obtenerContratos();
-      console.log("🔍 Contratos recibidos:", data);
+      console.log("Contratos recibidos:", data);
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.error("❌ Error al cargar contratos:", error);
+      console.error("Error al cargar contratos:", error);
       return [];
     }
   };
 
   const cargarFacturas = async (): Promise<DTOFacturaRespuesta[]> => {
     try {
-      console.log("📡 Llamando a obtenerFacturas()...");
+      console.log("Llamando a obtenerFacturas()...");
       const data = await obtenerFacturas();
-      console.log("🔍 Facturas recibidas:", data);
+      console.log("Facturas recibidas:", data);
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.error("❌ Error al cargar facturas:", error);
+      console.error("Error al cargar facturas:", error);
       return [];
     }
   };
 
   const cargarPagos = async (): Promise<DTOPagoRespuesta[]> => {
     try {
-      console.log("📡 Llamando a obtenerPagos()...");
+      console.log("Llamando a obtenerPagos()...");
       const data = await obtenerPagos();
-      console.log("🔍 Pagos recibidos:", data);
+      console.log("Pagos recibidos:", data);
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.error("❌ Error al cargar pagos:", error);
+      console.error("Error al cargar pagos:", error);
       return [];
     }
   };
 
-  // ✅ CORREGIDO: Calcular estadísticas con fechas correctas
+  //  Calcular estadísticas con fechas correctas
   const calcularEstadisticas = () => {
     const contratosActivos = contratos.filter(
       (c) => String(c.estado).toUpperCase() === "ACTIVO"
@@ -207,12 +207,12 @@ const InquilinoDashboard: React.FC = () => {
   };
 
   const obtenerHistorialPagos = () => {
-    console.log("📊 Procesando pagos para historial:", pagos);
+    console.log("Procesando pagos para historial:", pagos);
 
     return pagos
       .filter((p) => {
         const estado = String(p.estado || "").toUpperCase();
-        console.log("🔍 Estado de pago:", estado, "ID:", p.idPago);
+        console.log("Estado de pago:", estado, "ID:", p.idPago);
         return (
           estado === "COMPLETADO" ||
           estado === "VERIFICADO" ||
@@ -233,7 +233,7 @@ const InquilinoDashboard: React.FC = () => {
 
         const direccion = propiedad?.direccion || "Propiedad no identificada";
 
-        console.log("📍 Dirección encontrada:", direccion, "Pago ID:", pago.idPago);
+        console.log("Dirección encontrada:", direccion, "Pago ID:", pago.idPago);
 
         return {
           id: pago.idPago || 0,
@@ -282,7 +282,7 @@ const InquilinoDashboard: React.FC = () => {
       });
   };
 
-  // ✅ CORREGIDO: Formatear fecha sin problemas de zona horaria
+  // Formatear fecha sin problemas de zona horaria
   const formatearFecha = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
     try {
@@ -384,9 +384,9 @@ const InquilinoDashboard: React.FC = () => {
   const historialPagos = obtenerHistorialPagos();
   const recordatorios = obtenerRecordatorios();
 
-  console.log("📊 Estadísticas calculadas:", estadisticas);
-  console.log("💰 Historial de pagos:", historialPagos);
-  console.log("⏰ Recordatorios:", recordatorios);
+  console.log("Estadísticas calculadas:", estadisticas);
+  console.log("Historial de pagos:", historialPagos);
+  console.log("Recordatorios:", recordatorios);
 
   return (
     <div className={styles.dashboard}>
@@ -402,7 +402,7 @@ const InquilinoDashboard: React.FC = () => {
               </p>
             </div>
             <BotonComponente
-              label="💳 Registrar Pago"
+              label="Registrar Pago"
               onClick={() => navigate("/inquilino/pagos/nuevo")}
             />
           </div>
@@ -608,7 +608,7 @@ const InquilinoDashboard: React.FC = () => {
                         ? `${propiedad.habitaciones} hab. • ${propiedad.banos} baños`
                         : `${propiedad?.area || 0} m²`;
 
-                      console.log("🏠 Contrato:", contrato.idContrato, "Propiedad:", propiedad);
+                      console.log(" Contrato:", contrato.idContrato, "Propiedad:", propiedad);
 
                       return (
                         <div

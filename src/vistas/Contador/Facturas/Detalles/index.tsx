@@ -39,15 +39,15 @@ const DetalleFacturaContador: React.FC = () => {
       const facturaData = await obtenerFacturaPorId(parseInt(id));
       setFactura(facturaData);
 
-      console.log("📄 Factura cargada:", facturaData);
-      console.log("📋 Contrato asociado:", facturaData.contrato);
-      console.log("🏠 Propiedad asociada:", facturaData.contrato?.propiedad);
+      console.log("Factura cargada:", facturaData);
+      console.log("Contrato asociado:", facturaData.contrato);
+      console.log("Propiedad asociada:", facturaData.contrato?.propiedad);
 
       const todosPagos = await obtenerPagos();
       const pagoAsociado = todosPagos.find((p) => p.factura?.idFactura === parseInt(id));
       setPago(pagoAsociado || null);
 
-      console.log("💳 Pago asociado:", pagoAsociado);
+      console.log("Pago asociado:", pagoAsociado);
     } catch (err) {
       console.error(err);
       setError("Error al cargar la factura");
@@ -237,7 +237,7 @@ const DetalleFacturaContador: React.FC = () => {
                           if (idContrato && !isNaN(Number(idContrato))) {
                             navigate(`/contador/contratos/${idContrato}`);
                           } else {
-                            console.warn("⚠️ ID de contrato no disponible:", factura);
+                            console.warn("ID de contrato no disponible:", factura);
                             alert("No se puede navegar: ID de contrato inválido");
                           }
                         }}
@@ -299,7 +299,7 @@ const DetalleFacturaContador: React.FC = () => {
                           if (idPropiedad && !isNaN(Number(idPropiedad))) {
                             navigate(`/contador/propiedades/${idPropiedad}`);
                           } else {
-                            console.warn("⚠️ ID de propiedad no disponible:", factura);
+                            console.warn("ID de propiedad no disponible:", factura);
                             alert("No se puede navegar: ID de propiedad inválido");
                           }
                         }}
@@ -363,7 +363,7 @@ const DetalleFacturaContador: React.FC = () => {
                           if (idPago && !isNaN(Number(idPago))) {
                             navigate(`/contador/pagos/${idPago}`);
                           } else {
-                            console.warn("⚠️ ID de pago no disponible:", pago);
+                            console.warn("ID de pago no disponible:", pago);
                             alert("No se puede navegar: ID de pago inválido");
                           }
                         }}

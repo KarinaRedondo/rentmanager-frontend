@@ -115,57 +115,99 @@ const Usuarios = () => {
   };
 
   const verDetalles = async (usuario: any) => {
-    setUsuarioDetalles(usuario);
-    setModalDetalles(true);
-    setCargandoDetalles(true);
+  setUsuarioDetalles(usuario);
+  setModalDetalles(true);
+  setCargandoDetalles(true);
 
-    try {
-      if (usuario.tipoUsuario === TipoUsuario.PROPIETARIO) {
-        const todasPropiedades = await PropiedadService.obtenerPropiedades();
-        const propsPropietario = todasPropiedades.filter((p: any) => p.propietario?.idUsuario === usuario.idUsuario);
-        setPropiedades(propsPropietario);
+  try {
+    if (usuario.tipoUsuario === TipoUsuario.PROPIETARIO) {
+      console.log("Propietario seleccionado:", usuario);
 
-        const todosContratos = await obtenerContratos();
-        const idsProps = propsPropietario.map((p: any) => p.idPropiedad);
-        const contratosProps = todosContratos.filter((c: any) => idsProps.includes(c.propiedad?.idPropiedad));
-        setContratos(contratosProps);
+      // 🔹 1. Obtener todas las propiedades del propietario
+      const todasPropiedades = await PropiedadService.obtenerPropiedades();
+      console.log("Todas las propiedades:", todasPropiedades);
 
-        const todasFacturas = await obtenerFacturas();
-        const idsContratos = contratosProps.map((c: any) => c.idContrato);
-        const facturasProps = todasFacturas.filter((f: any) => idsContratos.includes(f.contrato?.idContrato));
-        setFacturas(facturasProps);
+         const propsPropietario = todasPropiedades.filter(
+      (p: any) => p.idPropietario === usuario.idUsuario);
+      console.log(" Propiedades del propietario:", propsPropietario);
+       setPropiedades(propsPropietario);
 
-        const todosPagos = await obtenerPagos();
-        const idsFacturas = facturasProps.map((f: any) => f.idFactura);
-        const pagosProps = todosPagos.filter((p: any) => idsFacturas.includes(p.factura?.idFactura));
-        setPagos(pagosProps);
+      // 🔹 2. Obtener contratos asociados a esas propiedades
+      const todosContratos = await obtenerContratos();
+      console.log("Todos los contratos:", todosContratos);
 
-      } else if (usuario.tipoUsuario === TipoUsuario.INQUILINO) {
-        const todosContratos = await obtenerContratos();
-        const contratosInquilino = todosContratos.filter((c: any) => c.idInquilino === usuario.idUsuario);
-        setContratos(contratosInquilino);
+      const idsProps = propsPropietario.map((p: any) => p.idPropiedad);
+      const contratosProps = todosContratos.filter((c: any) =>
+        idsProps.includes(c.propiedad?.idPropiedad)
+      );
+      console.log("Contratos del propietario:", contratosProps);
+      setContratos(contratosProps);
 
-        const idsProps = contratosInquilino.map((c: any) => c.propiedad?.idPropiedad).filter(Boolean);
-        const todasPropiedades = await PropiedadService.obtenerPropiedades();
-        const propsInquilino = todasPropiedades.filter((p: any) => idsProps.includes(p.idPropiedad));
-        setPropiedades(propsInquilino);
+      // 🔹 3. Obtener facturas de esos contratos
+      const todasFacturas = await obtenerFacturas();
+      console.log("Todas las facturas:", todasFacturas);
 
-        const todasFacturas = await obtenerFacturas();
-        const idsContratos = contratosInquilino.map((c: any) => c.idContrato);
-        const facturasInquilino = todasFacturas.filter((f: any) => idsContratos.includes(f.contrato?.idContrato));
-        setFacturas(facturasInquilino);
+      const idsContratos = contratosProps.map((c: any) => c.idContrato);
+      const facturasProps = todasFacturas.filter((f: any) =>
+        idsContratos.includes(f.contrato?.idContrato)
+      );
+      console.log("Facturas del propietario:", facturasProps);
+      setFacturas(facturasProps);
 
-        const todosPagos = await obtenerPagos();
-        const idsFacturas = facturasInquilino.map((f: any) => f.idFactura);
-        const pagosInquilino = todosPagos.filter((p: any) => idsFacturas.includes(p.factura?.idFactura));
-        setPagos(pagosInquilino);
-      }
-    } catch (error) {
-      console.error("Error al cargar detalles:", error);
-    } finally {
-      setCargandoDetalles(false);
+      // 🔹 4. Obtener pagos asociados a esas facturas
+      const todosPagos = await obtenerPagos();
+      console.log("Todos los pagos:", todosPagos);
+
+      const idsFacturas = facturasProps.map((f: any) => f.idFactura);
+      const pagosProps = todosPagos.filter((p: any) =>
+        idsFacturas.includes(p.factura?.idFactura)
+      );
+      console.log("Pagos del propietario:", pagosProps);
+      setPagos(pagosProps);
+
+    } else if (usuario.tipoUsuario === TipoUsuario.INQUILINO) {
+      console.log("Inquilino seleccionado:", usuario);
+
+      const todosContratos = await obtenerContratos();
+      const contratosInquilino = todosContratos.filter(
+        (c: any) => c.idInquilino === usuario.idUsuario
+      );
+      console.log("Contratos del inquilino:", contratosInquilino);
+      setContratos(contratosInquilino);
+
+      const idsProps = contratosInquilino
+        .map((c: any) => c.propiedad?.idPropiedad)
+        .filter(Boolean);
+      const todasPropiedades = await PropiedadService.obtenerPropiedades();
+      const propsInquilino = todasPropiedades.filter((p: any) =>
+        idsProps.includes(p.idPropiedad)
+      );
+      console.log("Propiedades del inquilino:", propsInquilino);
+      setPropiedades(propsInquilino);
+
+      const todasFacturas = await obtenerFacturas();
+      const idsContratos = contratosInquilino.map((c: any) => c.idContrato);
+      const facturasInquilino = todasFacturas.filter((f: any) =>
+        idsContratos.includes(f.contrato?.idContrato)
+      );
+      console.log("Facturas del inquilino:", facturasInquilino);
+      setFacturas(facturasInquilino);
+
+      const todosPagos = await obtenerPagos();
+      const idsFacturas = facturasInquilino.map((f: any) => f.idFactura);
+      const pagosInquilino = todosPagos.filter((p: any) =>
+        idsFacturas.includes(p.factura?.idFactura)
+      );
+      console.log("Pagos del inquilino:", pagosInquilino);
+      setPagos(pagosInquilino);
     }
-  };
+  } catch (error) {
+    console.error("Error al cargar detalles:", error);
+  } finally {
+    setCargandoDetalles(false);
+  }
+};
+
 
   const abrirModalEditar = (usuario?: any) => {
     if (usuario) {

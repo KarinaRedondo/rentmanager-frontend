@@ -78,7 +78,7 @@ const InquilinoFacturas: React.FC = () => {
       });
 
       setFacturas(facturasOrdenadas);
-      console.log("✅ Facturas cargadas:", facturasOrdenadas);
+      console.log("Facturas cargadas:", facturasOrdenadas);
     } catch (err: any) {
       console.error("Error al cargar facturas:", err);
       setError("Error al cargar las facturas");

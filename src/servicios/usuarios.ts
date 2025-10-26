@@ -83,7 +83,7 @@ export class UsuarioService {
         urlApi.get(`${API_URL}propietario/listar`),
       ]);
 
-      console.log("📊 Respuestas recibidas:", responses);
+      console.log("Respuestas recibidas:", responses);
 
       const usuarios: any[] = [];
       const tipos = ["ADMINISTRADOR", "CONTADOR", "INQUILINO", "PROPIETARIO"];
@@ -91,7 +91,7 @@ export class UsuarioService {
       responses.forEach((response, index) => {
         if (response.status === "fulfilled") {
           const data = response.value.data;
-          console.log(`✅ ${tipos[index]}S cargados:`, data.length);
+          console.log(`${tipos[index]}S cargados:`, data.length);
           
           // Normalizar estructura
           const usuariosNormalizados = data.map((usuario: any) => ({
@@ -103,17 +103,17 @@ export class UsuarioService {
           usuarios.push(...usuariosNormalizados);
         } else {
           console.warn(
-            `⚠️ No se pudieron cargar ${tipos[index]}S:`,
+            `No se pudieron cargar ${tipos[index]}S:`,
             response.reason?.response?.status,
             response.reason?.response?.data || response.reason?.message
           );
         }
       });
 
-      console.log(`✅ Total de usuarios cargados: ${usuarios.length}`);
+      console.log(`Total de usuarios cargados: ${usuarios.length}`);
       return usuarios;
     } catch (error: any) {
-      console.error("❌ Error crítico al listar usuarios:", error);
+      console.error("Error crítico al listar usuarios:", error);
       throw new Error("Error al listar usuarios");
     }
   }
@@ -178,7 +178,7 @@ export class UsuarioService {
     try {
       // Ahora genera: /api/v1/administrador/eliminar/1
       await urlApi.delete(`${API_URL}${endpoint}/eliminar/${id}`);
-      console.log("✅ Usuario eliminado correctamente:", id);
+      console.log("Usuario eliminado correctamente:", id);
     } catch (error: any) {
       throw new Error(error.response?.data || "Error al eliminar usuario");
     }

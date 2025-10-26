@@ -98,7 +98,7 @@ const PropietarioFacturas: React.FC = () => {
       setFacturas(Array.isArray(facturasData) ? facturasData : []);
       setContratos(Array.isArray(contratosData) ? contratosData : []);
     } catch (err: any) {
-      console.error("❌ Error al cargar datos:", err);
+      console.error("Error al cargar datos:", err);
       setError("Error al cargar las facturas");
     } finally {
       setCargando(false);
@@ -151,17 +151,17 @@ const PropietarioFacturas: React.FC = () => {
       setGuardando(true);
 
       if (!idContrato || parseInt(idContrato) === 0) {
-        alert("⚠️ Debe seleccionar un contrato");
+        alert("Debe seleccionar un contrato");
         return;
       }
 
       if (!fechaEmision) {
-        alert("⚠️ Debe ingresar la fecha de emisión");
+        alert("Debe ingresar la fecha de emisión");
         return;
       }
 
       if (!total || parseFloat(total) <= 0) {
-        alert("⚠️ El monto debe ser mayor a 0");
+        alert("El monto debe ser mayor a 0");
         return;
       }
 
@@ -176,7 +176,7 @@ const PropietarioFacturas: React.FC = () => {
         }
 
         await actualizarFactura(facturaEditando.idFactura!, facturaActualizar);
-        alert("✅ Factura actualizada exitosamente");
+        alert("Factura actualizada exitosamente");
       } else {
         const facturaRegistro: any = {
           contrato: { idContrato: parseInt(idContrato) },
@@ -190,14 +190,14 @@ const PropietarioFacturas: React.FC = () => {
         }
 
         await crearFactura(facturaRegistro);
-        alert("✅ Factura creada exitosamente");
+        alert("Factura creada exitosamente");
       }
 
       setModalAbierto(false);
       await cargarDatos();
     } catch (err: any) {
-      console.error("❌ Error:", err);
-      alert(`❌ Error: ${err.response?.data?.message || err.message}`);
+      console.error("Error:", err);
+      alert(` Error: ${err.response?.data?.message || err.message}`);
     } finally {
       setGuardando(false);
     }

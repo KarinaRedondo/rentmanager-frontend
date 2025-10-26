@@ -1,43 +1,43 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Header from "../../../componentes/Header";
-import Footer from "../../../componentes/Footer";
-import { BotonComponente } from "../../../componentes/ui/Boton";
-import { obtenerPagoPorId } from "../../../servicios/pagos";
-import type { DTOPagoRespuesta } from "../../../modelos/types/Pago";
-import styles from "./DetallePagoContador.module.css";
-import { ArrowLeft, CreditCard, FileText, Eye } from "react-feather";
+import Header from "../../../../../componentes/Header";
+import Footer from "../../../../../componentes/Footer";
+import { BotonComponente } from "../../../../../componentes/ui/Boton";
+import { obtenerFacturaPorId } from "../../../../../servicios/facturas";
+import type { DTOFacturaRespuesta } from "../../../../../modelos/types/Factura";
+import styles from "./DetalleFacturaAdministrador.module.css";
+import { ArrowLeft, FileText } from "react-feather";
 
-const DetallesPagoContador: React.FC = () => {
+const DetalleFacturaAdministrador: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const [pago, setPago] = useState<DTOPagoRespuesta | null>(null);
+  const [factura, setFactura] = useState<DTOFacturaRespuesta | null>(null);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [tabActiva, setTabActiva] = useState<
-    "informacion" | "factura" | "contrato"
+    "informacion" | "contrato"
   >("informacion");
 
   useEffect(() => {
-    cargarPago();
+    cargarFactura();
   }, [id]);
 
-  const cargarPago = async () => {
+  const cargarFactura = async () => {
     try {
       setCargando(true);
       setError("");
 
       if (!id) {
-        setError("ID de pago no válido");
+        setError("ID de factura no válido");
         return;
       }
 
-      const data = await obtenerPagoPorId(parseInt(id));
-      setPago(data);
+      const data = await obtenerFacturaPorId(parseInt(id));
+      setFactura(data);
     } catch (err: any) {
-      console.error("Error al cargar pago:", err);
-      setError("Error al cargar el pago");
+      console.error("Error al cargar factura:", err);
+      setError("Error al cargar la factura");
     } finally {
       setCargando(false);
     }
@@ -72,7 +72,7 @@ const DetallesPagoContador: React.FC = () => {
         <main className={styles.main}>
           <div className={styles.cargando}>
             <div className={styles.spinner}></div>
-            <p>Cargando pago...</p>
+            <p>Cargando factura...</p>
           </div>
         </main>
         <Footer />
@@ -80,17 +80,17 @@ const DetallesPagoContador: React.FC = () => {
     );
   }
 
-  if (error || !pago) {
+  if (error || !factura) {
     return (
       <div className={styles.pagina}>
         <Header />
         <main className={styles.main}>
           <div className={styles.error}>
-            <CreditCard size={64} />
-            <h3>{error || "Pago no encontrado"}</h3>
+            <FileText size={64} />
+            <h3>{error || "Factura no encontrada"}</h3>
             <BotonComponente
-              label="Volver a Pagos"
-              onClick={() => navigate("/contador/pagos")}
+              label="Volver a Facturas"
+              onClick={() => navigate("/administrador/propiedades/1")}
             />
           </div>
         </main>
@@ -107,20 +107,20 @@ const DetallesPagoContador: React.FC = () => {
           <div className={styles.encabezado}>
             <button
               className={styles.btnVolver}
-              onClick={() => navigate("/contador/facturas/1")}
+              onClick={() => navigate("/administrador/propiedades/1")}
             >
               <ArrowLeft size={20} />
-              Volver 
+              Volver
             </button>
             <div className={styles.tituloSeccion}>
-              <h1>Pago #{pago.idPago}</h1>
-              <span className={styles.badge}>{pago.estado}</span>
+              <h1>Factura #{factura.idFactura}</h1>
+              <span className={styles.badge}>{factura.estado}</span>
             </div>
           </div>
 
           {/* Tabs */}
           <div className={styles.tabs}>
-            
+            {/* Puedes agregar aquí botones o pestañas si lo necesitas */}
           </div>
 
           {/* Tab Información */}
@@ -128,39 +128,37 @@ const DetallesPagoContador: React.FC = () => {
             <div className={styles.contenidoTab}>
               <div className={styles.seccion}>
                 <h2>
-                  <CreditCard size={24} />
-                  Detalles del Pago
+                  <FileText size={24} />
+                  Detalles de la Factura
                 </h2>
                 <div className={styles.grid2}>
                   <div className={styles.campo}>
-                    <span className={styles.label}>Monto</span>
+                    <span className={styles.label}>Total</span>
                     <span className={styles.valorDestacado}>
-                      {formatearMoneda(pago.monto)}
+                      {formatearMoneda(factura.total)}
                     </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Estado</span>
-                    <span className={styles.estadoBadge}>{pago.estado}</span>
+                    <span className={styles.estadoBadge}>{factura.estado}</span>
                   </div>
                   <div className={styles.campo}>
-                    <span className={styles.label}>Método de Pago</span>
+                    <span className={styles.label}>Fecha de Emisión</span>
                     <span className={styles.valor}>
-                      {pago.metodoPago || "N/A"}
+                      {formatearFecha(factura.fechaEmision)}
                     </span>
                   </div>
                   <div className={styles.campo}>
-                    <span className={styles.label}>Fecha</span>
+                    <span className={styles.label}>Fecha de Vencimiento</span>
                     <span className={styles.valor}>
-                      {formatearFecha(
-                        (pago as any).fechaCreacion || (pago as any).fecha
-                      )}
+                      {formatearFecha(factura.fechaVencimiento)}
                     </span>
                   </div>
-                  {pago.referenciaTransaccion && (
+                  {factura.contrato && (
                     <div className={styles.campo}>
-                      <span className={styles.label}>Referencia</span>
+                      <span className={styles.label}>Contrato asociado</span>
                       <span className={styles.valor}>
-                        {pago.referenciaTransaccion}
+                        #{factura.contrato.idContrato}
                       </span>
                     </div>
                   )}
@@ -175,4 +173,5 @@ const DetallesPagoContador: React.FC = () => {
   );
 };
 
-export default DetallesPagoContador;
+export default DetalleFacturaAdministrador;
+
