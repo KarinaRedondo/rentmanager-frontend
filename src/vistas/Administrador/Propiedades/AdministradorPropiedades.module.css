@@ -674,3 +674,430 @@
     font-size: 2rem;
   }
 }
+
+/* Selector de transición */
+.selectTransicion {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid var(--gray-200);
+  color: var(--gray-700);
+  background: var(--gray-50);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: all 0.2s;
+}
+
+.selectTransicion:hover {
+  border-color: var(--primary);
+  background: white;
+}
+
+.selectTransicion:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ============================================
+   SECCIONES DEL MODAL - DISEÑO MEJORADO
+   ============================================ */
+.seccionMotivo,
+.seccionMensaje,
+.seccionEstadoActual,
+.seccionRecomendaciones,
+.seccionAlternativas,
+.seccionInformacion {
+  width: 100%;
+  margin-bottom: 1.75rem;
+  padding: 1.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border-left: 5px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  animation: slideInUp 0.4s ease-out;
+  text-align: left;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Colores específicos por sección */
+.seccionMotivo {
+  border-left-color: var(--danger);
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.4) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.seccionRecomendaciones {
+  border-left-color: var(--warning);
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.4) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.seccionAlternativas {
+  border-left-color: var(--success);
+  background: linear-gradient(135deg, rgba(209, 250, 229, 0.4) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.seccionEstadoActual {
+  border-left-color: var(--primary);
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.4) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+/* ============================================
+   SUBTÍTULOS DE SECCIONES - MEJORADOS
+   ============================================ */
+.subtituloSeccion {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  margin: 0 0 1.25rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   TEXTOS DEL MOTIVO - MÁS ESPACIADO
+   ============================================ */
+.textoMotivo {
+  color: var(--gray-800);
+  font-size: 1rem;
+  line-height: 1.8;
+  margin: 0;
+  font-weight: 500;
+  white-space: pre-line; /* Respeta los saltos de línea del backend */
+}
+
+/* Bloques de información en el motivo */
+.textoMotivo strong {
+  display: block;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  font-size: 1.05rem;
+}
+
+/* Ítems de lista en el motivo */
+.textoMotivo ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.75rem 0;
+}
+
+.textoMotivo li {
+  padding: 0.5rem 0;
+  padding-left: 2rem;
+  position: relative;
+  line-height: 1.7;
+}
+
+.textoMotivo li::before {
+  content: "▪";
+  position: absolute;
+  left: 0.5rem;
+  color: var(--danger);
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+/* Emojis y separadores en el texto */
+.textoMotivo span[role="img"] {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+/* ============================================
+   OTROS TEXTOS
+   ============================================ */
+.mensajeResultado {
+  color: var(--gray-800);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin: 0;
+  font-weight: 500;
+  white-space: pre-line;
+}
+
+.textoInformacion {
+  color: var(--gray-700);
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 0;
+  text-align: center;
+  font-style: italic;
+  padding: 0.75rem 0;
+}
+
+/* ============================================
+   BADGE DE ESTADO ACTUAL - MEJORADO
+   ============================================ */
+.badgeEstadoActual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: 100px;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+  margin-top: 1rem;
+}
+
+.estadoActualTexto {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* ============================================
+   LISTAS - REDISEÑADAS
+   ============================================ */
+.listaRecomendaciones,
+.listaAlternativas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.itemRecomendacion,
+.itemAlternativa {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  animation: fadeIn 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.itemRecomendacion:nth-child(1) { animation-delay: 0.1s; }
+.itemRecomendacion:nth-child(2) { animation-delay: 0.2s; }
+.itemRecomendacion:nth-child(3) { animation-delay: 0.3s; }
+.itemRecomendacion:nth-child(4) { animation-delay: 0.4s; }
+.itemRecomendacion:nth-child(5) { animation-delay: 0.5s; }
+
+.itemAlternativa:nth-child(1) { animation-delay: 0.1s; }
+.itemAlternativa:nth-child(2) { animation-delay: 0.2s; }
+.itemAlternativa:nth-child(3) { animation-delay: 0.3s; }
+.itemAlternativa:nth-child(4) { animation-delay: 0.4s; }
+.itemAlternativa:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.itemRecomendacion:last-child,
+.itemAlternativa:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* ============================================
+   NÚMEROS E ICONOS EN LISTAS - MEJORADOS
+   ============================================ */
+.numeroItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+  color: white;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3);
+}
+
+.iconoCheck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+  color: white;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 1rem;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3);
+}
+
+.textoItem {
+  color: var(--gray-800);
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 600;
+  flex: 1;
+}
+
+/* ============================================
+   ACCIONES DEL MODAL
+   ============================================ */
+.accionesModal {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btnCerrarModal {
+  padding: 1rem 3rem;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.btnCerrarModal:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.55);
+}
+
+.btnCerrarModal:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* ============================================
+   ESTADO DE CARGA
+   ============================================ */
+.textoCargando {
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 2rem 0 0.75rem 0;
+  text-align: center;
+}
+
+.textoEspera {
+  color: var(--gray-600);
+  font-size: 1rem;
+  margin: 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .modalResultado {
+    padding: 2rem 1.25rem;
+    max-width: 100%;
+  }
+
+  .iconoExito,
+  .iconoError {
+    font-size: 4.5rem;
+  }
+
+  .tituloExito,
+  .tituloError {
+    font-size: 1.65rem;
+  }
+
+  .seccionMotivo,
+  .seccionMensaje,
+  .seccionEstadoActual,
+  .seccionRecomendaciones,
+  .seccionAlternativas,
+  .seccionInformacion {
+    padding: 1.5rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .subtituloSeccion {
+    font-size: 0.95rem;
+  }
+
+  .textoMotivo,
+  .mensajeResultado,
+  .textoItem {
+    font-size: 0.95rem;
+  }
+
+  .btnCerrarModal {
+    width: 100%;
+    padding: 1rem 2rem;
+  }
+
+  .badgeEstadoActual {
+    padding: 0.875rem 1.75rem;
+  }
+
+  .estadoActualTexto {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalResultado {
+    padding: 1.5rem 1rem;
+  }
+
+  .iconoExito,
+  .iconoError {
+    font-size: 4rem;
+  }
+
+  .tituloExito,
+  .tituloError {
+    font-size: 1.5rem;
+  }
+
+  .seccionMotivo,
+  .seccionMensaje,
+  .seccionEstadoActual,
+  .seccionRecomendaciones,
+  .seccionAlternativas,
+  .seccionInformacion {
+    padding: 1.25rem 1rem;
+  }
+
+  .numeroItem,
+  .iconoCheck {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+
+  .itemRecomendacion,
+  .itemAlternativa {
+    gap: 0.75rem;
+  }
+}

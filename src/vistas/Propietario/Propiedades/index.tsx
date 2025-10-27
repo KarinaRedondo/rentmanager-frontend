@@ -12,6 +12,11 @@ import { Home, MapPin, Edit3, Eye, Trash2, Plus, Search } from "react-feather";
 import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
 import { TipoPropiedad } from "../../../modelos/enumeraciones/tipoPropiedad";
+import type { Evento } from "../../../modelos/enumeraciones/evento";
+import type {
+  ResultadoValidacion,
+  ResultadoEjecucion,
+} from "../../../servicios/propiedades";
 
 const PropietarioPropiedades: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +48,13 @@ const PropietarioPropiedades: React.FC = () => {
   const [estado, setEstado] = useState<EstadoPropiedad>(
     EstadoPropiedad.DISPONIBLE
   );
+
+  // Estados para transiciones de estado
+  const [resultadoTransicion, setResultadoTransicion] =
+    useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] =
+    useState<ResultadoEjecucion | null>(null);
+  const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
 
   useEffect(() => {
     verificarAcceso();
@@ -127,12 +139,7 @@ const PropietarioPropiedades: React.FC = () => {
     ).length;
     const areaTotal = propiedades.reduce((sum, p) => sum + (p.area || 0), 0);
 
-    return {
-      totalPropiedades,
-      disponibles,
-      ocupadas,
-      areaTotal,
-    };
+    return { totalPropiedades, disponibles, ocupadas, areaTotal };
   };
 
   const limpiarFormulario = () => {
@@ -147,18 +154,10 @@ const PropietarioPropiedades: React.FC = () => {
     setDescripcion("");
     setAnoConstruccion("");
     setEstado(EstadoPropiedad.DISPONIBLE);
+    setTipo("");
   };
 
   const cargarDatosEnFormulario = (propiedad: DTOPropiedadRespuesta) => {
-    console.log("CARGAR DATOS - Propiedad completa:", propiedad);
-    console.log("CARGAR DATOS - Buscar campo año:");
-    // @ts-ignore
-    console.log("  - anoConstruccion:", propiedad.anoConstruccion);
-    // @ts-ignore
-    console.log("  - anoConstruccion:", propiedad.anoConstruccion);
-    // @ts-ignore
-    console.log("  - ano_construccion:", propiedad.ano_construccion);
-
     setDireccion(propiedad.direccion || "");
     setCiudad(propiedad.ciudad || "");
     setArea(String(propiedad.area || ""));
@@ -169,18 +168,9 @@ const PropietarioPropiedades: React.FC = () => {
     // @ts-ignore
     setPisos(String(propiedad.piso || propiedad.pisos || ""));
     setDescripcion(propiedad.descripcion || "");
-
-    // Buscar año en todos los posibles nombres
-    // @ts-ignore
-    const ano =
-      propiedad.anoConstruccion ||
-      propiedad.anoConstruccion ||
-      propiedad.anoConstruccion ||
-      "";
-    console.log("CARGAR DATOS - Año encontrado:", ano);
-    setAnoConstruccion(String(ano));
-
+    setAnoConstruccion(String(propiedad.anoConstruccion || ""));
     setEstado(propiedad.estado || EstadoPropiedad.DISPONIBLE);
+    setTipo(propiedad.tipo || "");
   };
 
   const abrirModalCrear = () => {
@@ -225,12 +215,8 @@ const PropietarioPropiedades: React.FC = () => {
         return;
       }
 
-      console.log("Valor de anoConstruccion (estado):", anoConstruccion);
-      console.log("Tipo:", typeof anoConstruccion);
-      console.log("Número convertido:", Number(anoConstruccion));
-
       if (propiedadSeleccionada === null) {
-        //  CREAR
+        // Crear
         const datos: any = {
           direccion: direccion.trim(),
           ciudad: ciudad.trim(),
@@ -247,17 +233,10 @@ const PropietarioPropiedades: React.FC = () => {
           idPropietario: propietarioId,
         };
 
-        console.log("CREAR - Objeto completo:");
-        console.log(JSON.stringify(datos, null, 2));
-        console.log("CREAR - anoConstruccion:", datos.anoConstruccion);
-
-        const resultado = await PropiedadService.crearPropiedad(datos);
-        console.log(" CREAR - Respuesta completa:");
-        console.log(JSON.stringify(resultado, null, 2));
-
+        await PropiedadService.crearPropiedad(datos);
         alert("Propiedad creada correctamente");
       } else {
-        // ACTUALIZAR
+        // Actualizar
         const datosActualizar: any = {
           direccion: direccion.trim(),
           ciudad: ciudad.trim(),
@@ -270,23 +249,13 @@ const PropietarioPropiedades: React.FC = () => {
           descripcion: descripcion.trim(),
           anoConstruccion: Number(anoConstruccion) || new Date().getFullYear(),
           estado: estado,
+          tipo: tipo || TipoPropiedad.APARTAMENTO,
         };
 
-        console.log("ACTUALIZAR - ID:", propiedadSeleccionada.idPropiedad);
-        console.log("ACTUALIZAR - Objeto completo:");
-        console.log(JSON.stringify(datosActualizar, null, 2));
-        console.log(
-          "ACTUALIZAR - anoConstruccion:",
-          datosActualizar.anoConstruccion
-        );
-
-        const resultado = await PropiedadService.actualizarPropiedad(
+        await PropiedadService.actualizarPropiedad(
           propiedadSeleccionada.idPropiedad || 0,
           datosActualizar
         );
-        console.log("ACTUALIZAR - Respuesta completa:");
-        console.log(JSON.stringify(resultado, null, 2));
-
         alert("Propiedad actualizada correctamente");
       }
 
@@ -295,11 +264,8 @@ const PropietarioPropiedades: React.FC = () => {
       limpiarFormulario();
     } catch (err: any) {
       console.error("ERROR COMPLETO:", err);
-      console.error("Respuesta:", err.response?.data);
-
       const mensajeError =
         err.response?.data?.message || err.response?.data?.error || err.message;
-
       alert(`Error: ${mensajeError}`);
     }
   };
@@ -315,6 +281,46 @@ const PropietarioPropiedades: React.FC = () => {
       console.error("Error al eliminar:", err);
       const mensajeError = err.response?.data?.message || err.message;
       alert(`Error al eliminar: ${mensajeError}`);
+    }
+  };
+
+  // Manejador para transiciones de estado con validación y ejecución
+  const manejarTransicion = async (
+    propiedadId: number,
+    evento: Evento | string
+  ) => {
+    if (!evento) return;
+    try {
+      setResultadoTransicion(null);
+      setResultadoEjecucion(null);
+
+      // Validar transición
+      const validacion = await PropiedadService.analizarTransicionPropiedad(
+        propiedadId,
+        evento as Evento
+      );
+      setResultadoTransicion(validacion);
+
+      if (!validacion.valido) {
+        setMostrarModalTransicion(true);
+        return;
+      }
+
+      // Ejecutar transición
+      const ejecucion = await PropiedadService.ejecutarTransicionPropiedad(
+        propiedadId,
+        evento as Evento
+      );
+      setResultadoEjecucion(ejecucion);
+      setMostrarModalTransicion(true);
+
+      await cargarPropiedades();
+    } catch (err: any) {
+      setResultadoTransicion({
+        valido: false,
+        motivo: err.message || "Error desconocido",
+      });
+      setMostrarModalTransicion(true);
     }
   };
 
@@ -591,6 +597,39 @@ const PropietarioPropiedades: React.FC = () => {
                         <Trash2 size={16} />
                       </button>
                     </div>
+
+                    {/* ✅ SELECTOR DE TRANSICIONES ACTUALIZADO */}
+                    <select
+                      defaultValue=""
+                      onChange={(e) => {
+                        manejarTransicion(
+                          propiedad.idPropiedad || 0,
+                          e.target.value
+                        );
+                        e.target.value = "";
+                      }}
+                      className={styles.selectTransicion}
+                    >
+                      <option value="">Transición de Estado...</option>
+                      <option value="CREAR_CONTRATO_PROPIEDAD">
+                        🏠 Arrendar (Crear Contrato)
+                      </option>
+                      <option value="TERMINAR_CONTRATO_PROPIEDAD">
+                        🔓 Terminar Contrato
+                      </option>
+                      <option value="RESERVAR_PROPIEDAD">
+                        📅 Reservar Propiedad
+                      </option>
+                      <option value="CANCELAR_RESERVA_PROPIEDAD">
+                        ❌ Cancelar Reserva
+                      </option>
+                      <option value="REPORTAR_MANTENIMIENTO_PROPIEDAD">
+                        🔧 Enviar a Mantenimiento
+                      </option>
+                      <option value="FINALIZAR_MANTENIMIENTO_PROPIEDAD">
+                        ✅ Finalizar Mantenimiento
+                      </option>
+                    </select>
                   </div>
                 </div>
               ))}
@@ -601,6 +640,7 @@ const PropietarioPropiedades: React.FC = () => {
 
       <Footer />
 
+      {/* Modal para crear/editar propiedad */}
       <ModalComponente
         openModal={mostrarModal}
         setOpenModal={setMostrarModal}
@@ -670,7 +710,7 @@ const PropietarioPropiedades: React.FC = () => {
               setValue={setAnoConstruccion}
               placeholder={`Ej: ${new Date().getFullYear()}`}
             />
-            {/* 🔹 Campo nuevo: Tipo de propiedad */}
+
             <div className={styles.formGrupo}>
               <label htmlFor="tipo">Tipo de Propiedad *</label>
               <select
@@ -745,6 +785,155 @@ const PropietarioPropiedades: React.FC = () => {
               placeholder="Descripción detallada de la propiedad..."
             ></textarea>
           </div>
+        </div>
+      </ModalComponente>
+
+      {/* Modal para mostrar resultados/errores de transiciones */}
+      <ModalComponente
+        openModal={mostrarModalTransicion}
+        setOpenModal={setMostrarModalTransicion}
+        nombreModal="Resultado de Transición de Estado"
+        guardar={() => setMostrarModalTransicion(false)}
+      >
+        <div className={styles.modalResultado}>
+          {!resultadoTransicion?.valido ? (
+            <>
+              {/* TRANSICIÓN NO VÁLIDA */}
+              <div className={styles.iconoError}>❌</div>
+              <h3 className={styles.tituloError}>Transición No Permitida</h3>
+
+              {/* Motivo del rechazo */}
+              <div className={styles.seccionMotivo}>
+                <h4 className={styles.subtituloSeccion}>
+                  📋 Motivo del Rechazo:
+                </h4>
+                <p className={styles.textoMotivo}>
+                  {resultadoTransicion?.motivo || "No se especificó un motivo"}
+                </p>
+              </div>
+
+              {/* Recomendaciones */}
+              {resultadoTransicion?.recomendaciones &&
+                resultadoTransicion.recomendaciones.length > 0 && (
+                  <div className={styles.seccionRecomendaciones}>
+                    <h4 className={styles.subtituloSeccion}>
+                      💡 Recomendaciones:
+                    </h4>
+                    <ul className={styles.listaRecomendaciones}>
+                      {resultadoTransicion.recomendaciones.map((rec, i) => (
+                        <li key={i} className={styles.itemRecomendacion}>
+                          <span className={styles.numeroItem}>{i + 1}</span>
+                          <span className={styles.textoItem}>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+              {/* Alternativas disponibles */}
+              {resultadoTransicion?.alternativas &&
+                resultadoTransicion.alternativas.length > 0 && (
+                  <div className={styles.seccionAlternativas}>
+                    <h4 className={styles.subtituloSeccion}>
+                      🔀 Transiciones Alternativas Disponibles:
+                    </h4>
+                    <ul className={styles.listaAlternativas}>
+                      {resultadoTransicion.alternativas.map((alt, i) => (
+                        <li key={i} className={styles.itemAlternativa}>
+                          <span className={styles.iconoCheck}>✓</span>
+                          <span className={styles.textoItem}>{alt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+              {/* Botón de cerrar */}
+              <div className={styles.accionesModal}>
+                <button
+                  className={styles.btnCerrarModal}
+                  onClick={() => setMostrarModalTransicion(false)}
+                >
+                  Entendido
+                </button>
+              </div>
+            </>
+          ) : resultadoEjecucion ? (
+            <>
+              {/* TRANSICIÓN EXITOSA */}
+              <div
+                className={
+                  resultadoEjecucion.exito
+                    ? styles.iconoExito
+                    : styles.iconoError
+                }
+              >
+                {resultadoEjecucion.exito ? "✅" : "❌"}
+              </div>
+              <h3
+                className={
+                  resultadoEjecucion.exito
+                    ? styles.tituloExito
+                    : styles.tituloError
+                }
+              >
+                {resultadoEjecucion.exito
+                  ? "¡Transición Exitosa!"
+                  : "Error en la Transición"}
+              </h3>
+
+              {/* Mensaje de resultado */}
+              <div className={styles.seccionMensaje}>
+                <h4 className={styles.subtituloSeccion}>
+                  {resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}
+                </h4>
+                <p className={styles.mensajeResultado}>
+                  {resultadoEjecucion.mensaje}
+                </p>
+              </div>
+
+              {/* Estado actual */}
+              <div className={styles.seccionEstadoActual}>
+                <h4 className={styles.subtituloSeccion}>
+                  🏷️ Estado Actual de la Propiedad:
+                </h4>
+                <div className={styles.badgeEstadoActual}>
+                  <span className={styles.estadoActualTexto}>
+                    {resultadoEjecucion.estadoActual}
+                  </span>
+                </div>
+              </div>
+
+              {/* Información adicional si es exitoso */}
+              {resultadoEjecucion.exito && (
+                <div className={styles.seccionInformacion}>
+                  <p className={styles.textoInformacion}>
+                    La propiedad ha cambiado de estado exitosamente. Los cambios
+                    se han registrado en el historial.
+                  </p>
+                </div>
+              )}
+
+              {/* Botones de acción */}
+              <div className={styles.accionesModal}>
+                <button
+                  className={styles.btnCerrarModal}
+                  onClick={() => setMostrarModalTransicion(false)}
+                >
+                  {resultadoEjecucion.exito ? "Perfecto" : "Cerrar"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* ESTADO DE CARGA */}
+              <div className={styles.spinner}></div>
+              <p className={styles.textoCargando}>
+                Analizando transición de estado...
+              </p>
+              <p className={styles.textoEspera}>Por favor espera un momento</p>
+            </>
+          )}
         </div>
       </ModalComponente>
     </div>

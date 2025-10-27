@@ -85,43 +85,43 @@ export const eliminarContrato = async (id: number): Promise<void> => {
  */
 export const analizarTransicionContrato = async (
   id: number,
-  evento: Evento
+  evento: Evento | string
 ): Promise<ResultadoValidacion> => {
   try {
     const res = await urlApi.get(`${API_URL}/${id}/analizar-transicion/${evento}`);
     return res.data;
   } catch (error: any) {
+    console.error("❌ Error al analizar transición:", error);
     return {
       valido: false,
-      motivo: error.response?.data?.message || "Error al analizar la transición",
+      motivo: error.response?.data?.message || error.message || "Error al analizar la transición",
+      recomendaciones: [],
+      alternativas: [],
     };
   }
 };
 
 /**
- * Ejecuta una transición de estado SOLO si el backend la valida primero.
- * Si la validación falla, lanza una excepción con el motivo.
+ * Ejecuta una transición de estado en el backend.
+ * ⚠️ IMPORTANTE: No valida aquí, asume que ya fue validada previamente.
  */
 export const ejecutarTransicionContrato = async (
   id: number,
-  evento: Evento
+  evento: Evento | string
 ): Promise<ResultadoEjecucion> => {
-  // Paso 1: Analizar la validez de la transición
-  const validacion = await analizarTransicionContrato(id, evento);
-
-  if (!validacion.valido) {
-    console.warn(
-      `Transición inválida (${evento}) para contrato ${id}: ${validacion.motivo}`
-    );
-    throw new Error(
-      validacion.motivo ||
-        "Transición no válida según las reglas del sistema de validación"
-    );
+  try {
+    const res = await urlApi.post(`${API_URL}/${id}/ejecutar-transicion/${evento}`);
+    return res.data;
+  } catch (error: any) {
+    console.error("❌ Error al ejecutar transición:", error);
+    
+    // Retornar resultado de error estructurado
+    return {
+      exito: false,
+      mensaje: error.response?.data?.message || error.message || "Error al ejecutar la transición",
+      estadoActual: "ERROR",
+    };
   }
-
-  // Paso 2: Si es válida, ejecutar la transición
-  const res = await urlApi.post(`${API_URL}/${id}/ejecutar-transicion/${evento}`);
-  return res.data;
 };
 
 /**
@@ -129,10 +129,15 @@ export const ejecutarTransicionContrato = async (
  */
 export const esTransicionValida = async (
   id: number,
-  evento: Evento
+  evento: Evento | string
 ): Promise<boolean> => {
-  const res = await urlApi.get(`${API_URL}/${id}/transicion-valida/${evento}`);
-  return res.data;
+  try {
+    const res = await urlApi.get(`${API_URL}/${id}/transicion-valida/${evento}`);
+    return res.data;
+  } catch (error: any) {
+    console.error("❌ Error al verificar validez:", error);
+    return false;
+  }
 };
 
 /**
@@ -140,10 +145,15 @@ export const esTransicionValida = async (
  */
 export const obtenerRecomendaciones = async (
   id: number,
-  evento: Evento
+  evento: Evento | string
 ): Promise<string[]> => {
-  const res = await urlApi.get(`${API_URL}/${id}/recomendaciones/${evento}`);
-  return res.data;
+  try {
+    const res = await urlApi.get(`${API_URL}/${id}/recomendaciones/${evento}`);
+    return res.data;
+  } catch (error: any) {
+    console.error("❌ Error al obtener recomendaciones:", error);
+    return [];
+  }
 };
 
 // ============================
@@ -151,29 +161,77 @@ export const obtenerRecomendaciones = async (
 // ============================
 
 /**
- * Combina el flujo completo de validación + ejecución de transición.
+ * ✅ Flujo completo recomendado: Valida primero y luego ejecuta la transición.
  * Útil para usar en componentes React o flujos de UI.
+ * 
+ * @returns ResultadoEjecucion con el resultado de la operación
+ * @throws Error si la validación falla (opcional, depende del manejo de errores)
  */
 export const validarYEjecutarTransicion = async (
   id: number,
-  evento: Evento
+  evento: Evento | string
 ): Promise<ResultadoEjecucion> => {
   try {
-    //Validar primero con el backend
+    console.log(`🔄 Iniciando transición: Contrato ${id} → Evento: ${evento}`);
+
+    // Paso 1: Validar primero con el backend
     const validacion = await analizarTransicionContrato(id, evento);
 
     if (!validacion.valido) {
-      console.warn("Transición rechazada:", validacion.motivo);
-      throw new Error(validacion.motivo || "Transición inválida según validación");
+      console.warn("⚠️ Transición rechazada:", validacion.motivo);
+      
+      // Retornar un resultado de error en lugar de lanzar excepción
+      return {
+        exito: false,
+        mensaje: validacion.motivo || "Transición inválida según validación del sistema",
+        estadoActual: "SIN CAMBIOS",
+      };
     }
 
-    // Ejecutar si fue válida
+    console.log("✅ Validación exitosa, ejecutando transición...");
+
+    // Paso 2: Si es válida, ejecutar la transición
     const resultado = await ejecutarTransicionContrato(id, evento);
-    console.info("Transición ejecutada:", resultado.mensaje);
+    
+    if (resultado.exito) {
+      console.info("✅ Transición ejecutada exitosamente:", resultado.mensaje);
+    } else {
+      console.warn("⚠️ La transición falló en ejecución:", resultado.mensaje);
+    }
 
     return resultado;
   } catch (error: any) {
-    console.error("Error en la transición:", error.message);
-    throw error;
+    console.error("❌ Error crítico en la transición:", error.message);
+    
+    // Retornar resultado de error estructurado
+    return {
+      exito: false,
+      mensaje: error.message || "Error inesperado al procesar la transición",
+      estadoActual: "ERROR",
+    };
   }
+};
+
+// ============================
+// FUNCIONES AUXILIARES
+// ============================
+
+/**
+ * ✅ Obtiene el análisis completo de una transición con manejo robusto de errores.
+ * Útil para mostrar información detallada al usuario antes de ejecutar.
+ */
+export const obtenerAnalisisCompleto = async (
+  id: number,
+  evento: Evento | string
+): Promise<ResultadoValidacion> => {
+  const analisis = await analizarTransicionContrato(id, evento);
+  
+  console.log("📊 Análisis de transición:", {
+    valido: analisis.valido,
+    motivo: analisis.motivo,
+    recomendaciones: analisis.recomendaciones?.length || 0,
+    alternativas: analisis.alternativas?.length || 0,
+  });
+  
+  return analisis;
 };

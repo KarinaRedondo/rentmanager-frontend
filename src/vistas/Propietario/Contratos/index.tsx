@@ -9,13 +9,17 @@ import {
   obtenerContratos,
   crearContrato,
   actualizarContrato,
+  analizarTransicionContrato,
+  ejecutarTransicionContrato,
 } from "../../../servicios/contratos";
 import { PropiedadService } from "../../../servicios/propiedades";
 import { UsuarioService } from "../../../servicios/usuarios";
 import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato";
 import type { DTOPropiedadRespuesta } from "../../../modelos/types/Propiedad";
 import type { DTOUsuarioRespuesta } from "../../../modelos/types/Usuario";
+import type { Evento } from "../../../modelos/enumeraciones/evento";
 import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
+import { EstadoContrato } from "../../../modelos/enumeraciones/estadoContrato";
 import styles from "./PropietarioContratos.module.css";
 import {
   FileText,
@@ -34,13 +38,25 @@ import {
 
 const { obtenerPropiedades } = PropiedadService;
 
+// Interfaces para transiciones
+interface ResultadoValidacion {
+  valido: boolean;
+  motivo?: string;
+  recomendaciones?: string[];
+  alternativas?: string[];
+}
+
+interface ResultadoEjecucion {
+  exito: boolean;
+  mensaje: string;
+  estadoActual: string;
+}
+
 const PropietarioContratos: React.FC = () => {
   const navigate = useNavigate();
 
   const [contratos, setContratos] = useState<DTOContratoRespuesta[]>([]);
-  const [contratosFiltrados, setContratosFiltrados] = useState<
-    DTOContratoRespuesta[]
-  >([]);
+  const [contratosFiltrados, setContratosFiltrados] = useState<DTOContratoRespuesta[]>([]);
   const [propiedades, setPropiedades] = useState<DTOPropiedadRespuesta[]>([]);
   const [inquilinos, setInquilinos] = useState<DTOUsuarioRespuesta[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
@@ -50,17 +66,21 @@ const PropietarioContratos: React.FC = () => {
   // Estado del Modal
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [modoEdicion, setModoEdicion] = useState<boolean>(false);
-  const [contratoEditando, setContratoEditando] =
-    useState<DTOContratoRespuesta | null>(null);
+  const [contratoEditando, setContratoEditando] = useState<DTOContratoRespuesta | null>(null);
   const [guardando, setGuardando] = useState<boolean>(false);
 
-  // Estados del formulario - ✅ CORREGIDO: Estado inicial "CREADO"
+  // Estados para transiciones
+  const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
+  const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
+
+  // Estados del formulario
   const [idPropiedad, setIdPropiedad] = useState<string>("0");
   const [idInquilino, setIdInquilino] = useState<string>("0");
   const [fechaInicio, setFechaInicio] = useState<string>("");
   const [fechaFin, setFechaFin] = useState<string>("");
   const [valorMensual, setValorMensual] = useState<string>("0");
-  const [estadoContrato, setEstadoContrato] = useState<string>("CREADO"); // ✅ CAMBIADO
+  const [estadoContrato, setEstadoContrato] = useState<EstadoContrato>(EstadoContrato.CREADO);
   const [tipoContrato, setTipoContrato] = useState<string>("RESIDENCIAL");
   const [formaPago, setFormaPago] = useState<string>("MENSUAL");
   const [observaciones, setObservaciones] = useState<string>("");
@@ -72,6 +92,15 @@ const PropietarioContratos: React.FC = () => {
   useEffect(() => {
     aplicarFiltros();
   }, [filtroEstado, contratos]);
+
+  // ✅ Efecto para debug
+  useEffect(() => {
+    console.log("📊 Estado actual de datos:", {
+      propiedades: propiedades.length,
+      inquilinos: inquilinos.length,
+      contratos: contratos.length,
+    });
+  }, [propiedades, inquilinos, contratos]);
 
   const verificarAcceso = async () => {
     try {
@@ -86,10 +115,7 @@ const PropietarioContratos: React.FC = () => {
       const usuario = JSON.parse(usuarioString);
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
-      if (
-        rolUsuario !== "PROPIETARIO" &&
-        rolUsuario !== TipoUsuario.PROPIETARIO
-      ) {
+      if (rolUsuario !== "PROPIETARIO" && rolUsuario !== TipoUsuario.PROPIETARIO) {
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
@@ -107,7 +133,7 @@ const PropietarioContratos: React.FC = () => {
       setCargando(true);
       setError("");
 
-      console.log("🔄 Cargando datos...");
+      console.log("🔄 Iniciando carga de datos...");
 
       const [contratosData, propiedadesData, usuariosData] = await Promise.all([
         obtenerContratos(),
@@ -116,12 +142,14 @@ const PropietarioContratos: React.FC = () => {
       ]);
 
       const contratosArray = Array.isArray(contratosData) ? contratosData : [];
-      const propiedadesArray = Array.isArray(propiedadesData)
-        ? propiedadesData
-        : [];
+      const propiedadesArray = Array.isArray(propiedadesData) ? propiedadesData : [];
       const usuariosArray = Array.isArray(usuariosData) ? usuariosData : [];
 
-      console.log("📊 Usuarios recibidos:", usuariosArray);
+      console.log("📦 Datos recibidos del backend:", {
+        contratos: contratosArray.length,
+        propiedades: propiedadesArray.length,
+        usuarios: usuariosArray.length,
+      });
 
       const contratosOrdenados = contratosArray.sort((a, b) => {
         const fechaA = a.fechaInicio || "";
@@ -131,28 +159,25 @@ const PropietarioContratos: React.FC = () => {
 
       const inquilinosArray = usuariosArray.filter((u) => {
         const tipo = String(u.tipoUsuario || u.rol || "").toUpperCase();
-        console.log("🔍 Verificando usuario:", u.nombre, "- Tipo:", tipo);
         return tipo === "INQUILINO" || tipo === "INQUILINOS";
       });
 
-      console.log(
-        "✅ Inquilinos filtrados:",
-        inquilinosArray.length,
-        inquilinosArray
-      );
-
-      setContratos(contratosOrdenados);
-      setPropiedades(propiedadesArray);
-      setInquilinos(inquilinosArray);
-
-      console.log("✅ Datos cargados correctamente:", {
+      console.log("✅ Datos procesados:", {
         contratos: contratosOrdenados.length,
         propiedades: propiedadesArray.length,
         inquilinos: inquilinosArray.length,
       });
 
+      setContratos(contratosOrdenados);
+      setPropiedades(propiedadesArray);
+      setInquilinos(inquilinosArray);
+
+      // Advertencias si no hay datos
+      if (propiedadesArray.length === 0) {
+        console.warn("⚠️ No se cargaron propiedades");
+      }
       if (inquilinosArray.length === 0) {
-        console.warn("⚠️ No se encontraron inquilinos registrados");
+        console.warn("⚠️ No se cargaron inquilinos");
       }
     } catch (err: any) {
       console.error("❌ Error al cargar datos:", err);
@@ -174,6 +199,7 @@ const PropietarioContratos: React.FC = () => {
   };
 
   const abrirModalNuevo = () => {
+    console.log("➕ Abriendo modal para nuevo contrato");
     setModoEdicion(false);
     setContratoEditando(null);
     setIdPropiedad("0");
@@ -181,7 +207,7 @@ const PropietarioContratos: React.FC = () => {
     setFechaInicio("");
     setFechaFin("");
     setValorMensual("0");
-    setEstadoContrato("CREADO"); // ✅ CAMBIADO
+    setEstadoContrato(EstadoContrato.CREADO);
     setFormaPago("MENSUAL");
     setTipoContrato("RESIDENCIAL");
     setObservaciones("");
@@ -189,21 +215,40 @@ const PropietarioContratos: React.FC = () => {
   };
 
   const abrirModalEditar = (contrato: DTOContratoRespuesta) => {
+    console.log("📝 Abriendo modal para editar contrato:", contrato);
+    
     setModoEdicion(true);
     setContratoEditando(contrato);
-    setIdPropiedad(String(contrato.propiedad?.idPropiedad || 0));
-    setIdInquilino(String(contrato.inquilino?.idUsuario || 0));
+    
+    // ✅ CORREGIDO: Cargar IDs correctamente
+    const propiedadId = String(contrato.propiedad?.idPropiedad || contrato.propiedad || 0);
+    const inquilinoId = String(contrato.inquilino?.idUsuario || contrato.idInquilino || 0);
+    
+    setIdPropiedad(propiedadId);
+    setIdInquilino(inquilinoId);
     setFechaInicio(contrato.fechaInicio || "");
     setFechaFin(contrato.fechaFin || "");
     setValorMensual(String(contrato.valorMensual || 0));
-    setEstadoContrato(contrato.estado || "CREADO"); // ✅ CAMBIADO
+    setEstadoContrato((contrato.estado as EstadoContrato) || EstadoContrato.CREADO);
     setTipoContrato(contrato.tipoContrato || "RESIDENCIAL");
     setFormaPago(contrato.formaPago || "MENSUAL");
     setObservaciones(contrato.observaciones || "");
+    
+    console.log("✅ Datos cargados en formulario:", {
+      propiedadId,
+      inquilinoId,
+      fechaInicio: contrato.fechaInicio,
+      fechaFin: contrato.fechaFin,
+      valorMensual: contrato.valorMensual,
+      estado: contrato.estado,
+    });
+    
     setModalAbierto(true);
   };
 
   const handleGuardar = async () => {
+    console.log("💾 Intentando guardar contrato...");
+    
     if (!idPropiedad || parseInt(idPropiedad) === 0) {
       alert("⚠️ Debe seleccionar una propiedad");
       return;
@@ -246,26 +291,65 @@ const PropietarioContratos: React.FC = () => {
         observaciones,
       };
 
-      console.log("📤 Enviando:", contratoData);
+      console.log("📤 Enviando datos:", contratoData);
 
       if (modoEdicion && contratoEditando) {
-        await actualizarContrato(
-          contratoEditando.idContrato || 0,
-          contratoData as any
-        );
-        alert("✅ Contrato actualizado");
+        await actualizarContrato(contratoEditando.idContrato || 0, contratoData as any);
+        alert("✅ Contrato actualizado exitosamente");
       } else {
         await crearContrato(contratoData as any);
-        alert("✅ Contrato creado");
+        alert("✅ Contrato creado exitosamente");
       }
 
       setModalAbierto(false);
       await cargarDatos();
     } catch (err: any) {
-      console.error("❌ Error:", err);
+      console.error("❌ Error al guardar:", err);
       alert(`❌ Error: ${err.response?.data?.message || err.message}`);
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const manejarTransicion = async (contratoId: number, evento: Evento | string) => {
+    if (!evento) return;
+    
+    console.log(`🔄 Iniciando transición: Contrato ${contratoId} → Evento: ${evento}`);
+    
+    try {
+      setResultadoTransicion(null);
+      setResultadoEjecucion(null);
+
+      // Validar transición
+      const validacion = await analizarTransicionContrato(contratoId, evento as Evento);
+      setResultadoTransicion(validacion);
+
+      if (!validacion.valido) {
+        console.warn("⚠️ Transición rechazada:", validacion.motivo);
+        setMostrarModalTransicion(true);
+        return;
+      }
+
+      console.log("✅ Validación exitosa, ejecutando...");
+
+      // Ejecutar transición
+      const ejecucion = await ejecutarTransicionContrato(contratoId, evento as Evento);
+      setResultadoEjecucion(ejecucion);
+      setMostrarModalTransicion(true);
+
+      if (ejecucion.exito) {
+        console.log("✅ Transición ejecutada correctamente");
+        await cargarDatos();
+      } else {
+        console.warn("⚠️ La ejecución falló:", ejecucion.mensaje);
+      }
+    } catch (err: any) {
+      console.error("❌ Error en transición:", err);
+      setResultadoTransicion({
+        valido: false,
+        motivo: err.message || "Error desconocido",
+      });
+      setMostrarModalTransicion(true);
     }
   };
 
@@ -287,7 +371,6 @@ const PropietarioContratos: React.FC = () => {
     }
   };
 
-  // ✅ CORREGIDO: Mapear estados correctos
   const obtenerEstadoClase = (estado: string): string => {
     const estadoUpper = String(estado).toUpperCase();
     switch (estadoUpper) {
@@ -296,9 +379,6 @@ const PropietarioContratos: React.FC = () => {
       case "CREADO":
         return styles.estadoPendiente;
       case "SUSPENDIDO":
-        return styles.estadoCancelado;
-      case "RENOVADO":
-        return styles.estadoActivo;
       case "RECHAZADO":
         return styles.estadoCancelado;
       case "TERMINADO":
@@ -312,7 +392,6 @@ const PropietarioContratos: React.FC = () => {
     const estadoUpper = String(estado).toUpperCase();
     switch (estadoUpper) {
       case "ACTIVO":
-      case "RENOVADO":
         return <CheckCircle size={20} className={styles.iconoVerde} />;
       case "CREADO":
         return <Clock size={20} className={styles.iconoAzul} />;
@@ -341,19 +420,11 @@ const PropietarioContratos: React.FC = () => {
     );
   }
 
-  // ✅ CORREGIDO: Estadísticas con estados correctos
   const estadisticas = {
     total: contratos.length,
-    activos: contratos.filter((c) => {
-      const estado = String(c.estado).toUpperCase();
-      return estado === "ACTIVO" || estado === "RENOVADO";
-    }).length,
-    pendientes: contratos.filter(
-      (c) => String(c.estado).toUpperCase() === "CREADO"
-    ).length,
-    finalizados: contratos.filter(
-      (c) => String(c.estado).toUpperCase() === "TERMINADO"
-    ).length,
+    activos: contratos.filter((c) => String(c.estado).toUpperCase() === "ACTIVO").length,
+    pendientes: contratos.filter((c) => String(c.estado).toUpperCase() === "CREADO").length,
+    finalizados: contratos.filter((c) => String(c.estado).toUpperCase() === "TERMINADO").length,
   };
 
   return (
@@ -363,23 +434,15 @@ const PropietarioContratos: React.FC = () => {
       <main className={styles.main}>
         <div className={styles.contenedor}>
           <div className={styles.encabezado}>
-            <button
-              className={styles.btnVolver}
-              onClick={() => navigate("/propietario/dashboard")}
-            >
+            <button className={styles.btnVolver} onClick={() => navigate("/propietario/dashboard")}>
               <ArrowLeft size={20} />
               Volver al Dashboard
             </button>
             <div className={styles.tituloSeccion}>
               <h1>Mis Contratos</h1>
-              <p className={styles.subtitulo}>
-                Administra los contratos de tus propiedades
-              </p>
+              <p className={styles.subtitulo}>Administra los contratos de tus propiedades</p>
             </div>
-            <BotonComponente
-              label="+ Nuevo Contrato"
-              onClick={abrirModalNuevo}
-            />
+            <BotonComponente label="+ Nuevo Contrato" onClick={abrirModalNuevo} />
           </div>
 
           {/* Estadísticas */}
@@ -390,9 +453,7 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Total Contratos</p>
-                <h2 className={styles.valorEstadistica}>
-                  {estadisticas.total}
-                </h2>
+                <h2 className={styles.valorEstadistica}>{estadisticas.total}</h2>
               </div>
             </div>
 
@@ -402,9 +463,7 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Activos</p>
-                <h2 className={styles.valorEstadistica}>
-                  {estadisticas.activos}
-                </h2>
+                <h2 className={styles.valorEstadistica}>{estadisticas.activos}</h2>
               </div>
             </div>
 
@@ -414,9 +473,7 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Creados</p>
-                <h2 className={styles.valorEstadistica}>
-                  {estadisticas.pendientes}
-                </h2>
+                <h2 className={styles.valorEstadistica}>{estadisticas.pendientes}</h2>
               </div>
             </div>
 
@@ -426,55 +483,37 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Finalizados</p>
-                <h2 className={styles.valorEstadistica}>
-                  {estadisticas.finalizados}
-                </h2>
+                <h2 className={styles.valorEstadistica}>{estadisticas.finalizados}</h2>
               </div>
             </div>
           </div>
 
-          {/* Filtros - CORREGIDO */}
+          {/* Filtros */}
           <div className={styles.seccionFiltros}>
             <div className={styles.filtros}>
               <Filter size={20} />
               <span>Filtrar por estado:</span>
               <div className={styles.grupoFiltros}>
                 <button
-                  className={
-                    filtroEstado === "TODOS"
-                      ? styles.filtroActivo
-                      : styles.filtroBton
-                  }
+                  className={filtroEstado === "TODOS" ? styles.filtroActivo : styles.filtroBton}
                   onClick={() => setFiltroEstado("TODOS")}
                 >
                   Todos
                 </button>
                 <button
-                  className={
-                    filtroEstado === "ACTIVO"
-                      ? styles.filtroActivo
-                      : styles.filtroBton
-                  }
+                  className={filtroEstado === "ACTIVO" ? styles.filtroActivo : styles.filtroBton}
                   onClick={() => setFiltroEstado("ACTIVO")}
                 >
                   Activos
                 </button>
                 <button
-                  className={
-                    filtroEstado === "CREADO"
-                      ? styles.filtroActivo
-                      : styles.filtroBton
-                  }
+                  className={filtroEstado === "CREADO" ? styles.filtroActivo : styles.filtroBton}
                   onClick={() => setFiltroEstado("CREADO")}
                 >
                   Creados
                 </button>
                 <button
-                  className={
-                    filtroEstado === "TERMINADO"
-                      ? styles.filtroActivo
-                      : styles.filtroBton
-                  }
+                  className={filtroEstado === "TERMINADO" ? styles.filtroActivo : styles.filtroBton}
                   onClick={() => setFiltroEstado("TERMINADO")}
                 >
                   Terminados
@@ -493,24 +532,16 @@ const PropietarioContratos: React.FC = () => {
               </div>
             ) : (
               <div className={styles.gridContratos}>
-        
                 {contratosFiltrados.map((contrato) => {
-                  console.log("Contrato recibido:", contrato);
                   const propiedad = contrato.propiedad;
-                  const direccion =
-                    propiedad?.direccion || "Propiedad no identificada";
-                   const nombreCompleto =
+                  const direccion = propiedad?.direccion || "Propiedad no identificada";
+                  const nombreCompleto =
                     contrato.nombreInquilino && contrato.apellidoInquilino
                       ? `${contrato.nombreInquilino} ${contrato.apellidoInquilino}`
-                      : `${contrato.nombreInquilino ?? ""} ${
-                          contrato.apellidoInquilino ?? ""
-                        }`.trim() || "N/A";
+                      : `${contrato.nombreInquilino ?? ""} ${contrato.apellidoInquilino ?? ""}`.trim() || "N/A";
 
                   return (
-                    <div
-                      key={contrato.idContrato}
-                      className={styles.tarjetaContrato}
-                    >
+                    <div key={contrato.idContrato} className={styles.tarjetaContrato}>
                       <div className={styles.headerContrato}>
                         <div className={styles.infoHeaderContrato}>
                           <h3>Contrato #{contrato.idContrato}</h3>
@@ -530,9 +561,7 @@ const PropietarioContratos: React.FC = () => {
                             <User size={16} />
                             Inquilino:
                           </span>
-                          <span className={styles.valorDetalle}>
-                            {nombreCompleto}
-                          </span>
+                          <span className={styles.valorDetalle}>{nombreCompleto}</span>
                         </div>
 
                         <div className={styles.detalleContrato}>
@@ -563,16 +592,11 @@ const PropietarioContratos: React.FC = () => {
                             Valor Mensual:
                           </span>
                           <span className={styles.valorMensual}>
-                            $
-                            {(contrato.valorMensual || 0).toLocaleString(
-                              "es-CO"
-                            )}
+                            ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
                           </span>
                         </div>
 
-                        <span
-                          className={obtenerEstadoClase(contrato.estado || "")}
-                        >
+                        <span className={obtenerEstadoClase(contrato.estado || "")}>
                           {contrato.estado}
                         </span>
                       </div>
@@ -580,11 +604,7 @@ const PropietarioContratos: React.FC = () => {
                       <div className={styles.accionesContrato}>
                         <button
                           className={styles.btnAccion}
-                          onClick={() =>
-                            navigate(
-                              `/propietario/contratos/${contrato.idContrato}`
-                            )
-                          }
+                          onClick={() => navigate(`/propietario/contratos/${contrato.idContrato}`)}
                         >
                           <Eye size={16} />
                           Ver Detalle
@@ -597,6 +617,24 @@ const PropietarioContratos: React.FC = () => {
                           Editar
                         </button>
                       </div>
+
+                      {/* Selector de transiciones de estado */}
+                      <select
+                        defaultValue=""
+                        onChange={(e) => {
+                          manejarTransicion(contrato.idContrato || 0, e.target.value);
+                          e.target.value = "";
+                        }}
+                        className={styles.selectTransicion}
+                      >
+                        <option value="">Transición de Estado...</option>
+                        <option value="ACTIVAR_CONTRATO">✅ Activar Contrato</option>
+                        <option value="SUSPENDER_CONTRATO">⏸️ Suspender Contrato</option>
+                        <option value="REANUDAR_CONTRATO">▶️ Reanudar Contrato</option>
+                        <option value="TERMINAR_CONTRATO">🔚 Terminar Contrato</option>
+                        <option value="RENOVAR_CONTRATO">🔄 Renovar Contrato</option>
+                        <option value="RECHAZAR_CONTRATO">❌ Rechazar Contrato</option>
+                      </select>
                     </div>
                   );
                 })}
@@ -606,17 +644,12 @@ const PropietarioContratos: React.FC = () => {
         </div>
       </main>
 
-      {/* MODAL - ✅ CORREGIDO con estados correctos */}
+      {/* MODAL DE FORMULARIO */}
       <ModalComponente
         openModal={modalAbierto}
         setOpenModal={setModalAbierto}
         nombreModal={modoEdicion ? "Editar Contrato" : "Nuevo Contrato"}
         guardar={handleGuardar}
-        recomendaciones={[
-          "Verifica que las fechas sean correctas",
-          "El valor mensual debe ser mayor a 0",
-          "Asegúrate de seleccionar la propiedad e inquilino correctos",
-        ]}
       >
         <div className={styles.formModal}>
           <div className={styles.formGroup}>
@@ -624,7 +657,10 @@ const PropietarioContratos: React.FC = () => {
             <select
               className={styles.selectModal}
               value={idPropiedad}
-              onChange={(e) => setIdPropiedad(e.target.value)}
+              onChange={(e) => {
+                console.log("Propiedad seleccionada:", e.target.value);
+                setIdPropiedad(e.target.value);
+              }}
               disabled={guardando}
             >
               <option value="0">Seleccione una propiedad</option>
@@ -634,6 +670,9 @@ const PropietarioContratos: React.FC = () => {
                 </option>
               ))}
             </select>
+            {propiedades.length === 0 && (
+              <small style={{ color: "red" }}>⚠️ No hay propiedades disponibles</small>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -641,7 +680,10 @@ const PropietarioContratos: React.FC = () => {
             <select
               className={styles.selectModal}
               value={idInquilino}
-              onChange={(e) => setIdInquilino(e.target.value)}
+              onChange={(e) => {
+                console.log("Inquilino seleccionado:", e.target.value);
+                setIdInquilino(e.target.value);
+              }}
               disabled={guardando}
             >
               <option value="0">Seleccione un inquilino</option>
@@ -651,6 +693,9 @@ const PropietarioContratos: React.FC = () => {
                 </option>
               ))}
             </select>
+            {inquilinos.length === 0 && (
+              <small style={{ color: "red" }}>⚠️ No hay inquilinos registrados</small>
+            )}
           </div>
 
           <div className={styles.formRow}>
@@ -660,12 +705,7 @@ const PropietarioContratos: React.FC = () => {
               value={fechaInicio}
               setValue={setFechaInicio}
             />
-            <InputCustom
-              title="Fecha Fin *"
-              type="date"
-              value={fechaFin}
-              setValue={setFechaFin}
-            />
+            <InputCustom title="Fecha Fin *" type="date" value={fechaFin} setValue={setFechaFin} />
           </div>
 
           <InputCustom
@@ -675,6 +715,7 @@ const PropietarioContratos: React.FC = () => {
             setValue={setValorMensual}
             placeholder="Ingrese el valor mensual"
           />
+
           <div className={styles.formGroup}>
             <label>Tipo Contrato *</label>
             <select
@@ -689,6 +730,7 @@ const PropietarioContratos: React.FC = () => {
               <option value="TEMPORADA_LARGA">Temporada Larga</option>
             </select>
           </div>
+
           <div className={styles.formGroup}>
             <label>Forma de Pago *</label>
             <select
@@ -703,31 +745,138 @@ const PropietarioContratos: React.FC = () => {
               <option value="ANUAL">Anual</option>
             </select>
           </div>
+
           <InputCustom
-            title="Observaciones *"
+            title="Observaciones"
             type="text"
             value={observaciones}
             setValue={setObservaciones}
             placeholder="Opcional: Ingrese observaciones"
           />
 
-          {/* ✅ CORREGIDO: Estados válidos del enum */}
           <div className={styles.formGroup}>
             <label>Estado *</label>
             <select
               className={styles.selectModal}
               value={estadoContrato}
-              onChange={(e) => setEstadoContrato(e.target.value)}
+              onChange={(e) => setEstadoContrato(e.target.value as EstadoContrato)}
               disabled={guardando}
             >
-              <option value="CREADO">Creado</option>
-              <option value="ACTIVO">Activo</option>
-              <option value="SUSPENDIDO">Suspendido</option>
-              <option value="RENOVADO">Renovado</option>
-              <option value="RECHAZADO">Rechazado</option>
-              <option value="TERMINADO">Terminado</option>
+              <option value={EstadoContrato.CREADO}>Creado</option>
+              <option value={EstadoContrato.ACTIVO}>Activo</option>
+              <option value={EstadoContrato.SUSPENDIDO}>Suspendido</option>
+              <option value={EstadoContrato.RECHAZADO}>Rechazado</option>
+              <option value={EstadoContrato.TERMINADO}>Terminado</option>
             </select>
           </div>
+        </div>
+      </ModalComponente>
+
+      {/* MODAL DE TRANSICIONES */}
+      <ModalComponente
+        openModal={mostrarModalTransicion}
+        setOpenModal={setMostrarModalTransicion}
+        nombreModal="Resultado de Transición de Estado"
+        guardar={() => setMostrarModalTransicion(false)}
+      >
+        <div className={styles.modalResultado}>
+          {!resultadoTransicion?.valido ? (
+            <>
+              <div className={styles.iconoError}>❌</div>
+              <h3 className={styles.tituloError}>Transición No Permitida</h3>
+
+              <div className={styles.seccionMotivo}>
+                <h4 className={styles.subtituloSeccion}>📋 Motivo del Rechazo:</h4>
+                <p className={styles.textoMotivo}>
+                  {resultadoTransicion?.motivo || "No se especificó un motivo"}
+                </p>
+              </div>
+
+              {resultadoTransicion?.recomendaciones && resultadoTransicion.recomendaciones.length > 0 && (
+                <div className={styles.seccionRecomendaciones}>
+                  <h4 className={styles.subtituloSeccion}>💡 Recomendaciones:</h4>
+                  <ul className={styles.listaRecomendaciones}>
+                    {resultadoTransicion.recomendaciones.map((rec, i) => (
+                      <li key={i} className={styles.itemRecomendacion}>
+                        <span className={styles.numeroItem}>{i + 1}</span>
+                        <span className={styles.textoItem}>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {resultadoTransicion?.alternativas && resultadoTransicion.alternativas.length > 0 && (
+                <div className={styles.seccionAlternativas}>
+                  <h4 className={styles.subtituloSeccion}>🔀 Transiciones Alternativas:</h4>
+                  <ul className={styles.listaAlternativas}>
+                    {resultadoTransicion.alternativas.map((alt, i) => (
+                      <li key={i} className={styles.itemAlternativa}>
+                        <span className={styles.iconoCheck}>✓</span>
+                        <span className={styles.textoItem}>{alt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className={styles.accionesModal}>
+                <button
+                  className={styles.btnCerrarModal}
+                  onClick={() => setMostrarModalTransicion(false)}
+                >
+                  Entendido
+                </button>
+              </div>
+            </>
+          ) : resultadoEjecucion ? (
+            <>
+              <div className={resultadoEjecucion.exito ? styles.iconoExito : styles.iconoError}>
+                {resultadoEjecucion.exito ? "✅" : "❌"}
+              </div>
+              <h3 className={resultadoEjecucion.exito ? styles.tituloExito : styles.tituloError}>
+                {resultadoEjecucion.exito ? "¡Transición Exitosa!" : "Error en la Transición"}
+              </h3>
+
+              <div className={styles.seccionMensaje}>
+                <h4 className={styles.subtituloSeccion}>
+                  {resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}
+                </h4>
+                <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
+              </div>
+
+              <div className={styles.seccionEstadoActual}>
+                <h4 className={styles.subtituloSeccion}>🏷️ Estado Actual:</h4>
+                <div className={styles.badgeEstadoActual}>
+                  <span className={styles.estadoActualTexto}>{resultadoEjecucion.estadoActual}</span>
+                </div>
+              </div>
+
+              {resultadoEjecucion.exito && (
+                <div className={styles.seccionInformacion}>
+                  <p className={styles.textoInformacion}>
+                    El contrato ha cambiado de estado exitosamente. Los cambios se han registrado en
+                    el historial.
+                  </p>
+                </div>
+              )}
+
+              <div className={styles.accionesModal}>
+                <button
+                  className={styles.btnCerrarModal}
+                  onClick={() => setMostrarModalTransicion(false)}
+                >
+                  {resultadoEjecucion.exito ? "Perfecto" : "Cerrar"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={styles.spinner}></div>
+              <p className={styles.textoCargando}>Analizando transición...</p>
+              <p className={styles.textoEspera}>Por favor espera</p>
+            </>
+          )}
         </div>
       </ModalComponente>
 

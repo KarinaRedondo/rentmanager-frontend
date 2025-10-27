@@ -3,12 +3,18 @@ import { useNavigate } from "react-router-dom";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
 import { BotonComponente } from "../../../componentes/ui/Boton";
-import { obtenerFacturas, actualizarFactura, crearFactura } from "../../../servicios/facturas";
-import { obtenerContratos } from "../../../servicios/contratos"; // Necesario para el select
-import type { DTOFacturaRespuesta } from "../../../modelos/types/Factura"; 
-import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato"; 
+import {
+  obtenerFacturas,
+  actualizarFactura,
+  crearFactura,
+  analizarTransicionFactura,
+  ejecutarTransicionFactura,
+} from "../../../servicios/facturas";
+import { obtenerContratos } from "../../../servicios/contratos";
+import type { DTOFacturaRespuesta } from "../../../modelos/types/Factura";
+import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato";
 import { EstadoFactura } from "../../../modelos/enumeraciones/estadoFactura";
-import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario"; 
+import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
 import styles from "./ContadorFacturas.module.css";
 import {
   Eye,
@@ -22,6 +28,19 @@ import {
 } from "react-feather";
 
 const ITEMS_POR_PAGINA = 10;
+
+interface ResultadoValidacion {
+  valido: boolean;
+  motivo?: string;
+  recomendaciones?: string[];
+  alternativas?: string[];
+}
+
+interface ResultadoEjecucion {
+  exito: boolean;
+  mensaje: string;
+  estadoActual: string;
+}
 
 // Modal de Edición
 interface ModalEditarProps {
@@ -74,11 +93,15 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ factura, onClose, onGuardar }
           <div className={styles.infoFactura}>
             <div className={styles.campo}>
               <label>ID Factura:</label>
-              <p><strong>#{factura.idFactura}</strong></p>
+              <p>
+                <strong>#{factura.idFactura}</strong>
+              </p>
             </div>
             <div className={styles.campo}>
               <label>Inquilino:</label>
-              <p>{inquilino?.nombre || "N/A"} {inquilino?.apellido || ""}</p>
+              <p>
+                {inquilino?.nombre || "N/A"} {inquilino?.apellido || ""}
+              </p>
             </div>
             <div className={styles.campo}>
               <label>Propiedad:</label>
@@ -90,7 +113,9 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ factura, onClose, onGuardar }
             </div>
             <div className={styles.campo}>
               <label>Fecha Vencimiento:</label>
-              <p>{factura.fechaVencimiento ? new Date(factura.fechaVencimiento).toLocaleDateString("es-CO") : "N/A"}</p>
+              <p>
+                {factura.fechaVencimiento ? new Date(factura.fechaVencimiento).toLocaleDateString("es-CO") : "N/A"}
+              </p>
             </div>
             <div className={styles.campo}>
               <label>Total:</label>
@@ -224,7 +249,8 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
                   <option value="">Seleccionar contrato</option>
                   {contratos.map((contrato) => (
                     <option key={contrato.idContrato} value={contrato.idContrato}>
-                      Contrato #{contrato.idContrato} - {contrato.inquilino?.nombre} {contrato.inquilino?.apellido}
+                      Contrato #{contrato.idContrato} - {contrato.inquilino?.nombre}{" "}
+                      {contrato.inquilino?.apellido}
                     </option>
                   ))}
                 </select>
@@ -294,6 +320,11 @@ const ContadorFacturas: React.FC = () => {
   const [facturaSeleccionada, setFacturaSeleccionada] = useState<DTOFacturaRespuesta | null>(null);
   const [mostrarModalEditar, setMostrarModalEditar] = useState<boolean>(false);
   const [mostrarModalCrear, setMostrarModalCrear] = useState<boolean>(false);
+
+  // Estados para transiciones
+  const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
+  const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
 
   useEffect(() => {
     verificarAcceso();
@@ -376,6 +407,44 @@ const ContadorFacturas: React.FC = () => {
     }
   };
 
+  // Manejador de transiciones
+  const manejarTransicion = async (facturaId: number, evento: string) => {
+    if (!evento) return;
+
+    console.log(`🔄 Transición: Factura ${facturaId} → ${evento}`);
+
+    try {
+      setResultadoTransicion(null);
+      setResultadoEjecucion(null);
+
+      const validacion = await analizarTransicionFactura(facturaId, evento as any);
+      setResultadoTransicion(validacion);
+
+      if (!validacion.valido) {
+        console.warn("⚠️ Rechazada:", validacion.motivo);
+        setMostrarModalTransicion(true);
+        return;
+      }
+
+      console.log("✅ Ejecutando...");
+
+      const ejecucion = await ejecutarTransicionFactura(facturaId, evento as any);
+      setResultadoEjecucion(ejecucion);
+      setMostrarModalTransicion(true);
+
+      if (ejecucion.exito) {
+        await cargarFacturas();
+      }
+    } catch (err: any) {
+      console.error("❌ Error:", err);
+      setResultadoTransicion({
+        valido: false,
+        motivo: err.message || "Error desconocido",
+      });
+      setMostrarModalTransicion(true);
+    }
+  };
+
   const obtenerClaseEstado = (estado: string | undefined) => {
     if (!estado) return styles.estadoGenerada;
     const estadoUpper = estado.toUpperCase();
@@ -396,18 +465,18 @@ const ContadorFacturas: React.FC = () => {
     if (!fecha) return "N/A";
     const date = new Date(fecha);
     if (isNaN(date.getTime())) return "N/A";
-    return date.toLocaleDateString("es-CO", { 
-      year: "numeric", 
-      month: "short", 
-      day: "numeric" 
+    return date.toLocaleDateString("es-CO", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const formatearMoneda = (monto?: number) => {
     if (!monto) return "$0";
-    return monto.toLocaleString("es-CO", { 
-      style: "currency", 
-      currency: "COP" 
+    return monto.toLocaleString("es-CO", {
+      style: "currency",
+      currency: "COP",
     });
   };
 
@@ -452,7 +521,7 @@ const ContadorFacturas: React.FC = () => {
               Nueva Factura
             </button>
           </div>
-          
+
           {facturas.length === 0 ? (
             <p className={styles.sinDatos}>No se encontraron facturas</p>
           ) : (
@@ -467,6 +536,7 @@ const ContadorFacturas: React.FC = () => {
                       <th>Total</th>
                       <th>Estado</th>
                       <th>Acciones</th>
+                      <th>Transición</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -502,6 +572,26 @@ const ContadorFacturas: React.FC = () => {
                             </button>
                           </div>
                         </td>
+                        <td>
+                          <select
+                            defaultValue=""
+                            onChange={(e) => {
+                              manejarTransicion(factura.idFactura || 0, e.target.value);
+                              e.target.value = "";
+                            }}
+                            className={styles.selectTransicion}
+                          >
+                            <option value="">Transición...</option>
+                            <option value="ENVIAR_FACTURA">📤 Enviar</option>
+                            <option value="REGISTRAR_PAGO_FACTURA">💰 Registrar Pago</option>
+                            <option value="MARCAR_VENCIDA_FACTURA">⏰ Marcar Vencida</option>
+                            <option value="DISPUTAR_FACTURA">⚠️ Disputar</option>
+                            <option value="AJUSTAR_FACTURA">✏️ Ajustar</option>
+                            <option value="RECHAZAR_DISPUTA_FACTURA">❌ Rechazar Disputa</option>
+                            <option value="INICIAR_COBRANZA_FACTURA">⚖️ Iniciar Cobranza</option>
+                            <option value="DECLARAR_INCOBRABLE_FACTURA">🚫 Incobrable</option>
+                          </select>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -509,13 +599,12 @@ const ContadorFacturas: React.FC = () => {
               </div>
 
               <div className={styles.paginacion}>
-                <button
-                  onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))}
-                  disabled={paginaActual === 1}
-                >
+                <button onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))} disabled={paginaActual === 1}>
                   <ChevronLeft size={18} /> Anterior
                 </button>
-                <span>Página {paginaActual} de {totalPaginas}</span>
+                <span>
+                  Página {paginaActual} de {totalPaginas}
+                </span>
                 <button
                   onClick={() => setPaginaActual((p) => Math.min(p + 1, totalPaginas))}
                   disabled={paginaActual === totalPaginas}
@@ -541,10 +630,110 @@ const ContadorFacturas: React.FC = () => {
       )}
 
       {mostrarModalCrear && (
-        <ModalCrear
-          onClose={() => setMostrarModalCrear(false)}
-          onGuardar={handleCrearFactura}
-        />
+        <ModalCrear onClose={() => setMostrarModalCrear(false)} onGuardar={handleCrearFactura} />
+      )}
+
+      {/* MODAL DE TRANSICIONES */}
+      {mostrarModalTransicion && (
+        <div className={styles.modalOverlay} onClick={() => setMostrarModalTransicion(false)}>
+          <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Resultado de Transición</h2>
+              <button className={styles.btnCerrar} onClick={() => setMostrarModalTransicion(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              {!resultadoTransicion?.valido ? (
+                <>
+                  <div className={styles.iconoError}>❌</div>
+                  <h3 className={styles.tituloError}>Transición No Permitida</h3>
+
+                  <div className={styles.seccionMotivo}>
+                    <h4 className={styles.subtituloSeccion}>📋 Motivo:</h4>
+                    <p className={styles.textoMotivo}>{resultadoTransicion?.motivo || "Sin motivo"}</p>
+                  </div>
+
+                  {resultadoTransicion?.recomendaciones && resultadoTransicion.recomendaciones.length > 0 && (
+                    <div className={styles.seccionRecomendaciones}>
+                      <h4 className={styles.subtituloSeccion}>💡 Recomendaciones:</h4>
+                      <ul className={styles.listaRecomendaciones}>
+                        {resultadoTransicion.recomendaciones.map((rec, i) => (
+                          <li key={i} className={styles.itemRecomendacion}>
+                            <span className={styles.numeroItem}>{i + 1}</span>
+                            <span className={styles.textoItem}>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {resultadoTransicion?.alternativas && resultadoTransicion.alternativas.length > 0 && (
+                    <div className={styles.seccionAlternativas}>
+                      <h4 className={styles.subtituloSeccion}>🔀 Alternativas:</h4>
+                      <ul className={styles.listaAlternativas}>
+                        {resultadoTransicion.alternativas.map((alt, i) => (
+                          <li key={i} className={styles.itemAlternativa}>
+                            <span className={styles.iconoCheck}>✓</span>
+                            <span className={styles.textoItem}>{alt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className={styles.accionesModal}>
+                    <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                      Entendido
+                    </button>
+                  </div>
+                </>
+              ) : resultadoEjecucion ? (
+                <>
+                  <div className={resultadoEjecucion.exito ? styles.iconoExito : styles.iconoError}>
+                    {resultadoEjecucion.exito ? "✅" : "❌"}
+                  </div>
+                  <h3 className={resultadoEjecucion.exito ? styles.tituloExito : styles.tituloError}>
+                    {resultadoEjecucion.exito ? "¡Exitosa!" : "Error"}
+                  </h3>
+
+                  <div className={styles.seccionMensaje}>
+                    <h4 className={styles.subtituloSeccion}>
+                      {resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}
+                    </h4>
+                    <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
+                  </div>
+
+                  <div className={styles.seccionEstadoActual}>
+                    <h4 className={styles.subtituloSeccion}>🏷️ Estado:</h4>
+                    <div className={styles.badgeEstadoActual}>
+                      <span className={styles.estadoActualTexto}>{resultadoEjecucion.estadoActual}</span>
+                    </div>
+                  </div>
+
+                  {resultadoEjecucion.exito && (
+                    <div className={styles.seccionInformacion}>
+                      <p className={styles.textoInformacion}>Cambio registrado exitosamente.</p>
+                    </div>
+                  )}
+
+                  <div className={styles.accionesModal}>
+                    <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                      {resultadoEjecucion.exito ? "Perfecto" : "Cerrar"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={styles.spinner}></div>
+                  <p className={styles.textoCargando}>Analizando...</p>
+                  <p className={styles.textoEspera}>Espera</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

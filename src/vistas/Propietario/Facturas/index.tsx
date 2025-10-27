@@ -6,16 +6,22 @@ import { BotonComponente } from "../../../componentes/ui/Boton";
 import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
 import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
-import { obtenerFacturas, crearFactura, actualizarFactura } from "../../../servicios/facturas";
+import {
+  obtenerFacturas,
+  crearFactura,
+  actualizarFactura,
+  analizarTransicionFactura,
+  ejecutarTransicionFactura,
+} from "../../../servicios/facturas";
 import type { DTOFacturaRespuesta } from "../../../modelos/types/Factura";
 import { obtenerContratos } from "../../../servicios/contratos";
 import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato";
+import type { Evento } from "../../../modelos/enumeraciones/evento";
 import styles from "./PropietarioFacturas.module.css";
 import {
   ArrowLeft,
   FileText,
   Filter,
-  Download,
   Eye,
   Edit,
   DollarSign,
@@ -29,6 +35,20 @@ import {
   User,
 } from "react-feather";
 
+// Interfaces para transiciones
+interface ResultadoValidacion {
+  valido: boolean;
+  motivo?: string;
+  recomendaciones?: string[];
+  alternativas?: string[];
+}
+
+interface ResultadoEjecucion {
+  exito: boolean;
+  mensaje: string;
+  estadoActual: string;
+}
+
 const PropietarioFacturas: React.FC = () => {
   const navigate = useNavigate();
 
@@ -37,14 +57,19 @@ const PropietarioFacturas: React.FC = () => {
   const [contratos, setContratos] = useState<DTOContratoRespuesta[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  
+
   const [filtroEstado, setFiltroEstado] = useState<string>("TODOS");
   const [busqueda, setBusqueda] = useState<string>("");
-  
+
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [modoEdicion, setModoEdicion] = useState<boolean>(false);
   const [facturaEditando, setFacturaEditando] = useState<DTOFacturaRespuesta | null>(null);
   const [guardando, setGuardando] = useState<boolean>(false);
+
+  // Estados para transiciones
+  const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
+  const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
 
   const [idContrato, setIdContrato] = useState<string>("0");
   const [fechaEmision, setFechaEmision] = useState<string>("");
@@ -170,7 +195,7 @@ const PropietarioFacturas: React.FC = () => {
           fechaEmision,
           total: parseFloat(total),
         };
-        
+
         if (fechaVencimiento) {
           facturaActualizar.fechaVencimiento = fechaVencimiento;
         }
@@ -197,9 +222,47 @@ const PropietarioFacturas: React.FC = () => {
       await cargarDatos();
     } catch (err: any) {
       console.error("Error:", err);
-      alert(` Error: ${err.response?.data?.message || err.message}`);
+      alert(`Error: ${err.response?.data?.message || err.message}`);
     } finally {
       setGuardando(false);
+    }
+  };
+
+  // Manejador de transiciones
+  const manejarTransicion = async (facturaId: number, evento: Evento | string) => {
+    if (!evento) return;
+
+    console.log(`🔄 Transición: Factura ${facturaId} → ${evento}`);
+
+    try {
+      setResultadoTransicion(null);
+      setResultadoEjecucion(null);
+
+      const validacion = await analizarTransicionFactura(facturaId, evento as Evento);
+      setResultadoTransicion(validacion);
+
+      if (!validacion.valido) {
+        console.warn("⚠️ Rechazada:", validacion.motivo);
+        setMostrarModalTransicion(true);
+        return;
+      }
+
+      console.log("✅ Ejecutando...");
+
+      const ejecucion = await ejecutarTransicionFactura(facturaId, evento as Evento);
+      setResultadoEjecucion(ejecucion);
+      setMostrarModalTransicion(true);
+
+      if (ejecucion.exito) {
+        await cargarDatos();
+      }
+    } catch (err: any) {
+      console.error("❌ Error:", err);
+      setResultadoTransicion({
+        valido: false,
+        motivo: err.message || "Error desconocido",
+      });
+      setMostrarModalTransicion(true);
     }
   };
 
@@ -234,9 +297,10 @@ const PropietarioFacturas: React.FC = () => {
       case "GENERADA":
         return <Clock size={20} className={styles.iconoAzul} />;
       case "VENCIDA":
-      case "ENCOBRANZA":
+      case "EN_COBRANZA":
         return <AlertCircle size={20} className={styles.iconoRojo} />;
-      case "RECHAZADA":
+      case "EN_DISPUTA":
+        return <AlertCircle size={20} className={styles.iconoNaranja} />;
       case "INCOBRABLE":
         return <XCircle size={20} className={styles.iconoGris} />;
       default:
@@ -252,9 +316,10 @@ const PropietarioFacturas: React.FC = () => {
       case "GENERADA":
         return styles.estadoPendiente;
       case "VENCIDA":
-      case "ENCOBRANZA":
+      case "EN_COBRANZA":
         return styles.estadoVencida;
-      case "RECHAZADA":
+      case "EN_DISPUTA":
+        return styles.estadoDisputa;
       case "INCOBRABLE":
         return styles.estadoAnulada;
       default:
@@ -426,7 +491,7 @@ const PropietarioFacturas: React.FC = () => {
                     <div className={styles.headerFactura}>
                       <div className={styles.infoHeaderFactura}>
                         <h3>Factura #{factura.idFactura}</h3>
-                        <p 
+                        <p
                           className={styles.propiedadFactura}
                           onClick={() => navigate(`/propietario/contratos/${factura.contrato?.idContrato}`)}
                         >
@@ -482,19 +547,38 @@ const PropietarioFacturas: React.FC = () => {
                     </div>
 
                     <div className={styles.accionesFactura}>
-                      <button 
+                      <button
                         className={styles.btnAccion}
                         onClick={() => navigate(`/propietario/facturas/${factura.idFactura}`)}
                       >
                         <Eye size={16} />
-                        Ver Factura
+                        Ver
                       </button>
                       <button className={styles.btnAccion} onClick={() => abrirModalEditar(factura)}>
                         <Edit size={16} />
                         Editar
                       </button>
-                     
                     </div>
+
+                    {/* Selector de transiciones */}
+                    <select
+                      defaultValue=""
+                      onChange={(e) => {
+                        manejarTransicion(factura.idFactura || 0, e.target.value);
+                        e.target.value = "";
+                      }}
+                      className={styles.selectTransicion}
+                    >
+                      <option value="">Transición...</option>
+                      <option value="ENVIAR_FACTURA">📤 Enviar Factura</option>
+                      <option value="REGISTRAR_PAGO_FACTURA">💰 Registrar Pago</option>
+                      <option value="MARCAR_VENCIDA_FACTURA">⏰ Marcar Vencida</option>
+                      <option value="DISPUTAR_FACTURA">⚠️ Disputar</option>
+                      <option value="AJUSTAR_FACTURA">✏️ Ajustar</option>
+                      <option value="RECHAZAR_DISPUTA_FACTURA">❌ Rechazar Disputa</option>
+                      <option value="INICIAR_COBRANZA_FACTURA">⚖️ Iniciar Cobranza</option>
+                      <option value="DECLARAR_INCOBRABLE_FACTURA">🚫 Declarar Incobrable</option>
+                    </select>
                   </div>
                 ))}
               </div>
@@ -503,16 +587,12 @@ const PropietarioFacturas: React.FC = () => {
         </div>
       </main>
 
+      {/* MODAL DE FORMULARIO */}
       <ModalComponente
         openModal={modalAbierto}
         setOpenModal={setModalAbierto}
         nombreModal={modoEdicion ? "Editar Factura" : "Nueva Factura"}
         guardar={handleGuardar}
-        recomendaciones={[
-          "Verifica que las fechas sean correctas",
-          "El total debe ser mayor a 0",
-          "Asegúrate de asociar la factura al contrato correcto"
-        ]}
       >
         <div className={styles.formModal}>
           <div className={styles.formGroup}>
@@ -534,10 +614,112 @@ const PropietarioFacturas: React.FC = () => {
 
           <div className={styles.formRow}>
             <InputCustom title="Fecha de Emisión *" type="date" value={fechaEmision} setValue={setFechaEmision} />
-            <InputCustom title="Fecha de Vencimiento" type="date" value={fechaVencimiento} setValue={setFechaVencimiento} />
+            <InputCustom
+              title="Fecha de Vencimiento"
+              type="date"
+              value={fechaVencimiento}
+              setValue={setFechaVencimiento}
+            />
           </div>
 
           <InputCustom title="Total *" type="number" value={total} setValue={setTotal} placeholder="Ingrese el total" />
+        </div>
+      </ModalComponente>
+
+      {/* MODAL DE TRANSICIONES */}
+      <ModalComponente
+        openModal={mostrarModalTransicion}
+        setOpenModal={setMostrarModalTransicion}
+        nombreModal="Resultado de Transición"
+        guardar={() => setMostrarModalTransicion(false)}
+      >
+        <div className={styles.modalResultado}>
+          {!resultadoTransicion?.valido ? (
+            <>
+              <div className={styles.iconoError}>❌</div>
+              <h3 className={styles.tituloError}>Transición No Permitida</h3>
+
+              <div className={styles.seccionMotivo}>
+                <h4 className={styles.subtituloSeccion}>📋 Motivo:</h4>
+                <p className={styles.textoMotivo}>{resultadoTransicion?.motivo || "Sin motivo"}</p>
+              </div>
+
+              {resultadoTransicion?.recomendaciones && resultadoTransicion.recomendaciones.length > 0 && (
+                <div className={styles.seccionRecomendaciones}>
+                  <h4 className={styles.subtituloSeccion}>💡 Recomendaciones:</h4>
+                  <ul className={styles.listaRecomendaciones}>
+                    {resultadoTransicion.recomendaciones.map((rec, i) => (
+                      <li key={i} className={styles.itemRecomendacion}>
+                        <span className={styles.numeroItem}>{i + 1}</span>
+                        <span className={styles.textoItem}>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {resultadoTransicion?.alternativas && resultadoTransicion.alternativas.length > 0 && (
+                <div className={styles.seccionAlternativas}>
+                  <h4 className={styles.subtituloSeccion}>🔀 Alternativas:</h4>
+                  <ul className={styles.listaAlternativas}>
+                    {resultadoTransicion.alternativas.map((alt, i) => (
+                      <li key={i} className={styles.itemAlternativa}>
+                        <span className={styles.iconoCheck}>✓</span>
+                        <span className={styles.textoItem}>{alt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className={styles.accionesModal}>
+                <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                  Entendido
+                </button>
+              </div>
+            </>
+          ) : resultadoEjecucion ? (
+            <>
+              <div className={resultadoEjecucion.exito ? styles.iconoExito : styles.iconoError}>
+                {resultadoEjecucion.exito ? "✅" : "❌"}
+              </div>
+              <h3 className={resultadoEjecucion.exito ? styles.tituloExito : styles.tituloError}>
+                {resultadoEjecucion.exito ? "¡Exitosa!" : "Error"}
+              </h3>
+
+              <div className={styles.seccionMensaje}>
+                <h4 className={styles.subtituloSeccion}>
+                  {resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}
+                </h4>
+                <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
+              </div>
+
+              <div className={styles.seccionEstadoActual}>
+                <h4 className={styles.subtituloSeccion}>🏷️ Estado:</h4>
+                <div className={styles.badgeEstadoActual}>
+                  <span className={styles.estadoActualTexto}>{resultadoEjecucion.estadoActual}</span>
+                </div>
+              </div>
+
+              {resultadoEjecucion.exito && (
+                <div className={styles.seccionInformacion}>
+                  <p className={styles.textoInformacion}>Cambio registrado exitosamente.</p>
+                </div>
+              )}
+
+              <div className={styles.accionesModal}>
+                <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                  {resultadoEjecucion.exito ? "Perfecto" : "Cerrar"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={styles.spinner}></div>
+              <p className={styles.textoCargando}>Analizando...</p>
+              <p className={styles.textoEspera}>Espera</p>
+            </>
+          )}
         </div>
       </ModalComponente>
 
@@ -547,3 +729,4 @@ const PropietarioFacturas: React.FC = () => {
 };
 
 export default PropietarioFacturas;
+
