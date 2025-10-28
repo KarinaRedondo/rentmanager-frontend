@@ -75,6 +75,7 @@ const Header: React.FC = () => {
           { nombre: "Dashboard", ruta: "/administrador/dashboard" },
           { nombre: "Usuarios", ruta: "/administrador/usuarios" },
           { nombre: "Propiedades", ruta: "/administrador/propiedades" },
+          { nombre: "Historial", ruta: "/administrador/historial" }, 
         ];
       case "PROPIETARIO":
         return [
@@ -95,6 +96,7 @@ const Header: React.FC = () => {
           { nombre: "Dashboard", ruta: "/contador/dashboard" },
           { nombre: "Gestión de Pagos", ruta: "/contador/pagos" },
           { nombre: "Gestión de facturas", ruta: "/contador/facturas" },
+          { nombre: "Historial", ruta: "/contador/historial" },
         ];
       default:
         return [];

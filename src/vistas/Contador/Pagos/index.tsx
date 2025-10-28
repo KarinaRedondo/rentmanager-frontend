@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
 import { BotonComponente } from "../../../componentes/ui/Boton";
-import { obtenerPagos, actualizarPago } from "../../../servicios/pagos";
+import {
+  obtenerPagos,
+  actualizarPago,
+  analizarTransicionPago,
+  ejecutarTransicionPago,
+} from "../../../servicios/pagos";
 import type { DTOPagoRespuesta } from "../../../modelos/types/Pago";
 import { EstadoPago } from "../../../modelos/enumeraciones/estadoPago";
 import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
@@ -15,13 +20,27 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  Edit3,
   AlertCircle,
   AlertTriangle,
   RefreshCw,
   FileText,
   CreditCard,
+  Eye,
+  X,
 } from "react-feather";
+
+interface ResultadoValidacion {
+  valido: boolean;
+  motivo?: string;
+  recomendaciones?: string[];
+  alternativas?: string[];
+}
+
+interface ResultadoEjecucion {
+  exito: boolean;
+  mensaje: string;
+  estadoActual: string;
+}
 
 interface ModalEditarProps {
   pago: DTOPagoRespuesta | null;
@@ -66,18 +85,19 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
             <FileText size={20} />
             Detalles del Pago
           </h2>
-          <button className={styles.btnCerrar} onClick={onClose}>×</button>
+          <button className={styles.btnCerrar} onClick={onClose}>
+            <X size={24} />
+          </button>
         </div>
 
         <div className={styles.modalBody}>
-          {/* CAMPOS REALES DEL MODELO PAGO */}
           <div className={styles.infoPago}>
             <div className={styles.campo}>
               <label>
                 <CreditCard size={14} />
                 ID Pago:
               </label>
-              <p className={styles.valor}><strong>#{pago.idPago}</strong></p>
+              <p className={styles.celdaId}>#{pago.idPago}</p>
             </div>
 
             <div className={styles.campo}>
@@ -88,13 +108,15 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
             <div className={styles.campo}>
               <label>Fecha:</label>
               <p className={styles.valor}>
-                {pago.fecha ? new Date(pago.fecha).toLocaleString("es-CO", {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) : "N/A"}
+                {pago.fecha
+                  ? new Date(pago.fecha).toLocaleString("es-CO", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "N/A"}
               </p>
             </div>
 
@@ -130,12 +152,7 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
             {pago.comprobanteUrl && (
               <div className={styles.campo}>
                 <label>Comprobante:</label>
-                <a 
-                  href={pago.comprobanteUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className={styles.linkComprobante}
-                >
+                <a href={pago.comprobanteUrl} target="_blank" rel="noopener noreferrer" className={styles.linkComprobante}>
                   Ver Comprobante
                 </a>
               </div>
@@ -148,7 +165,6 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
 
             <div className={styles.separadorInfo}></div>
 
-            {/* Información relacionada (factura/inquilino) */}
             <div className={styles.campo}>
               <label>Inquilino:</label>
               <p className={styles.valor}>
@@ -164,7 +180,6 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
 
           <div className={styles.separador}></div>
 
-          {/* Formulario de edición */}
           <div className={styles.formulario}>
             <h3>Cambiar Estado</h3>
             <div className={styles.formGrupo}>
@@ -209,6 +224,10 @@ const ContadorGestionPagos: React.FC = () => {
   const [filtroEstado, setFiltroEstado] = useState<string>("TODOS");
   const [pagoSeleccionado, setPagoSeleccionado] = useState<DTOPagoRespuesta | null>(null);
   const [mostrarModal, setMostrarModal] = useState<boolean>(false);
+
+  const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
+  const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
 
   useEffect(() => {
     verificarAcceso();
@@ -282,9 +301,7 @@ const ContadorGestionPagos: React.FC = () => {
     }
 
     if (filtroEstado !== "TODOS") {
-      resultado = resultado.filter((pago) => 
-        String(pago.estado).toUpperCase() === filtroEstado
-      );
+      resultado = resultado.filter((pago) => String(pago.estado).toUpperCase() === filtroEstado);
     }
 
     resultado.sort((a, b) => {
@@ -296,6 +313,43 @@ const ContadorGestionPagos: React.FC = () => {
     setPagosFiltrados(resultado);
   };
 
+  const manejarTransicion = async (pagoId: number, evento: string) => {
+    if (!evento) return;
+
+    console.log(`🔄 Transición: Pago ${pagoId} → ${evento}`);
+
+    try {
+      setResultadoTransicion(null);
+      setResultadoEjecucion(null);
+
+      const validacion = await analizarTransicionPago(pagoId, evento);
+      setResultadoTransicion(validacion);
+
+      if (!validacion.valido) {
+        console.warn("⚠️ Rechazada:", validacion.motivo);
+        setMostrarModalTransicion(true);
+        return;
+      }
+
+      console.log("✅ Ejecutando...");
+
+      const ejecucion = await ejecutarTransicionPago(pagoId, evento);
+      setResultadoEjecucion(ejecucion);
+      setMostrarModalTransicion(true);
+
+      if (ejecucion.exito) {
+        await cargarPagos();
+      }
+    } catch (err: any) {
+      console.error("❌ Error:", err);
+      setResultadoTransicion({
+        valido: false,
+        motivo: err.message || "Error desconocido",
+      });
+      setMostrarModalTransicion(true);
+    }
+  };
+
   const calcularEstadisticas = () => {
     const totalCompletado = pagos
       .filter((p) => String(p.estado).toUpperCase() === EstadoPago.COMPLETADO)
@@ -305,9 +359,7 @@ const ContadorGestionPagos: React.FC = () => {
       .filter((p) => String(p.estado).toUpperCase() === EstadoPago.PENDIENTE)
       .reduce((sum, p) => sum + (p.monto || 0), 0);
 
-    const pagosPendientes = pagos.filter(
-      (p) => String(p.estado).toUpperCase() === EstadoPago.PENDIENTE
-    ).length;
+    const pagosPendientes = pagos.filter((p) => String(p.estado).toUpperCase() === EstadoPago.PENDIENTE).length;
 
     return { totalCompletado, totalPendiente, pagosPendientes };
   };
@@ -391,9 +443,7 @@ const ContadorGestionPagos: React.FC = () => {
                 ← Volver
               </button>
               <h1>Gestión de Pagos</h1>
-              <p className={styles.subtitulo}>
-                Administra y verifica todos los pagos del sistema
-              </p>
+              <p className={styles.subtitulo}>Administra y verifica todos los pagos del sistema</p>
             </div>
           </div>
 
@@ -404,9 +454,7 @@ const ContadorGestionPagos: React.FC = () => {
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Total Completado</p>
-                <h2 className={styles.valorEstadistica}>
-                  ${estadisticas.totalCompletado.toLocaleString("es-CO")}
-                </h2>
+                <h2 className={styles.valorEstadistica}>${estadisticas.totalCompletado.toLocaleString("es-CO")}</h2>
               </div>
             </div>
 
@@ -416,12 +464,8 @@ const ContadorGestionPagos: React.FC = () => {
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Total Pendiente</p>
-                <h2 className={styles.valorEstadistica}>
-                  ${estadisticas.totalPendiente.toLocaleString("es-CO")}
-                </h2>
-                <p className={styles.descripcionEstadistica}>
-                  {estadisticas.pagosPendientes} pagos
-                </p>
+                <h2 className={styles.valorEstadistica}>${estadisticas.totalPendiente.toLocaleString("es-CO")}</h2>
+                <p className={styles.descripcionEstadistica}>{estadisticas.pagosPendientes} pagos</p>
               </div>
             </div>
           </div>
@@ -443,14 +487,11 @@ const ContadorGestionPagos: React.FC = () => {
                 placeholder="Buscar por ID, inquilino o referencia..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
+                className={styles.inputBusqueda}
               />
             </div>
 
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className={styles.selectFiltro}
-            >
+            <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} className={styles.selectFiltro}>
               <option value="TODOS">Todos los estados</option>
               <option value={EstadoPago.PENDIENTE}>Pendiente</option>
               <option value={EstadoPago.PROCESANDO}>Procesando</option>
@@ -488,6 +529,7 @@ const ContadorGestionPagos: React.FC = () => {
                       <th>Monto</th>
                       <th>Estado</th>
                       <th>Acciones</th>
+                      <th>Transición</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -496,18 +538,16 @@ const ContadorGestionPagos: React.FC = () => {
                       return (
                         <tr key={pago.idPago}>
                           <td className={styles.celdaId}>#{pago.idPago}</td>
-                          <td>
+                          <td className={styles.celdaFecha}>
                             <Calendar size={14} />
                             {pago.fecha ? new Date(pago.fecha).toLocaleDateString("es-CO") : "N/A"}
                           </td>
-                          <td>
+                          <td className={styles.celdaInquilino}>
                             {inquilino?.nombre || "N/A"} {inquilino?.apellido || ""}
                           </td>
-                          <td className={styles.referencia}>{pago.referenciaTransaccion || "N/A"}</td>
+                          <td className={styles.celdaReferencia}>{pago.referenciaTransaccion || "N/A"}</td>
                           <td>{pago.metodoPago || "N/A"}</td>
-                          <td className={styles.monto}>
-                            ${(pago.monto || 0).toLocaleString("es-CO")}
-                          </td>
+                          <td className={styles.celdaMonto}>${(pago.monto || 0).toLocaleString("es-CO")}</td>
                           <td>
                             <span className={`${styles.badge} ${obtenerClaseEstado(pago.estado)}`}>
                               {obtenerIconoEstado(pago.estado)}
@@ -516,15 +556,34 @@ const ContadorGestionPagos: React.FC = () => {
                           </td>
                           <td>
                             <button
-                              className={styles.btnEditar}
+                              className={styles.btnVerDetalles}
                               onClick={() => {
                                 setPagoSeleccionado(pago);
                                 setMostrarModal(true);
                               }}
                               title="Ver detalles"
                             >
-                              <Edit3 size={16} />
+                              <Eye size={16} />
+                              Ver
                             </button>
+                          </td>
+                          <td>
+                            <select
+                              defaultValue=""
+                              onChange={(e) => {
+                                manejarTransicion(pago.idPago || 0, e.target.value);
+                                e.target.value = "";
+                              }}
+                              className={styles.selectTransicion}
+                            >
+                              <option value="">Transición...</option>
+                              <option value="INICIAR_PROCESAMIENTO_PAGO">🔄 Iniciar Procesamiento</option>
+                              <option value="CONFIRMAR_PAGO">✅ Confirmar Pago</option>
+                              <option value="FALLO_PAGO">❌ Marcar Fallido</option>
+                              <option value="REVERSAR_PAGO">↩️ Reversar</option>
+                              <option value="REINTENTAR_PAGO">🔁 Reintentar</option>
+                              <option value="CANCELAR_PAGO">🚫 Cancelar</option>
+                            </select>
                           </td>
                         </tr>
                       );
@@ -549,9 +608,108 @@ const ContadorGestionPagos: React.FC = () => {
           onGuardar={handleGuardarCambios}
         />
       )}
+
+      {mostrarModalTransicion && (
+        <div className={styles.modalOverlay} onClick={() => setMostrarModalTransicion(false)}>
+          <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Resultado de Transición</h2>
+              <button className={styles.btnCerrar} onClick={() => setMostrarModalTransicion(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              {!resultadoTransicion?.valido ? (
+                <>
+                  <div className={styles.iconoError}>❌</div>
+                  <h3 className={styles.tituloError}>Transición No Permitida</h3>
+
+                  <div className={styles.seccionMotivo}>
+                    <h4 className={styles.subtituloSeccion}>📋 Motivo:</h4>
+                    <p className={styles.textoMotivo}>{resultadoTransicion?.motivo || "Sin motivo"}</p>
+                  </div>
+
+                  {resultadoTransicion?.recomendaciones && resultadoTransicion.recomendaciones.length > 0 && (
+                    <div className={styles.seccionRecomendaciones}>
+                      <h4 className={styles.subtituloSeccion}>💡 Recomendaciones:</h4>
+                      <ul className={styles.listaRecomendaciones}>
+                        {resultadoTransicion.recomendaciones.map((rec, i) => (
+                          <li key={i} className={styles.itemRecomendacion}>
+                            <span className={styles.numeroItem}>{i + 1}</span>
+                            <span className={styles.textoItem}>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {resultadoTransicion?.alternativas && resultadoTransicion.alternativas.length > 0 && (
+                    <div className={styles.seccionAlternativas}>
+                      <h4 className={styles.subtituloSeccion}>🔀 Alternativas:</h4>
+                      <ul className={styles.listaAlternativas}>
+                        {resultadoTransicion.alternativas.map((alt, i) => (
+                          <li key={i} className={styles.itemAlternativa}>
+                            <span className={styles.iconoCheck}>✓</span>
+                            <span className={styles.textoItem}>{alt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className={styles.accionesModal}>
+                    <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                      Entendido
+                    </button>
+                  </div>
+                </>
+              ) : resultadoEjecucion ? (
+                <>
+                  <div className={resultadoEjecucion.exito ? styles.iconoExito : styles.iconoError}>
+                    {resultadoEjecucion.exito ? "✅" : "❌"}
+                  </div>
+                  <h3 className={resultadoEjecucion.exito ? styles.tituloExito : styles.tituloError}>
+                    {resultadoEjecucion.exito ? "¡Exitosa!" : "Error"}
+                  </h3>
+
+                  <div className={styles.seccionMensaje}>
+                    <h4 className={styles.subtituloSeccion}>{resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}</h4>
+                    <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
+                  </div>
+
+                  <div className={styles.seccionEstadoActual}>
+                    <h4 className={styles.subtituloSeccion}>🏷️ Estado:</h4>
+                    <div className={styles.badgeEstadoActual}>
+                      <span className={styles.estadoActualTexto}>{resultadoEjecucion.estadoActual}</span>
+                    </div>
+                  </div>
+
+                  {resultadoEjecucion.exito && (
+                    <div className={styles.seccionInformacion}>
+                      <p className={styles.textoInformacion}>Cambio registrado exitosamente.</p>
+                    </div>
+                  )}
+
+                  <div className={styles.accionesModal}>
+                    <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                      {resultadoEjecucion.exito ? "Perfecto" : "Cerrar"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={styles.spinner}></div>
+                  <p className={styles.textoCargando}>Analizando...</p>
+                  <p className={styles.textoEspera}>Espera</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ContadorGestionPagos;
-

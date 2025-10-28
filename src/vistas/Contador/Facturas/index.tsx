@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
@@ -25,9 +25,12 @@ import {
   Save,
   Plus,
   FileText,
+  AlertCircle,
 } from "react-feather";
 
 const ITEMS_POR_PAGINA = 10;
+
+// ==================== INTERFACES ====================
 
 interface ResultadoValidacion {
   valido: boolean;
@@ -42,12 +45,18 @@ interface ResultadoEjecucion {
   estadoActual: string;
 }
 
-// Modal de Edición
 interface ModalEditarProps {
   factura: DTOFacturaRespuesta | null;
   onClose: () => void;
   onGuardar: (facturaId: number, estado: EstadoFactura) => Promise<void>;
 }
+
+interface ModalCrearProps {
+  onClose: () => void;
+  onGuardar: (datos: any) => Promise<void>;
+}
+
+// ==================== MODAL DE EDICIÓN ====================
 
 const ModalEditar: React.FC<ModalEditarProps> = ({ factura, onClose, onGuardar }) => {
   const [estado, setEstado] = useState<EstadoFactura>(EstadoFactura.GENERADA);
@@ -167,11 +176,7 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ factura, onClose, onGuardar }
   );
 };
 
-// Modal de Crear Factura
-interface ModalCrearProps {
-  onClose: () => void;
-  onGuardar: (datos: any) => Promise<void>;
-}
+// ==================== MODAL DE CREAR ====================
 
 const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
   const [contratos, setContratos] = useState<DTOContratoRespuesta[]>([]);
@@ -181,6 +186,7 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
   const [total, setTotal] = useState<string>("");
   const [guardando, setGuardando] = useState<boolean>(false);
   const [cargandoContratos, setCargandoContratos] = useState<boolean>(true);
+  const [errorContratos, setErrorContratos] = useState<string>("");
 
   useEffect(() => {
     cargarContratos();
@@ -189,18 +195,35 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
   const cargarContratos = async () => {
     try {
       setCargandoContratos(true);
+      setErrorContratos("");
       const data = await obtenerContratos();
       setContratos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al cargar contratos:", error);
+      setErrorContratos("Error al cargar contratos");
     } finally {
       setCargandoContratos(false);
     }
   };
 
+  const validarFormulario = (): string | null => {
+    if (!contratoId) return "Debes seleccionar un contrato";
+    if (!fechaEmision) return "Debes ingresar la fecha de emisión";
+    if (!fechaVencimiento) return "Debes ingresar la fecha de vencimiento";
+    if (!total || Number(total) <= 0) return "El total debe ser mayor a cero";
+
+    // Validar que la fecha de vencimiento sea posterior a la emisión
+    if (new Date(fechaVencimiento) <= new Date(fechaEmision)) {
+      return "La fecha de vencimiento debe ser posterior a la fecha de emisión";
+    }
+
+    return null;
+  };
+
   const handleGuardar = async () => {
-    if (!contratoId || !fechaEmision || !fechaVencimiento || !total) {
-      alert("Todos los campos son obligatorios");
+    const error = validarFormulario();
+    if (error) {
+      alert(error);
       return;
     }
 
@@ -238,7 +261,16 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
             <div className={styles.formGrupo}>
               <label>Contrato *</label>
               {cargandoContratos ? (
-                <p>Cargando contratos...</p>
+                <div className={styles.cargandoContratos}>
+                  <div className={styles.spinnerSmall}></div>
+                  <p>Cargando contratos...</p>
+                </div>
+              ) : errorContratos ? (
+                <div className={styles.errorContratos}>
+                  <AlertCircle size={16} />
+                  <p>{errorContratos}</p>
+                  <button onClick={cargarContratos}>Reintentar</button>
+                </div>
               ) : (
                 <select
                   value={contratoId}
@@ -265,6 +297,7 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
                 onChange={(e) => setFechaEmision(e.target.value)}
                 disabled={guardando}
                 className={styles.input}
+                max={new Date().toISOString().split("T")[0]}
               />
             </div>
 
@@ -276,6 +309,7 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
                 onChange={(e) => setFechaVencimiento(e.target.value)}
                 disabled={guardando}
                 className={styles.input}
+                min={fechaEmision || undefined}
               />
             </div>
 
@@ -289,6 +323,7 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
                 disabled={guardando}
                 className={styles.input}
                 min="0"
+                step="1000"
               />
             </div>
           </div>
@@ -298,7 +333,7 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
           <button className={styles.btnCancelar} onClick={onClose} disabled={guardando}>
             Cancelar
           </button>
-          <button className={styles.btnGuardar} onClick={handleGuardar} disabled={guardando}>
+          <button className={styles.btnGuardar} onClick={handleGuardar} disabled={guardando || cargandoContratos}>
             <Save size={18} />
             {guardando ? "Creando..." : "Crear Factura"}
           </button>
@@ -308,7 +343,8 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
   );
 };
 
-// Componente Principal
+// ==================== COMPONENTE PRINCIPAL ====================
+
 const ContadorFacturas: React.FC = () => {
   const navigate = useNavigate();
 
@@ -321,7 +357,6 @@ const ContadorFacturas: React.FC = () => {
   const [mostrarModalEditar, setMostrarModalEditar] = useState<boolean>(false);
   const [mostrarModalCrear, setMostrarModalCrear] = useState<boolean>(false);
 
-  // Estados para transiciones
   const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
   const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
   const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
@@ -347,7 +382,12 @@ const ContadorFacturas: React.FC = () => {
       const usuario = JSON.parse(usuarioString);
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
-      if (rolUsuario !== "CONTADOR" && rolUsuario !== TipoUsuario.CONTADOR) {
+      if (
+        rolUsuario !== "CONTADOR" &&
+        rolUsuario !== TipoUsuario.CONTADOR &&
+        rolUsuario !== "ADMINISTRADOR" &&
+        rolUsuario !== TipoUsuario.ADMINISTRADOR
+      ) {
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
@@ -359,7 +399,7 @@ const ContadorFacturas: React.FC = () => {
     }
   };
 
-  const cargarFacturas = async () => {
+  const cargarFacturas = useCallback(async () => {
     try {
       setCargando(true);
       setError("");
@@ -368,11 +408,11 @@ const ContadorFacturas: React.FC = () => {
       setFacturas(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error cargando facturas:", error);
-      setError("Error cargando facturas");
+      setError("Error al cargar las facturas");
     } finally {
       setCargando(false);
     }
-  };
+  }, []);
 
   const actualizarFacturasMostradas = () => {
     const inicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
@@ -407,7 +447,6 @@ const ContadorFacturas: React.FC = () => {
     }
   };
 
-  // Manejador de transiciones
   const manejarTransicion = async (facturaId: number, evento: string) => {
     if (!evento) return;
 
@@ -445,23 +484,27 @@ const ContadorFacturas: React.FC = () => {
     }
   };
 
-  const obtenerClaseEstado = (estado: string | undefined) => {
+  const obtenerClaseEstado = (estado: string | undefined): string => {
     if (!estado) return styles.estadoGenerada;
     const estadoUpper = estado.toUpperCase();
-    if (estadoUpper === EstadoFactura.PAGADA) return styles.estadoPagada;
-    if (estadoUpper === EstadoFactura.PENDIENTE) return styles.estadoPendiente;
-    if (estadoUpper === EstadoFactura.VENCIDA) return styles.estadoVencida;
-    if (estadoUpper === EstadoFactura.EN_DISPUTA) return styles.estadoDisputa;
-    if (estadoUpper === EstadoFactura.RECHAZADA) return styles.estadoRechazada;
-    if (estadoUpper === EstadoFactura.EN_COBRANZA) return styles.estadoCobranza;
-    if (estadoUpper === EstadoFactura.INCOBRABLE) return styles.estadoIncobrable;
-    if (estadoUpper === EstadoFactura.AJUSTADA) return styles.estadoAjustada;
-    return styles.estadoGenerada;
+    
+    const mapeoEstados: Record<string, string> = {
+      [EstadoFactura.PAGADA]: styles.estadoPagada,
+      [EstadoFactura.PENDIENTE]: styles.estadoPendiente,
+      [EstadoFactura.VENCIDA]: styles.estadoVencida,
+      [EstadoFactura.EN_DISPUTA]: styles.estadoDisputa,
+      [EstadoFactura.RECHAZADA]: styles.estadoRechazada,
+      [EstadoFactura.EN_COBRANZA]: styles.estadoCobranza,
+      [EstadoFactura.INCOBRABLE]: styles.estadoIncobrable,
+      [EstadoFactura.AJUSTADA]: styles.estadoAjustada,
+    };
+
+    return mapeoEstados[estadoUpper] || styles.estadoGenerada;
   };
 
   const totalPaginas = Math.ceil(facturas.length / ITEMS_POR_PAGINA);
 
-  const formatearFecha = (fecha?: string) => {
+  const formatearFecha = (fecha?: string): string => {
     if (!fecha) return "N/A";
     const date = new Date(fecha);
     if (isNaN(date.getTime())) return "N/A";
@@ -472,12 +515,9 @@ const ContadorFacturas: React.FC = () => {
     });
   };
 
-  const formatearMoneda = (monto?: number) => {
-    if (!monto) return "$0";
-    return monto.toLocaleString("es-CO", {
-      style: "currency",
-      currency: "COP",
-    });
+  const formatearMoneda = (monto?: number): string => {
+    if (!monto && monto !== 0) return "$0";
+    return `$${monto.toLocaleString("es-CO")}`;
   };
 
   if (cargando) {
@@ -486,7 +526,10 @@ const ContadorFacturas: React.FC = () => {
         <Header />
         <main className={styles.main}>
           <div className={styles.contenedor}>
-            <p className={styles.cargando}>Cargando facturas...</p>
+            <div className={styles.cargando}>
+              <div className={styles.spinner}></div>
+              <p>Cargando facturas...</p>
+            </div>
           </div>
         </main>
         <Footer />
@@ -500,8 +543,12 @@ const ContadorFacturas: React.FC = () => {
         <Header />
         <main className={styles.main}>
           <div className={styles.contenedor}>
-            <p className={styles.error}>{error}</p>
-            <BotonComponente label="Reintentar" onClick={cargarFacturas} />
+            <div className={styles.errorContenedor}>
+              <AlertCircle size={48} />
+              <h2>Error</h2>
+              <p className={styles.error}>{error}</p>
+              <BotonComponente label="Reintentar" onClick={cargarFacturas} />
+            </div>
           </div>
         </main>
         <Footer />
@@ -515,7 +562,7 @@ const ContadorFacturas: React.FC = () => {
       <main className={styles.main}>
         <div className={styles.contenedor}>
           <div className={styles.encabezado}>
-            <h1>Facturas</h1>
+            <h1>Gestión de Facturas</h1>
             <button className={styles.btnNuevo} onClick={() => setMostrarModalCrear(true)}>
               <Plus size={20} />
               Nueva Factura
@@ -523,7 +570,10 @@ const ContadorFacturas: React.FC = () => {
           </div>
 
           {facturas.length === 0 ? (
-            <p className={styles.sinDatos}>No se encontraron facturas</p>
+            <div className={styles.sinDatos}>
+              <FileText size={48} />
+              <p>No se encontraron facturas</p>
+            </div>
           ) : (
             <>
               <div className={styles.tablaWrapper}>
@@ -598,20 +648,22 @@ const ContadorFacturas: React.FC = () => {
                 </table>
               </div>
 
-              <div className={styles.paginacion}>
-                <button onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))} disabled={paginaActual === 1}>
-                  <ChevronLeft size={18} /> Anterior
-                </button>
-                <span>
-                  Página {paginaActual} de {totalPaginas}
-                </span>
-                <button
-                  onClick={() => setPaginaActual((p) => Math.min(p + 1, totalPaginas))}
-                  disabled={paginaActual === totalPaginas}
-                >
-                  Siguiente <ChevronRight size={18} />
-                </button>
-              </div>
+              {totalPaginas > 1 && (
+                <div className={styles.paginacion}>
+                  <button onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))} disabled={paginaActual === 1}>
+                    <ChevronLeft size={18} /> Anterior
+                  </button>
+                  <span>
+                    Página {paginaActual} de {totalPaginas}
+                  </span>
+                  <button
+                    onClick={() => setPaginaActual((p) => Math.min(p + 1, totalPaginas))}
+                    disabled={paginaActual === totalPaginas}
+                  >
+                    Siguiente <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -633,7 +685,6 @@ const ContadorFacturas: React.FC = () => {
         <ModalCrear onClose={() => setMostrarModalCrear(false)} onGuardar={handleCrearFactura} />
       )}
 
-      {/* MODAL DE TRANSICIONES */}
       {mostrarModalTransicion && (
         <div className={styles.modalOverlay} onClick={() => setMostrarModalTransicion(false)}>
           <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
@@ -699,9 +750,7 @@ const ContadorFacturas: React.FC = () => {
                   </h3>
 
                   <div className={styles.seccionMensaje}>
-                    <h4 className={styles.subtituloSeccion}>
-                      {resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}
-                    </h4>
+                    <h4 className={styles.subtituloSeccion}>{resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}</h4>
                     <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
                   </div>
 

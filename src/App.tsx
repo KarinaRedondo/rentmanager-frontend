@@ -45,6 +45,8 @@ import DetalleFacturaAdministrador from "./vistas/Administrador/Usuarios/Detalle
 import DetalleContratoContador from "./vistas/Contador/Facturas/Detalles/DetalleContratoContador";
 import DetallesPagoContador from "./vistas/Contador/Facturas/Detalles/DetallePagoContador";
 import DetallePropiedadContador from "./vistas/Contador/Facturas/Detalles/DetallePropiedadContador";
+import AdministradorHistorial from "./vistas/Administrador/Historial";
+import ContadorHistorial from "./vistas/Contador/Historial";
 
 function App() {
   // Cargar usuario guardado en localStorage
@@ -106,6 +108,11 @@ function App() {
            <Route
             path="/administrador/propiedades/:id"
             element={<DetallePropiedadAdministrador />}
+          />
+
+          <Route
+            path="/administrador/historial"
+            element={<AdministradorHistorial />}
           />
         </Route>
       
@@ -209,6 +216,8 @@ function App() {
           path="/contador/propiedades/:id"
           element={<DetallePropiedadContador />}
         />
+
+        <Route path="/contador/historial" element={<ContadorHistorial />} />
       </Routes>
     </BrowserRouter>
   );
