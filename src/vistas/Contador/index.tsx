@@ -504,26 +504,6 @@ const ContadorDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Ingresos Mensuales */}
-          <div className={styles.tarjetaSeccion}>
-            <div className={styles.headerSeccion}>
-              <div>
-                <h3>
-                  <TrendingUp size={20} /> Ingresos Mensuales
-                </h3>
-                <p>Evolución de ingresos en los últimos {filtroMeses} meses</p>
-              </div>
-              <select
-                className={styles.selectFiltro}
-                value={filtroMeses}
-                onChange={(e) => setFiltroMeses(Number(e.target.value))}
-              >
-                <option value={6}>Últimos 6 meses</option>
-                <option value={12}>Últimos 12 meses</option>
-              </select>
-            </div>
-          </div>
         </div>
       </main>
 

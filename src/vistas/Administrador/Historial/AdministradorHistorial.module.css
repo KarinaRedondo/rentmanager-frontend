@@ -905,3 +905,292 @@
     font-size: 1.5rem;
   }
 }
+
+/* ==================== ESTILOS NUEVOS ==================== */
+
+/* Botón para ver reportes en la tabla */
+.botonesAccionTabla {
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btnReporte {
+   background: #f5f7f6;
+  color: rgb(27, 26, 26);
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.btnReporte:hover {
+  background: #059669;
+  transform: scale(1.1);
+}
+
+/* Secciones del modal mejoradas */
+.seccionModal {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.seccionModal h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 1.125rem;
+}
+
+/* Grid para datos de entidades */
+.gridDatosEntidad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.campoEntidad {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.campoEntidadFull {
+  grid-column: 1 / -1;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.campoEntidad label,
+.campoEntidadFull label {
+  display: block;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.campoEntidad p,
+.campoEntidadFull p {
+  color: #1f2937;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Estilos para valores monetarios */
+.valorMonetario {
+  color: #059669 !important;
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+}
+
+/* Badge para estados en datos de entidades */
+.badgeEstado {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Texto de descripción en datos */
+.textoDescripcion {
+  line-height: 1.6;
+  color: #4b5563 !important;
+}
+
+/* Texto truncado */
+.textoTruncado {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Visor de JSON mejorado */
+.jsonViewer {
+  background: #1f2937;
+  color: #10b981;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  margin: 0;
+  font-family: "Courier New", monospace;
+}
+
+/* Sin datos disponibles */
+.noData {
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Botón ver reporte en modal footer */
+.btnVerReporte {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btnVerReporte:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+}
+
+/* Transición visual mejorada */
+.transicionVisual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1.5rem;
+}
+
+.estadoBox {
+  flex: 1;
+  text-align: center;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.estadoBox label {
+  display: block;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.estadoBox p {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.flecha {
+  font-size: 2rem;
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+/* Grid de detalles en modal */
+.detallesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.detalleCampo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detalleCampo label {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detalleCampo p {
+  color: #1f2937;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Botón reintentar */
+.btnReintentar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btnReintentar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+}
+
+/* ==================== RESPONSIVE - AGREGAR ESTAS REGLAS ==================== */
+
+@media (max-width: 1200px) {
+  .detallesGrid,
+  .gridDatosEntidad {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .detallesGrid,
+  .gridDatosEntidad {
+    grid-template-columns: 1fr;
+  }
+
+  .transicionVisual {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .flecha {
+    transform: rotate(90deg);
+  }
+
+  .modalBody {
+    padding: 1rem;
+  }
+
+  .seccionModal {
+    padding: 1rem;
+  }
+
+  .btnVerReporte,
+  .btnCerrarModal {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modalFooter {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
