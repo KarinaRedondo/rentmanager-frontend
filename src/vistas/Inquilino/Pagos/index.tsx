@@ -11,12 +11,160 @@ import {
   DollarSign,
   Calendar,
   Search,
-  Download,
   CheckCircle,
   Clock,
   XCircle,
   FileText,
 } from "react-feather";
+
+// ========================================
+// HISTORIAL DE PAGOS - ROL INQUILINO
+// ========================================
+//
+// Vista completa del historial de pagos del inquilino con filtros avanzados y estadísticas.
+// Permite consultar todos los pagos realizados y su estado actual.
+//
+// FUNCIONALIDADES:
+// - Listado completo de pagos del inquilino en tabla.
+// - Filtrado por búsqueda (referencia o monto).
+// - Filtrado por estado del pago.
+// - Filtrado por rango de fecha (hoy, semana, mes, trimestre).
+// - Estadísticas agregadas: Total pagado, total pendiente, total de pagos.
+// - Ordenamiento automático por fecha (más reciente primero).
+// - Navegación a detalle de pago.
+// - Botón para limpiar filtros.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol INQUILINO exclusivamente.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no es INQUILINO.
+//
+// ESTADO:
+// - pagos: Lista completa de pagos.
+// - pagosFiltrados: Subset filtrado según criterios.
+// - cargando: Indica carga inicial.
+// - error: Mensaje de error.
+// - busqueda: Texto de búsqueda.
+// - filtroEstado: Estado seleccionado ("TODOS", "COMPLETADO", "PENDIENTE", etc).
+// - filtroFecha: Rango de fecha seleccionado ("TODOS", "HOY", "SEMANA", "MES", "TRIMESTRE").
+//
+// FUNCIONES PRINCIPALES:
+//
+// cargarPagos():
+// - Obtiene todos los pagos con obtenerPagos().
+// - Logging para debugging de estructura.
+// - Maneja arrays vacíos.
+//
+// aplicarFiltros():
+// - Se ejecuta automáticamente al cambiar pagos, busqueda, filtroEstado o filtroFecha.
+// - **Filtro por búsqueda**:
+//   * Busca en referenciaTransaccion (case insensitive)
+//   * Busca en monto convertido a string
+// - **Filtro por estado**:
+//   * Normaliza a mayúsculas
+//   * Compara con estado seleccionado
+// - **Filtro por fecha** (usando pago.fecha):
+//   * HOY: diff === 0 días
+//   * SEMANA: diff <= 7 días
+//   * MES: diff <= 30 días
+//   * TRIMESTRE: diff <= 90 días
+//   * Calcula diferencia con fecha actual en días
+// - **Ordenamiento**:
+//   * Por pago.fecha descendente (más reciente primero)
+//   * Usa getTime() para comparación numérica
+//
+// calcularEstadisticas():
+// - Total pagado: Suma de pagos con estado COMPLETADO.
+// - Total pendiente: Suma de pagos con estado PENDIENTE.
+// - Total pagos: Cantidad total de pagos.
+// - Pagos verificados: Cantidad con estado COMPLETADO.
+//
+// limpiarFiltros():
+// - Resetea todos los filtros a valores default.
+// - busqueda: ""
+// - filtroEstado: "TODOS"
+// - filtroFecha: "TODOS"
+//
+// UTILIDADES:
+//
+// formatearFecha():
+// - Convierte ISO a formato largo con hora (ej: "15 de enero de 2025, 14:30").
+// - Validación robusta: isNaN(date.getTime()).
+// - Try-catch con mensajes de error descriptivos.
+// - Logging de errores en consola.
+//
+// formatearMoneda():
+// - Formatea con separadores de miles.
+// - Prefijo $ sin espacio.
+//
+// obtenerIconoEstado():
+// - COMPLETADO/VERIFICADO: CheckCircle
+// - FALLIDO/CANCELADO: XCircle
+// - Default (PENDIENTE/PROCESANDO): Clock
+//
+// obtenerClaseEstado():
+// - COMPLETADO/VERIFICADO: Verde (estadoVerificado)
+// - FALLIDO/CANCELADO: Rojo (estadoRechazado)
+// - Default: Naranja (estadoPendiente)
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Botón volver (navigate(-1)).
+// - Título "Historial de Pagos".
+// - Subtítulo descriptivo.
+//
+// Estadísticas (Grid 3 columnas):
+// 1. Total Pagado: Monto con cantidad de verificados.
+// 2. Total Pendiente: Monto con descripción.
+// 3. Total de Pagos: Cantidad total.
+//
+// Filtros:
+// - Barra de búsqueda: Input con icono Search.
+// - Select estado: Todos, Completado, Pendiente, Procesando, Fallido, Cancelado.
+// - Select fecha: Todas, Hoy, Última semana, Último mes, Último trimestre.
+// - Botón "Limpiar filtros": Solo visible si hay filtros activos.
+//
+// Tabla:
+// - Header con título y contador de registros.
+// - Columnas:
+//   * Fecha (con icono Calendar y formateo con hora)
+//   * Referencia (referenciaTransaccion)
+//   * Método (metodoPago)
+//   * Propiedad (dirección extraída de pago → factura → contrato → propiedad)
+//   * Monto (formateado)
+//   * Estado (badge con icono y color)
+//   * Acciones (botón "Ver detalle")
+// - Estado vacío si no hay resultados.
+//
+// NAVEGACIÓN:
+// - Volver: navigate(-1) (página anterior)
+// - Ver detalle: /inquilino/pagos/{id}
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando historial de pagos...".
+// - Error: Mensaje y botón reintentar.
+// - Sin datos: Icono FileText con mensaje.
+//
+// CARACTERÍSTICAS DESTACADAS:
+// - **Uso correcto de pago.fecha**: Todos los filtros y ordenamientos usan pago.fecha.
+// - **Comentarios de corrección**: Marcados con ":" para indicar cambios.
+// - **Filtros combinables**: Búsqueda + estado + fecha funcionan simultáneamente.
+// - **Logging para debugging**: Console.log de datos obtenidos y errores.
+// - **Validación robusta de fechas**: Manejo de fechas inválidas.
+// - **Extracción de datos anidados**: Acceso seguro con optional chaining.
+//
+// CÁLCULO DE DIFERENCIA DE FECHAS:
+// - Resta timestamps en milisegundos.
+// - Divide por (1000 * 60 * 60 * 24) para obtener días.
+// - Floor para redondear hacia abajo.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive para estadísticas.
+// - Tabla con scroll horizontal en móviles.
+// - Badges coloreados con iconos.
+// - Botón "Limpiar filtros" condicional.
 
 const InquilinoHistorialPagos: React.FC = () => {
   const navigate = useNavigate();

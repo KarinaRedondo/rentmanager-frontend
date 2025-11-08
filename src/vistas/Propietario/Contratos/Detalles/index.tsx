@@ -20,9 +20,139 @@ import {
   CheckCircle,
   Clock,
   CreditCard,
-  Download,
   Eye,
 } from "react-feather";
+
+// ========================================
+// DETALLE DE CONTRATO - ROL PROPIETARIO
+// ========================================
+//
+// Vista completa de contrato para rol Propietario con tabs de información, facturas y pagos.
+// Permite visualizar toda la información del contrato, incluyendo inquilino, propiedad, facturas y pagos.
+//
+// FUNCIONALIDADES:
+// - Visualización completa de datos del contrato.
+// - Sistema de tabs: Información General, Facturas, Pagos.
+// - Carga automática de facturas y pagos del contrato.
+// - Resumen de pagos con estadísticas.
+// - Navegación a detalle de facturas.
+// - Botón de edición de contrato.
+//
+// ESTADO:
+// - contrato: Objeto DTOContratoRespuesta con datos completos.
+// - facturas: Lista de facturas del contrato.
+// - pagos: Lista de pagos de facturas del contrato.
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla la carga.
+// - tabActiva: Tab seleccionado (informacion, facturas, pagos).
+//
+// FLUJO DE CARGA:
+// 1. Obtiene ID de contrato desde URL params.
+// 2. Valida que ID exista.
+// 3. Carga contrato con obtenerContratoPorId().
+// 4. Carga todas las facturas y filtra por contrato.idContrato.
+// 5. Carga todos los pagos y filtra por IDs de facturas del contrato.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español.
+// - formatearMoneda(): Formatea números a moneda COP.
+// - calcularResumenPagos(): Calcula estadísticas de pagos del contrato.
+//
+// CÁLCULO DE RESUMEN DE PAGOS:
+// - **Completados**: Cantidad de pagos con estado VERIFICADO.
+// - **Pendientes**: Cantidad de pagos con estado PENDIENTE.
+// - **Total recibido**: Suma de montos de pagos VERIFICADO.
+//
+// SECCIONES:
+//
+// Encabezado:
+// - Botón volver a lista de contratos.
+// - Título con ID de contrato.
+// - Badge de estado.
+// - Botón "Editar" (navega a edición).
+//
+// Tab Información General:
+// - **Información del Contrato**:
+//   * Tipo de contrato
+//   * Forma de pago
+//   * Fecha inicio/fin
+//   * Valor mensual (destacado)
+//   * Estado (badge)
+//   * Observaciones (condicional, solo si existe)
+//
+// - **Propiedad**:
+//   * Dirección (intenta direccionPropiedad plano o propiedad.direccion)
+//   * Ciudad (intenta ciudadPropiedad plano o propiedad.ciudad)
+//   * Tipo, área, habitaciones, baños
+//
+// - **Inquilino**:
+//   * Nombre completo (campos planos nombreInquilino + apellidoInquilino)
+//   * Correo (correoInquilino)
+//   * Teléfono (telefonoInquilino)
+//   * Documento (numeroDocumentoInquilino)
+//   * Maneja casos de datos no disponibles con "N/A"
+//
+// Tab Facturas:
+// - Header con título y contador.
+// - Lista de facturas:
+//   * Icono FileText
+//   * ID y badge de estado
+//   * Fecha emisión con icono Calendar
+//   * Total con icono DollarSign
+//   * Botón ver detalles (Eye icon)
+// - Estado vacío si no hay facturas.
+//
+// Tab Pagos:
+// - **Resumen de Pagos** (3 cards):
+//   1. Pagos completados (icono CheckCircle verde)
+//   2. Pagos pendientes (icono Clock amarillo)
+//   3. Total recibido (icono DollarSign azul)
+//
+// - **Lista de Pagos**:
+//   * Icono CreditCard
+//   * Monto (destacado)
+//   * Badge de estado
+//   * Fecha con icono Calendar
+//   * Método de pago con icono CreditCard
+//   * Referencia de transacción (condicional)
+// - Estado vacío si no hay pagos.
+//
+// NAVEGACIÓN:
+// - Volver a contratos: /propietario/contratos
+// - Editar contrato: /propietario/contratos/editar/{id}
+// - Ver factura: /propietario/facturas/{id}
+//
+// MANEJO DE DATOS:
+// - **Campos planos del DTO**: nombreInquilino, apellidoInquilino, correoInquilino, etc.
+// - **Fallback a objetos anidados**: Si campos planos no existen, intenta contrato.inquilino o contrato.propiedad.
+// - **Trim y validación**: Concatena nombre + apellido y verifica que no esté vacío.
+// - **Type casting**: Usa (pago as any).fecha para acceder a campo fecha.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando contrato...".
+// - Error/No encontrado: Icono FileText, mensaje y botón volver.
+// - Sin datos: Iconos grandes con mensajes informativos en cada tab vacío.
+// - Tabs con indicador visual de activo y contador de items.
+//
+// ESTILOS DINÁMICOS:
+// - Estados de factura: Clases CSS basadas en estado (styles[estado.toLowerCase()]).
+// - Estados de pago: Similar a facturas.
+// - Iconos coloreados: Verde (completados), amarillo (pendientes), azul (total).
+//
+// CARACTERÍSTICAS:
+// - Vista completa para propietario con acceso a toda la información.
+// - Resumen financiero de pagos.
+// - Navegación a entidades relacionadas.
+// - Botón de edición para modificar contrato.
+// - Manejo robusto de campos planos y anidados del DTO.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Tabs con estado activo coloreado.
+// - Cards de resumen con iconos coloreados.
+// - Listas con items separados visualmente.
+// - Badges y estados dinámicos.
 
 const DetalleContrato: React.FC = () => {
   const navigate = useNavigate();
@@ -346,9 +476,7 @@ const DetalleContrato: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Documento</span>
-                    <span className={styles.valor}>
-                      {numeroDocumento}
-                    </span>
+                    <span className={styles.valor}>{numeroDocumento}</span>
                   </div>
                 </div>
               </div>

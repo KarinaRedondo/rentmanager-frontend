@@ -7,6 +7,79 @@ import type { DTOPropiedadRespuesta } from "../../../modelos/types/Propiedad";
 import styles from "./DetallePropiedad.module.css";
 import { ArrowLeft, Home} from "react-feather";
 
+// ========================================
+// DETALLE DE PROPIEDAD - ROL INQUILINO
+// ========================================
+// 
+// Vista simplificada de solo lectura de propiedad para rol Inquilino.
+// Muestra información básica de la propiedad arrendada.
+// 
+// FUNCIONALIDADES:
+// - Visualización de datos básicos de la propiedad.
+// - Sin opciones de edición (solo lectura).
+// - Navegación de retorno al dashboard.
+// 
+// ESTADO:
+// - propiedad: Objeto DTOPropiedadRespuesta con datos completos.
+// - cargando: Indica si está cargando datos.
+// 
+// FLUJO DE CARGA:
+// 1. Obtiene ID de propiedad desde URL params.
+// 2. Valida que ID exista.
+// 3. Carga propiedad con PropiedadService.obtenerPropiedadPorId().
+// 4. Muestra datos en grid.
+// 
+// SECCIONES:
+// 
+// Encabezado:
+// - Botón volver al dashboard.
+// - Título con dirección de la propiedad.
+// - Badge de estado.
+// 
+// Información de la Propiedad:
+// - Grid 2 columnas con campos básicos:
+//   * Dirección
+//   * Ciudad
+//   * Tipo
+//   * Área (m²)
+//   * Habitaciones
+//   * Baños
+//   * Valor Arriendo (campo incompleto sin valor mostrado)
+// 
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando...".
+// - Error/No encontrada: Icono Home y mensaje "Propiedad no encontrada".
+// 
+// NAVEGACIÓN:
+// - Volver: /inquilino/dashboard
+// 
+// LIMITACIONES Y PROBLEMAS:
+// - **Campo "Valor Arriendo" incompleto**: Solo muestra label sin valor.
+// - **No hay verificación de acceso**: Falta validación de rol INQUILINO.
+// - **No valida relación inquilino-propiedad**: Cualquier inquilino puede ver cualquier propiedad.
+// - **Falta manejo de errores**: No hay estado de error ni try-catch completo.
+// - **Información limitada**: No muestra descripción, servicios, parqueaderos, etc.
+// - **Sin tabs**: A diferencia de otras vistas de detalle, no organiza información.
+// 
+// CARACTERÍSTICAS:
+// - Vista minimalista de solo lectura.
+// - Diseño limpio sin opciones de modificación.
+// - Apropiada para consulta rápida de inquilino.
+// 
+// MEJORAS SUGERIDAS:
+// 1. Agregar verificarAcceso() para validar rol INQUILINO.
+// 2. Completar campo "Valor Arriendo" con propiedad.valorArriendo?.
+// 3. Agregar más campos: Descripción, servicios, amoblado, parqueaderos, piso.
+// 4. Implementar estado de error con mensaje y botón reintentar.
+// 5. Validar que inquilino solo vea propiedades de sus contratos.
+// 6. Considerar tabs si hay más información (fotos, servicios, etc).
+// 
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Badge para estado.
+// - Diseño consistente con otras vistas.
+
 const DetallePropiedadInquilino: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -27,15 +100,6 @@ const DetallePropiedadInquilino: React.FC = () => {
     } finally {
       setCargando(false);
     }
-  };
-
-  const formatearMoneda = (valor: number | undefined): string => {
-    if (!valor) return "$0";
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(valor);
   };
 
   if (cargando) {

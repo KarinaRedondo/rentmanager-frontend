@@ -1,4 +1,4 @@
-import { urlApi } from "../app/api"; 
+import { urlApi } from "../app/api";
 
 const API_URL = "/api/v1/auth";
 
@@ -8,10 +8,10 @@ export class AuthService {
     contrasena: string
   ): Promise<{
     token: string;
-    usuario: { 
-      idUsuario: number; 
-      rol: "ADMINISTRADOR" | "PROPIETARIO" | "INQUILINO" | "CONTADOR"; 
-      nombre?: string; 
+    usuario: {
+      idUsuario: number;
+      rol: "ADMINISTRADOR" | "PROPIETARIO" | "INQUILINO" | "CONTADOR";
+      nombre?: string;
       correo?: string;
     };
   }> {

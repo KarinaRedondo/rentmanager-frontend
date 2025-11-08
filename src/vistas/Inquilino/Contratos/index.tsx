@@ -15,6 +15,108 @@ import {
   Filter,
 } from "react-feather";
 
+// ========================================
+// LISTA DE CONTRATOS - ROL INQUILINO
+// ========================================
+//
+// Vista de solo lectura de contratos propios del inquilino con filtrado y búsqueda.
+// Muestra únicamente los contratos donde el usuario es inquilino.
+//
+// FUNCIONALIDADES:
+// - Listado de contratos filtrados por inquilino logueado.
+// - Búsqueda por ID, dirección o ciudad.
+// - Filtrado por estado de contrato.
+// - Estadísticas de contratos totales y activos.
+// - Navegación a detalle de contrato.
+// - Sin opciones de edición (solo lectura).
+//
+// ESTADO:
+// - contratos: Lista completa de contratos del inquilino.
+// - contratosFiltrados: Subset filtrado para mostrar.
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla carga.
+// - busqueda: Texto de búsqueda.
+// - filtroEstado: Estado seleccionado para filtrar.
+//
+// FLUJO DE CARGA:
+//
+// cargarContratos():
+// - Obtiene todos los contratos con obtenerContratos().
+// - Lee usuario logueado desde localStorage.
+// - Filtra contratos donde idInquilino coincide con ID del usuario.
+// - Logging extensivo para debugging:
+//   * Contratos obtenidos.
+//   * Usuario logueado con sus IDs.
+//   * Comparación detallada de IDs en cada contrato.
+//   * Contratos filtrados resultantes.
+//   * Advertencia si no hay contratos.
+// - Maneja múltiples variantes de ID: usuario.id, usuario.idUsuario, usuario.idInquilino.
+//
+// filtrarContratos():
+// - Se ejecuta automáticamente al cambiar busqueda, filtroEstado o contratos.
+// - Filtra por búsqueda: ID de contrato, direccionPropiedad, ciudadPropiedad.
+// - Filtra por estado si no es "TODOS".
+// - Actualiza contratosFiltrados.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español.
+// - formatearMoneda(): Formatea números a moneda COP.
+// - obtenerColorEstado(): Asigna clase CSS según estado.
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Icono FileText grande.
+// - Título "Mis Contratos".
+// - Subtítulo descriptivo.
+//
+// Filtros:
+// - Barra de búsqueda con icono Search.
+// - Select de estado con icono Filter.
+// - Opciones: Todos, Activo, Suspendido, Terminado, Creado.
+//
+// Estadísticas:
+// - Total Contratos: Cantidad total.
+// - Contratos Activos: Cantidad con estado ACTIVO.
+//
+// Lista de Contratos:
+// - Cards con información resumida.
+// - Header: ID y badge de estado coloreado.
+// - Cuerpo: Propiedad, vigencia (fechas), valor mensual, tipo.
+// - Footer: Botón "Ver Detalles".
+//
+// ESTADOS DE CONTRATO:
+// - ACTIVO: Verde.
+// - SUSPENDIDO: Naranja.
+// - TERMINADO: Gris.
+// - CREADO: Azul.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje.
+// - Sin datos: Icono FileText grande con mensaje.
+// - Error: Banner rojo con mensaje.
+//
+// NAVEGACIÓN:
+// - A detalle de contrato: /inquilino/contratos/{id}
+//
+// LOGGING Y DEBUGGING:
+// - Extensivo logging en cargarContratos().
+// - Útil para debugging de filtrado por inquilino.
+// - Muestra comparaciones de IDs.
+// - Identifica casos sin contratos.
+//
+// MANEJO DE VARIANTES DE ID:
+// - Intenta usuario.id primero.
+// - Fallback a usuario.idUsuario.
+// - Fallback a usuario.idInquilino.
+// - Comparación con Number() para evitar problemas de tipo.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid de cards responsive.
+// - Badges coloreados según estado.
+// - Iconos descriptivos en cada campo.
+
 const ContratosInquilino: React.FC = () => {
   const navigate = useNavigate();
   const [contratos, setContratos] = useState<DTOContratoRespuesta[]>([]);
@@ -34,51 +136,59 @@ const ContratosInquilino: React.FC = () => {
     filtrarContratos();
   }, [busqueda, filtroEstado, contratos]);
 
- const cargarContratos = async () => {
-  try {
-    setCargando(true);
-    setError("");
+  const cargarContratos = async () => {
+    try {
+      setCargando(true);
+      setError("");
 
-    console.log("Iniciando carga de contratos...");
+      console.log("Iniciando carga de contratos...");
 
-    const todosContratos = await obtenerContratos();
-    console.log("Contratos obtenidos del servicio:", todosContratos);
+      const todosContratos = await obtenerContratos();
+      console.log("Contratos obtenidos del servicio:", todosContratos);
 
-    // Verificar usuario logueado
-    const usuarioStr = localStorage.getItem("usuario");
-    if (!usuarioStr) {
-      console.warn("No se encontró usuario en localStorage");
-      setError("No hay usuario logueado");
-      return;
+      // Verificar usuario logueado
+      const usuarioStr = localStorage.getItem("usuario");
+      if (!usuarioStr) {
+        console.warn("No se encontró usuario en localStorage");
+        setError("No hay usuario logueado");
+        return;
+      }
+
+      const usuario = JSON.parse(usuarioStr);
+      console.log("Usuario logueado:", usuario);
+
+      // Mostrar información de los IDs para verificar coincidencias
+      console.log(
+        "ID del usuario logueado:",
+        usuario.id || usuario.idUsuario || usuario.idInquilino
+      );
+
+      // Filtrar contratos del inquilino
+      const contratosInquilino = todosContratos.filter((c: any) => {
+        console.log(
+          `Comparando contrato ${c.idContrato}: idInquilino=${c.idInquilino} con usuario.id=${usuario.id}`
+        );
+        return (
+          Number(c.idInquilino) ===
+          Number(usuario.id || usuario.idUsuario || usuario.idInquilino)
+        );
+      });
+
+      console.log("Contratos filtrados para el inquilino:", contratosInquilino);
+
+      if (contratosInquilino.length === 0) {
+        console.warn("No se encontraron contratos para este inquilino.");
+      }
+
+      setContratos(contratosInquilino);
+    } catch (err: any) {
+      console.error("Error al cargar contratos:", err);
+      setError("Error al cargar los contratos");
+    } finally {
+      setCargando(false);
+      console.log("Proceso de carga de contratos finalizado.");
     }
-
-    const usuario = JSON.parse(usuarioStr);
-    console.log("Usuario logueado:", usuario);
-
-    // Mostrar información de los IDs para verificar coincidencias
-    console.log("ID del usuario logueado:", usuario.id || usuario.idUsuario || usuario.idInquilino);
-
-    // Filtrar contratos del inquilino
-    const contratosInquilino = todosContratos.filter((c: any) => {
-      console.log(`Comparando contrato ${c.idContrato}: idInquilino=${c.idInquilino} con usuario.id=${usuario.id}`);
-      return Number(c.idInquilino) === Number(usuario.id || usuario.idUsuario || usuario.idInquilino);
-    });
-
-    console.log("Contratos filtrados para el inquilino:", contratosInquilino);
-
-    if (contratosInquilino.length === 0) {
-      console.warn("No se encontraron contratos para este inquilino.");
-    }
-
-    setContratos(contratosInquilino);
-  } catch (err: any) {
-    console.error("Error al cargar contratos:", err);
-    setError("Error al cargar los contratos");
-  } finally {
-    setCargando(false);
-    console.log("Proceso de carga de contratos finalizado.");
-  }
-};
+  };
 
   const filtrarContratos = () => {
     let resultado = [...contratos];

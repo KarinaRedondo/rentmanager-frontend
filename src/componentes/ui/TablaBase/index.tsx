@@ -43,7 +43,9 @@ export const TablaBase: React.FC<Props> = ({
               <tr key={i}>
                 {columnas.map((col) => (
                   <td key={col.key}>
-                    {col.render ? col.render(fila[col.key], fila) : fila[col.key]}
+                    {col.render
+                      ? col.render(fila[col.key], fila)
+                      : fila[col.key]}
                   </td>
                 ))}
                 {(onEditar || onEliminar) && (

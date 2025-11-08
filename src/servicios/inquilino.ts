@@ -1,10 +1,15 @@
-import { urlApi } from "../app/api"; 
-import type { DTOInquilinoRegistro, DTOInquilinoRespuesta } from "../modelos/types/Inquilino";
+import { urlApi } from "../app/api";
+import type {
+  DTOInquilinoRegistro,
+  DTOInquilinoRespuesta,
+} from "../modelos/types/Inquilino";
 
 const API_URL = "/api/v1/inquilino";
 
 export class InquilinoService {
-  static async registrar(data: DTOInquilinoRegistro): Promise<DTOInquilinoRespuesta> {
+  static async registrar(
+    data: DTOInquilinoRegistro
+  ): Promise<DTOInquilinoRespuesta> {
     const { data: inquilino } = await urlApi.post(`${API_URL}/registro`, data);
     return inquilino as DTOInquilinoRespuesta;
   }
@@ -14,8 +19,14 @@ export class InquilinoService {
     return inquilinos as DTOInquilinoRespuesta[];
   }
 
-  static async actualizar(id: number, data: DTOInquilinoRegistro): Promise<DTOInquilinoRespuesta> {
-    const { data: inquilino } = await urlApi.put(`${API_URL}/actualizar/${id}`, data);
+  static async actualizar(
+    id: number,
+    data: DTOInquilinoRegistro
+  ): Promise<DTOInquilinoRespuesta> {
+    const { data: inquilino } = await urlApi.put(
+      `${API_URL}/actualizar/${id}`,
+      data
+    );
     return inquilino as DTOInquilinoRespuesta;
   }
 

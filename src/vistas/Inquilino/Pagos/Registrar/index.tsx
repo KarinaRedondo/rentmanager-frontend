@@ -20,6 +20,175 @@ import {
   ArrowLeft,
 } from "react-feather";
 
+// ========================================
+// REGISTRAR PAGO - ROL INQUILINO
+// ========================================
+//
+// Formulario completo para que el inquilino registre pagos de facturas pendientes.
+// Incluye validaciones, resumen dinámico y flujo de éxito.
+//
+// FUNCIONALIDADES:
+// - Carga automática de facturas pendientes del inquilino.
+// - Selección de factura con autocompletado de monto.
+// - Formulario completo con validaciones.
+// - Campos condicionales según método de pago.
+// - Panel de resumen dinámico en tiempo real.
+// - Pantalla de éxito con redirección automática.
+// - Subida opcional de comprobante mediante URL.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol INQUILINO exclusivamente.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no es INQUILINO.
+//
+// ESTADO:
+// - facturas: Lista de facturas pendientes (PENDIENTE o GENERADA).
+// - cargando: Indica carga inicial de facturas.
+// - enviando: Indica envío del formulario en proceso.
+// - error: Mensaje de error para mostrar al usuario.
+// - exitoso: Flag para mostrar pantalla de éxito.
+// - formulario: Objeto FormularioPago con todos los campos del pago.
+//
+// INTERFACE FormularioPago:
+// - idFactura: ID de la factura seleccionada
+// - monto: Monto del pago (autocompletado desde factura)
+// - metodoPago: Método seleccionado (enum MetodoPago)
+// - fecha: Fecha del pago (default: hoy)
+// - referenciaTransaccion: Referencia única del pago
+// - bancoOrigen: Banco desde donde se hizo el pago (opcional)
+// - bancoDestino: Banco receptor del pago (opcional)
+// - comprobanteUrl: URL del comprobante subido (opcional)
+//
+// FUNCIONES PRINCIPALES:
+//
+// cargarFacturasPendientes():
+// - Obtiene todas las facturas con obtenerFacturas().
+// - Filtra solo las que tienen estado PENDIENTE o GENERADA.
+// - Normaliza estados a mayúsculas para comparación.
+// - Maneja arrays vacíos.
+//
+// handleFacturaChange():
+// - Se ejecuta al seleccionar una factura.
+// - Encuentra la factura en la lista.
+// - Autocompleta el campo monto con factura.total.
+// - Actualiza formulario con spread operator.
+//
+// handleSubmit():
+// - Previene comportamiento default del form.
+// - Ejecuta validaciones completas:
+//   * Factura seleccionada (idFactura != 0)
+//   * Método de pago seleccionado
+//   * Monto > 0
+//   * Referencia de transacción no vacía
+// - Construye objeto nuevoPago con:
+//   * Objeto factura completo
+//   * Fecha en formato ISO (YYYY-MM-DDTHH:mm:ss)
+//   * Estado inicial: PENDIENTE
+//   * Campos opcionales con spread condicional (...campo && {campo})
+// - Llama crearPago() del servicio.
+// - Muestra pantalla de éxito.
+// - Redirección automática después de 2 segundos a /inquilino/pagos.
+//
+// VALIDACIONES:
+// 1. Factura requerida
+// 2. Método de pago requerido
+// 3. Monto > 0
+// 4. Referencia de transacción no vacía
+// 5. Campos HTML5: required, type="number", type="date", type="url"
+//
+// MÉTODOS DE PAGO:
+// - TRANSFERENCIA: Transferencia Bancaria
+// - EFECTIVO: Efectivo
+//
+// LISTA DE BANCOS:
+// BANCOLOMBIA, BANCO_DE_BOGOTA, DAVIVIENDA, BBVA, BANCO_POPULAR,
+// BANCO_OCCIDENTE, BANCO_CAJA_SOCIAL, BANCO_AV_VILLAS,
+// SCOTIABANK_COLPATRIA, BANCO_AGRARIO, NEQUI, DAVIPLATA, OTRO
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Botón volver al dashboard.
+// - Título "Registrar Nuevo Pago".
+// - Subtítulo descriptivo.
+//
+// Alerta de Error:
+// - Banner rojo con icono AlertCircle.
+// - Se muestra si hay error.
+//
+// Formulario (Grid 2 columnas):
+// - Tarjeta formulario (izquierda):
+//   * Select de factura con información completa: Dirección - Monto (Fecha vencimiento)
+//   * Input monto (readonly, autocompletado)
+//   * Select método de pago
+//   * Input fecha (type="date", default: hoy)
+//   * Input referencia de transacción
+//   * Select banco origen (condicional si método es TRANSFERENCIA)
+//   * Select banco destino (condicional si método es TRANSFERENCIA)
+//   * Input URL comprobante (opcional)
+//   * Texto de ayuda para comprobante
+//   * Botones: Cancelar y Registrar Pago
+//
+// - Tarjeta resumen (derecha):
+//   * Header con título
+//   * Items del resumen:
+//     - Propiedad (dirección)
+//     - Periodo (mes y año de emisión)
+//     - Fecha vencimiento
+//     - Separador
+//     - Método de pago (label legible)
+//     - Referencia
+//     - Separador
+//     - Total a pagar (destacado)
+//   * Nota informativa sobre verificación
+//   * Estado vacío si no hay factura seleccionada
+//
+// Pantalla de Éxito:
+// - Icono CheckCircle verde grande.
+// - Título "¡Pago Registrado Exitosamente!".
+// - Mensaje de confirmación.
+// - Texto de redirección con animación.
+//
+// CAMPOS CONDICIONALES:
+// - bancoOrigen y bancoDestino: Solo visibles si metodoPago === TRANSFERENCIA.
+// - Campos opcionales en objeto de creación: Spread condicional.
+//
+// AUTOCOMPLETADO:
+// - Monto: Se autocompleta desde factura.total al seleccionar factura.
+// - Campo monto es readonly (no editable por usuario).
+//
+// MANEJO DE FECHAS:
+// - Input fecha: Formato HTML5 (YYYY-MM-DD).
+// - Default: Fecha actual con new Date().toISOString().split("T")[0].
+// - Conversión para backend: new Date(fecha).toISOString().slice(0, 19).
+//
+// NAVEGACIÓN:
+// - Volver: /inquilino/dashboard
+// - Cancelar: /inquilino/dashboard
+// - Éxito: Redirección automática a /inquilino/pagos después de 2 segundos
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con "Cargando información...".
+// - Exitoso: Pantalla completa de éxito con icono y redirección.
+// - Error: Banner de alerta con mensaje descriptivo.
+// - Enviando: Botón deshabilitado con texto "Registrando...".
+//
+// CARACTERÍSTICAS DESTACADAS:
+// - Resumen dinámico que se actualiza en tiempo real.
+// - Validaciones robustas antes de enviar.
+// - Manejo de errores del backend.
+// - Feedback visual claro en cada etapa.
+// - UX optimizada con defaults inteligentes.
+// - Soporte para comprobante mediante URL (no upload directo).
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid 2 columnas responsive (formulario + resumen).
+// - Inputs y selects con iconos descriptivos.
+// - Tarjetas con sombras y bordes.
+// - Botones con estados disabled.
+// - Pantalla de éxito con diseño centrado.
+
 interface FormularioPago {
   idFactura: number;
   monto: number;

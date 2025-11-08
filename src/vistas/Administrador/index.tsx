@@ -20,17 +20,146 @@ import styles from "./AdminDashboard.module.css";
 import {
   FileText,
   Users,
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
   AlertTriangle,
   AlertCircle,
   Info,
-  MoreVertical,
   Home,
   CheckCircle,
   XCircle,
 } from "react-feather";
+
+// ========================================
+// DASHBOARD DE ADMINISTRADOR
+// ========================================
+//
+// Panel principal de administración con estadísticas, gestión de usuarios y propiedades.
+// Dashboard centralizado para supervisión y acciones administrativas.
+//
+// FUNCIONALIDADES:
+// - Visualización de estadísticas agregadas del sistema.
+// - Listado de usuarios y propiedades recientes con acciones rápidas.
+// - Generación de alertas automáticas (contratos por vencer, propiedades pendientes).
+// - Gestión de usuarios: Ver, editar, suspender.
+// - Gestión de propiedades: Ver, editar, aprobar, eliminar.
+// - Navegación a secciones completas de usuarios y propiedades.
+//
+// ESTADO:
+// - usuarios: Lista completa de usuarios del sistema.
+// - propiedades: Lista completa de propiedades registradas.
+// - contratos: Lista completa de contratos para cálculos y alertas.
+// - facturas: Lista completa de facturas para estadísticas.
+// - alertas: Notificaciones generadas automáticamente.
+// - cargando: Indica si está cargando datos iniciales.
+// - error: Mensaje de error si falla carga de datos.
+// - menuAbierto: ID del elemento con menú desplegable abierto.
+// - procesando: Indica si hay operación en curso (aprobar, eliminar, etc).
+//
+// INTERFACES:
+// - Alerta: Objeto con id, tipo, mensaje, tiempo.
+// - Usuario: Datos básicos de usuario (id, nombre, correo, tipo, estado).
+//
+// FUNCIONES DE CARGA:
+//
+// verificarAcceso():
+// - Valida autenticación y rol ADMINISTRADOR.
+// - Lee usuario y token desde localStorage.
+// - Redirige a login si no hay sesión.
+// - Redirige a home si rol no es ADMINISTRADOR.
+// - Inicia carga de datos si validación exitosa.
+//
+// cargarDatosIniciales():
+// - Ejecuta carga paralela de usuarios, propiedades, contratos y facturas con Promise.allSettled.
+// - Maneja resultados individuales sin bloquear por fallos parciales.
+// - Genera alertas después de cargar datos.
+// - Logging detallado de cada paso.
+//
+// cargarUsuarios(), cargarPropiedades(), cargarContratos(), cargarFacturas():
+// - Funciones individuales para cargar cada tipo de datos.
+// - Lanza excepciones con mensajes descriptivos.
+// - Retorna datos normalizados.
+//
+// GENERACIÓN DE ALERTAS:
+//
+// generarAlertas():
+// - Calcula contratos que vencen en próximos 30 días.
+// - Detecta propiedades en estado EN_VERIFICACION.
+// - Crea alertas tipo warning, error, info.
+// - Almacena en estado para renderizado.
+//
+// CÁLCULO DE ESTADÍSTICAS:
+//
+// calcularEstadisticas():
+// - Total de propiedades registradas.
+// - Contratos activos (estado ACTIVO).
+// - Total de usuarios en el sistema.
+// - Suma de pagos pendientes (facturas con estado PENDIENTE).
+// - Retorna objeto con todas las métricas.
+//
+// HANDLERS DE USUARIOS:
+//
+// handleVerUsuario(): Navega a página de detalle de usuario.
+// handleEditarUsuario(): Navega a formulario de edición de usuario.
+// handleEliminarUsuario(): Suspende usuario con confirmación, recarga lista.
+//
+// HANDLERS DE PROPIEDADES:
+//
+// handleVerPropiedad(): Navega a página de detalle de propiedad.
+// handleEditarPropiedad(): Navega a formulario de edición de propiedad.
+// handleAprobarPropiedad(): Cambia estado a DISPONIBLE con confirmación, recarga lista y alertas.
+// handleEliminarPropiedad(): Elimina propiedad con confirmación y advertencia, recarga lista.
+//
+// HANDLERS DE NAVEGACIÓN:
+//
+// handleNuevoUsuario(): Navega a formulario de creación de usuario.
+// handleVerReportes(): Navega a selector de reportes.
+// handleVerTodosUsuarios(): Navega a lista completa de usuarios.
+// handleVerTodasPropiedades(): Navega a lista completa de propiedades.
+//
+// UTILIDADES:
+//
+// toggleMenu(): Abre/cierra menú desplegable de acciones.
+// obtenerIconoAlerta(): Retorna icono según tipo de alerta.
+// obtenerColorEstado(): Asigna clase CSS según estado.
+// formatearEstado(): Convierte guiones bajos a espacios.
+//
+// COMPONENTES VISUALES:
+//
+// Estadísticas:
+// - Grid de 3 tarjetas con iconos, valores y descripciones.
+// - Propiedades registradas, contratos activos, usuarios totales.
+//
+// Usuarios Recientes:
+// - Lista de últimos 4 usuarios con avatar, nombre, correo, rol, estado.
+// - Menú desplegable con acciones: Ver, Editar, Suspender.
+// - Botón "Ver todos" para navegar a lista completa.
+//
+// Propiedades Recientes:
+// - Lista de últimas 3 propiedades con icono, dirección, ciudad, estado.
+// - Menú desplegable con acciones: Ver, Editar, Aprobar (si EN_VERIFICACION), Eliminar.
+// - Botón "Ver todas" para navegar a lista completa.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje y texto secundario.
+// - Error: Icono XCircle, mensaje y botón reintentar.
+// - Procesando: Overlay oscuro con spinner y mensaje.
+// - Sin datos: Iconos grandes con mensaje informativo.
+//
+// CONFIRMACIONES:
+// - Suspender usuario: Alerta con nombre de usuario y advertencia.
+// - Aprobar propiedad: Alerta con dirección y cambio de estado.
+// - Eliminar propiedad: Alerta con advertencia de acción irreversible.
+//
+// MANEJO DE ERRORES:
+// - Try-catch en todas las operaciones asíncronas.
+// - Mensajes descriptivos en alertas y console.error.
+// - Recarga selectiva de datos después de operaciones exitosas.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive para estadísticas y tablas.
+// - Badges coloreados según estado.
+// - Menús desplegables con posicionamiento absoluto.
+// - Overlay modal para operaciones en curso.
 
 interface Alerta {
   id: number;
@@ -150,10 +279,7 @@ const AdminDashboard: React.FC = () => {
         setUsuarios(resultados[0].value);
         console.log("Usuarios cargados:", resultados[0].value.length);
       } else {
-        console.warn(
-          "No se pudieron cargar usuarios:",
-          resultados[0].reason
-        );
+        console.warn("No se pudieron cargar usuarios:", resultados[0].reason);
         setUsuarios([]);
       }
 
@@ -174,10 +300,7 @@ const AdminDashboard: React.FC = () => {
         setContratos(resultados[2].value);
         console.log("Contratos cargados:", resultados[2].value.length);
       } else {
-        console.warn(
-          "No se pudieron cargar contratos:",
-          resultados[2].reason
-        );
+        console.warn("No se pudieron cargar contratos:", resultados[2].reason);
         setContratos([]);
       }
 
@@ -186,10 +309,7 @@ const AdminDashboard: React.FC = () => {
         setFacturas(resultados[3].value);
         console.log("Facturas cargadas:", resultados[3].value.length);
       } else {
-        console.warn(
-          "No se pudieron cargar facturas:",
-          resultados[3].reason
-        );
+        console.warn("No se pudieron cargar facturas:", resultados[3].reason);
         setFacturas([]);
       }
 

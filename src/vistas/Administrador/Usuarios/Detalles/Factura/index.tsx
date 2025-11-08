@@ -8,6 +8,93 @@ import type { DTOFacturaRespuesta } from "../../../../../modelos/types/Factura";
 import styles from "./DetalleFacturaAdministrador.module.css";
 import { ArrowLeft, FileText } from "react-feather";
 
+// ========================================
+// DETALLE DE FACTURA - ROL ADMINISTRADOR
+// ========================================
+//
+// Vista simplificada de solo lectura de factura para rol Administrador.
+// Muestra información básica de la factura sin opciones de edición.
+//
+// FUNCIONALIDADES:
+// - Visualización de datos básicos de la factura.
+// - Sin opciones de edición (solo lectura).
+// - Navegación de retorno a detalle de propiedad.
+// - Sistema de tabs preparado pero no implementado completamente.
+//
+// ESTADO:
+// - factura: Objeto DTOFacturaRespuesta con datos completos.
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla la carga.
+// - tabActiva: Tab seleccionado (informacion, contrato) - parcialmente implementado.
+//
+// FLUJO DE CARGA:
+// 1. Obtiene ID de factura desde URL params.
+// 2. Valida que ID exista.
+// 3. Carga factura con obtenerFacturaPorId().
+// 4. Muestra datos en grid simple.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español.
+// - formatearMoneda(): Formatea números a moneda COP.
+//
+// SECCIONES:
+//
+// Encabezado:
+// - Botón volver a /administrador/propiedades/1 (ruta hardcodeada).
+// - Título con ID de la factura.
+// - Badge de estado.
+//
+// Tabs:
+// - Sección vacía preparada para tabs (comentario sugiere agregar botones).
+// - Solo tab "informacion" está implementado.
+//
+// Tab Información:
+// - Grid 2 columnas con campos básicos:
+//   * Total (destacado)
+//   * Estado (badge)
+//   * Fecha de emisión
+//   * Fecha de vencimiento
+//   * Contrato asociado (condicional, solo si existe)
+//
+// NAVEGACIÓN:
+// - Volver: /administrador/propiedades/1 (hardcodeado)
+// - Error: /administrador/propiedades/1 (hardcodeado)
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando factura...".
+// - Error/No encontrada: Icono FileText, mensaje y botón volver.
+//
+// LIMITACIONES Y PROBLEMAS:
+// - **No hay verificación de acceso**: Falta validación de rol ADMINISTRADOR.
+// - **Ruta de retorno hardcodeada**: /administrador/propiedades/1 no es dinámica.
+// - **Información muy limitada**: Solo muestra 5 campos.
+// - **Tabs incompletos**: Preparados pero no implementados (div vacío).
+// - **No muestra**: Inquilino, propiedad, pagos asociados, concepto detallado.
+// - **Tab contrato no implementado**: Estado existe pero sin renderizado.
+//
+// MEJORAS SUGERIDAS:
+// 1. Agregar verificarAcceso() para validar rol ADMINISTRADOR.
+// 2. Hacer navegación dinámica (guardar origen o usar navigate(-1)).
+// 3. Implementar tabs completos: Información, Contrato, Pagos.
+// 4. Agregar más campos: Concepto, descripción, subtotales.
+// 5. Mostrar información de contrato relacionado en tab separado.
+// 6. Agregar botón para ver contrato completo.
+// 7. Mostrar inquilino asociado.
+// 8. Agregar lista de pagos relacionados.
+//
+// CARACTERÍSTICAS:
+// - Vista minimalista de solo lectura.
+// - Apropiada para consulta rápida desde administrador.
+// - Sin funcionalidades de gestión o edición.
+// - Estructura preparada para expansión (tabs).
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Badge para estado.
+// - Diseño consistente con otras vistas.
+// - Sección de tabs preparada pero vacía.
+
 const DetalleFacturaAdministrador: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -15,9 +102,9 @@ const DetalleFacturaAdministrador: React.FC = () => {
   const [factura, setFactura] = useState<DTOFacturaRespuesta | null>(null);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [tabActiva, setTabActiva] = useState<
-    "informacion" | "contrato"
-  >("informacion");
+  const [tabActiva, setTabActiva] = useState<"informacion" | "contrato">(
+    "informacion"
+  );
 
   useEffect(() => {
     cargarFactura();
@@ -174,4 +261,3 @@ const DetalleFacturaAdministrador: React.FC = () => {
 };
 
 export default DetalleFacturaAdministrador;
-

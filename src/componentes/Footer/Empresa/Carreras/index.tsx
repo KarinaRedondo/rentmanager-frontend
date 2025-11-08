@@ -17,9 +17,10 @@ const Carreras = () => {
 
           <div className={styles.seccion}>
             <p className={styles.texto}>
-              En RentManager valoramos el talento, la creatividad y la pasión por la innovación. Buscamos 
-              profesionales comprometidos que quieran marcar la diferencia en la industria inmobiliaria 
-              y crecer junto a nosotros.
+              En RentManager valoramos el talento, la creatividad y la pasión
+              por la innovación. Buscamos profesionales comprometidos que
+              quieran marcar la diferencia en la industria inmobiliaria y crecer
+              junto a nosotros.
             </p>
           </div>
 
@@ -27,7 +28,9 @@ const Carreras = () => {
           <ul className={styles.lista}>
             <li>Proyectos desafiantes con impacto real en el mercado</li>
             <li>Ambiente colaborativo que fomenta la innovación</li>
-            <li>Oportunidades de crecimiento profesional y capacitación continua</li>
+            <li>
+              Oportunidades de crecimiento profesional y capacitación continua
+            </li>
             <li>Flexibilidad horaria y opciones de trabajo remoto</li>
             <li>Salario competitivo y beneficios superiores al mercado</li>
             <li>Cultura empresarial enfocada en el bienestar del equipo</li>
@@ -67,7 +70,10 @@ const Carreras = () => {
 
           <div className={styles.contacto}>
             <h3>Postúlate Ahora</h3>
-            <p>Envía tu CV y portafolio a <strong>carreras@rentmanager.com</strong></p>
+            <p>
+              Envía tu CV y portafolio a{" "}
+              <strong>carreras@rentmanager.com</strong>
+            </p>
             <p>Asunto: [Posición] - Tu Nombre</p>
           </div>
         </div>

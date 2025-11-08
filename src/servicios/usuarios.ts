@@ -1,20 +1,10 @@
-import { urlApi } from "../app/api"; 
+import { urlApi } from "../app/api";
 import { TipoUsuario } from "../modelos/enumeraciones/tipoUsuario";
-import type {
-  DTOAdministradorRegistro,
-} from "../modelos/types/Administrador";
-import type {
-  DTOContadorRegistro,
-} from "../modelos/types/Contador";
-import type {
-  DTOInquilinoRegistro,
-} from "../modelos/types/Inquilino";
-import type {
-  DTOPropietarioRegistro,
-} from "../modelos/types/Propietario";
-import type {
-  DTOUsuarioRegistro,
-} from "../modelos/types/Usuario";
+import type { DTOAdministradorRegistro } from "../modelos/types/Administrador";
+import type { DTOContadorRegistro } from "../modelos/types/Contador";
+import type { DTOInquilinoRegistro } from "../modelos/types/Inquilino";
+import type { DTOPropietarioRegistro } from "../modelos/types/Propietario";
+import type { DTOUsuarioRegistro } from "../modelos/types/Usuario";
 
 const API_URL = "/api/v1/";
 
@@ -52,7 +42,11 @@ export class UsuarioService {
       "estadoCivil" in data
     ) {
       endpoint = endpoints[TipoUsuario.INQUILINO];
-    } else if ("cuentaBancaria" in data || "banco" in data || "tipoCuenta" in data) {
+    } else if (
+      "cuentaBancaria" in data ||
+      "banco" in data ||
+      "tipoCuenta" in data
+    ) {
       endpoint = endpoints[TipoUsuario.PROPIETARIO];
     }
 
@@ -92,14 +86,14 @@ export class UsuarioService {
         if (response.status === "fulfilled") {
           const data = response.value.data;
           console.log(`${tipos[index]}S cargados:`, data.length);
-          
+
           // Normalizar estructura
           const usuariosNormalizados = data.map((usuario: any) => ({
             ...usuario,
             tipoUsuario: usuario.tipoUsuario || tipos[index],
             estado: usuario.estado || "ACTIVO",
           }));
-          
+
           usuarios.push(...usuariosNormalizados);
         } else {
           console.warn(
@@ -149,7 +143,11 @@ export class UsuarioService {
       "estadoCivil" in data
     ) {
       endpoint = endpoints[TipoUsuario.INQUILINO];
-    } else if ("cuentaBancaria" in data || "banco" in data || "tipoCuenta" in data) {
+    } else if (
+      "cuentaBancaria" in data ||
+      "banco" in data ||
+      "tipoCuenta" in data
+    ) {
       endpoint = endpoints[TipoUsuario.PROPIETARIO];
     }
 
@@ -201,7 +199,7 @@ export class UsuarioService {
         continue;
       }
     }
-    
+
     throw new Error("Usuario no encontrado");
   }
 }

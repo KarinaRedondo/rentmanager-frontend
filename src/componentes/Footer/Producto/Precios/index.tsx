@@ -17,8 +17,9 @@ const Precios = () => {
 
           <div className={styles.seccion}>
             <p className={styles.texto}>
-              Ofrecemos planes escalables diseñados para propietarios individuales, empresas inmobiliarias 
-              y administradoras de propiedades. Todos nuestros planes incluyen soporte técnico y 
+              Ofrecemos planes escalables diseñados para propietarios
+              individuales, empresas inmobiliarias y administradoras de
+              propiedades. Todos nuestros planes incluyen soporte técnico y
               actualizaciones constantes.
             </p>
           </div>
@@ -26,7 +27,14 @@ const Precios = () => {
           <div className={styles.grid}>
             <div className={styles.gridItem}>
               <h4>Plan Básico</h4>
-              <p style={{fontSize: '2rem', fontWeight: '900', color: '#667eea', margin: '1rem 0'}}>
+              <p
+                style={{
+                  fontSize: "2rem",
+                  fontWeight: "900",
+                  color: "#667eea",
+                  margin: "1rem 0",
+                }}
+              >
                 $29.990 COP/mes
               </p>
               <ul>
@@ -40,7 +48,14 @@ const Precios = () => {
 
             <div className={styles.gridItem}>
               <h4>Plan Profesional</h4>
-              <p style={{fontSize: '2rem', fontWeight: '900', color: '#667eea', margin: '1rem 0'}}>
+              <p
+                style={{
+                  fontSize: "2rem",
+                  fontWeight: "900",
+                  color: "#667eea",
+                  margin: "1rem 0",
+                }}
+              >
                 $79.990 COP/mes
               </p>
               <ul>
@@ -55,7 +70,14 @@ const Precios = () => {
 
             <div className={styles.gridItem}>
               <h4>Plan Empresarial</h4>
-              <p style={{fontSize: '2rem', fontWeight: '900', color: '#667eea', margin: '1rem 0'}}>
+              <p
+                style={{
+                  fontSize: "2rem",
+                  fontWeight: "900",
+                  color: "#667eea",
+                  margin: "1rem 0",
+                }}
+              >
                 Personalizado
               </p>
               <ul>
@@ -70,18 +92,20 @@ const Precios = () => {
           </div>
 
           <div className={styles.tarjeta}>
-            <h3>💡 Todos los planes incluyen:</h3>
+            <h3>Todos los planes incluyen:</h3>
             <p>
-              • Actualizaciones automáticas y gratuitas • Almacenamiento en la nube seguro • 
-              Copias de seguridad diarias • Acceso desde cualquier dispositivo • 
-              Cumplimiento GDPR y normativas locales
+              • Actualizaciones automáticas y gratuitas • Almacenamiento en la
+              nube seguro • Copias de seguridad diarias • Acceso desde cualquier
+              dispositivo • Cumplimiento GDPR y normativas locales
             </p>
           </div>
 
           <div className={styles.contacto}>
             <h3>¿Necesitas un plan personalizado?</h3>
             <p>Contáctanos para una cotización a medida</p>
-            <p><strong>ventas@rentmanager.com</strong></p>
+            <p>
+              <strong>ventas@rentmanager.com</strong>
+            </p>
             <p>+57 (1) 234 5678</p>
           </div>
         </div>

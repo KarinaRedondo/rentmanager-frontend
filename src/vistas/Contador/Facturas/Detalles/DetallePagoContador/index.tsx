@@ -2,11 +2,73 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../../../../componentes/Header";
 import Footer from "../../../../../componentes/Footer";
-import { BotonComponente } from "../../../../../componentes/ui/Boton"; 
+import { BotonComponente } from "../../../../../componentes/ui/Boton";
 import { obtenerPagoPorId } from "../../../../../servicios/pagos";
-import type { DTOPagoRespuesta } from "../../../../../modelos/types/Pago"; 
+import type { DTOPagoRespuesta } from "../../../../../modelos/types/Pago";
 import styles from "./DetallePagoContador.module.css";
-import { ArrowLeft, CreditCard} from "react-feather";
+import { ArrowLeft, CreditCard } from "react-feather";
+
+// ========================================
+// DETALLE DE PAGO - ROL CONTADOR
+// ========================================
+//
+// Vista de solo lectura de pago para rol Contador.
+// Muestra información básica del pago sin opciones de modificación.
+//
+// FUNCIONALIDADES:
+// - Visualización de datos básicos de pago.
+// - Navegación de retorno a lista de facturas.
+// - Sistema de tabs (preparado pero no implementado).
+//
+// ESTADO:
+// - pago: Objeto DTOPagoRespuesta con datos del pago.
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla la carga.
+// - tabActiva: Tab seleccionado (informacion, factura, contrato).
+//
+// FLUJO:
+// 1. Obtiene ID de pago desde URL params.
+// 2. Carga pago con obtenerPagoPorId().
+// 3. Muestra datos en grid de campos.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español.
+// - formatearMoneda(): Formatea números a moneda COP.
+//
+// SECCIONES:
+//
+// Encabezado:
+// - Botón volver a lista de facturas (hardcoded /contador/facturas/1).
+// - Título con ID de pago.
+// - Badge de estado.
+//
+// Tabs:
+// - Contenedor vacío preparado para tabs (no renderiza botones).
+// - Estado tabActiva preparado pero sin interfaz.
+//
+// Tab Información:
+// - Grid 2 columnas con campos: Monto, Estado, Método de pago, Fecha, Referencia (si existe).
+// - Manejo de campos opcionales con fallback.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje.
+// - Error/No encontrado: Icono CreditCard, mensaje y botón volver.
+//
+// MANEJO DE FECHA:
+// - Intenta leer primero fechaCreacion, luego fecha.
+// - Compatibilidad con diferentes estructuras de DTO.
+//
+// LIMITACIONES:
+// - Navegación hardcoded en lugar de navigate(-1).
+// - Tabs declarados pero no implementados visualmente.
+// - No muestra datos de factura o contrato asociados.
+// - Falta información bancaria completa si existe.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Badges coloreados para estado.
+// - Campo condicional para referencia de transacción.
 
 const DetallesPagoContador: React.FC = () => {
   const navigate = useNavigate();
@@ -110,7 +172,7 @@ const DetallesPagoContador: React.FC = () => {
               onClick={() => navigate("/contador/facturas/1")}
             >
               <ArrowLeft size={20} />
-              Volver 
+              Volver
             </button>
             <div className={styles.tituloSeccion}>
               <h1>Pago #{pago.idPago}</h1>
@@ -119,9 +181,7 @@ const DetallesPagoContador: React.FC = () => {
           </div>
 
           {/* Tabs */}
-          <div className={styles.tabs}>
-            
-          </div>
+          <div className={styles.tabs}></div>
 
           {/* Tab Información */}
           {tabActiva === "informacion" && (

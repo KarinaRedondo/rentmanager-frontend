@@ -18,6 +18,211 @@ import type {
   ResultadoEjecucion,
 } from "../../../servicios/propiedades";
 
+// ========================================
+// GESTIÓN DE PROPIEDADES - ROL PROPIETARIO
+// ========================================
+//
+// Página completa de administración de propiedades para propietarios con CRUD y transiciones.
+// Permite crear, editar, eliminar, visualizar y gestionar estados de propiedades.
+//
+// FUNCIONALIDADES:
+// - Listado completo de propiedades con filtros y búsqueda.
+// - CRUD completo: Crear, editar, eliminar, visualizar propiedades.
+// - Transiciones de estado validadas con autómata.
+// - Modal de formulario para crear/editar.
+// - Modal de resultados de transiciones.
+// - Estadísticas de propiedades por estado y área total.
+// - Navegación a detalle de propiedad.
+// - Galería de imágenes de Unsplash.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol PROPIETARIO exclusivamente.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no es PROPIETARIO.
+//
+// ESTADO PRINCIPAL:
+// - propiedades: Lista completa de propiedades.
+// - propiedadesFiltradas: Subset filtrado por estado y búsqueda.
+// - cargando: Indica carga inicial.
+// - error: Mensaje de error.
+// - busqueda: Texto de búsqueda.
+// - filtroEstado: Estado seleccionado ("TODAS", "DISPONIBLE", "ARRENDADA", etc).
+//
+// ESTADO DEL MODAL:
+// - mostrarModal: Boolean para mostrar/ocultar modal formulario.
+// - propiedadSeleccionada: Propiedad que se está editando (null = crear).
+//
+// ESTADO DE TRANSICIONES:
+// - resultadoTransicion: Resultado de validación (ResultadoValidacion).
+// - resultadoEjecucion: Resultado de ejecución (ResultadoEjecucion).
+// - mostrarModalTransicion: Boolean para modal de transiciones.
+//
+// ESTADO DEL FORMULARIO:
+// - direccion, ciudad: Campos requeridos.
+// - area, habitaciones, banos: Campos numéricos requeridos.
+// - parqueaderos, pisos, anoConstruccion: Campos numéricos opcionales.
+// - amoblado: Boolean (checkbox).
+// - descripcion: Texto largo opcional.
+// - tipo: Enum TipoPropiedad.
+// - estado: Enum EstadoPropiedad.
+//
+// FUNCIONES DE CARGA:
+//
+// cargarPropiedades():
+// - Obtiene todas las propiedades con PropiedadService.obtenerPropiedades().
+// - Logging de datos recibidos.
+// - Maneja arrays vacíos como fallback.
+//
+// aplicarFiltros():
+// - Filtra por búsqueda: dirección o ciudad (case-insensitive).
+// - Filtra por estado si no es "TODAS".
+//
+// calcularEstadisticas():
+// - Total de propiedades.
+// - Disponibles (estado DISPONIBLE).
+// - Ocupadas (estado ARRENDADA).
+// - Área total (suma de todas las áreas).
+//
+// FUNCIONES DEL MODAL:
+//
+// limpiarFormulario():
+// - Resetea todos los campos a valores default.
+//
+// cargarDatosEnFormulario():
+// - Carga datos de propiedad en formulario.
+// - Maneja campo piso/pisos con @ts-ignore.
+// - Convierte números a string para inputs.
+//
+// abrirModalCrear():
+// - Limpia formulario.
+// - Establece propiedadSeleccionada = null.
+//
+// abrirModalEditar():
+// - Carga datos en formulario.
+// - Establece propiedadSeleccionada.
+//
+// handleGuardar():
+// - Validaciones:
+//   * Dirección y ciudad requeridas
+//   * Área > 0
+// - Obtiene idPropietario desde usuario logueado.
+// - **Modo creación**:
+//   * Construye objeto con todos los campos
+//   * Valores default: parqueaderos=0, piso=1, año=actual
+//   * Usa crearPropiedad()
+// - **Modo edición**:
+//   * Construye objeto similar sin idPropietario
+//   * Usa actualizarPropiedad()
+// - Recarga propiedades después de éxito.
+// - Cierra modal y limpia formulario.
+//
+// handleEliminar():
+// - Confirmación con confirm().
+// - Usa eliminarPropiedad().
+// - Recarga propiedades después de éxito.
+//
+// FUNCIONES DE TRANSICIONES:
+//
+// manejarTransicion():
+// - Recibe propiedadId y evento.
+// - **Análisis**: analizarTransicionPropiedad(propiedadId, evento).
+// - Si no válida: Muestra modal con motivo, recomendaciones, alternativas.
+// - Si válida: **Ejecuta** ejecutarTransicionPropiedad(propiedadId, evento).
+// - Muestra modal con resultado.
+// - Recarga propiedades después de ejecución.
+//
+// TRANSICIONES DISPONIBLES:
+// - CREAR_CONTRATO_PROPIEDAD (Arrendar)
+// - TERMINAR_CONTRATO_PROPIEDAD
+// - RESERVAR_PROPIEDAD
+// - CANCELAR_RESERVA_PROPIEDAD
+// - REPORTAR_MANTENIMIENTO_PROPIEDAD
+// - FINALIZAR_MANTENIMIENTO_PROPIEDAD
+//
+// ESTADOS DE PROPIEDAD:
+// - DISPONIBLE: Verde
+// - ARRENDADA: Naranja
+// - EN_MANTENIMIENTO: Gris
+// - RESERVADA: Azul
+// - EN_VERIFICACION: Amarillo
+//
+// TIPOS DE PROPIEDAD:
+// APARTAMENTO, CASA, DUPLEX, PENTHOUSE, APARTAMENTO_ESTUDIO, CASA_PLAYA,
+// OFICINA, LOCAL_COMERCIAL, BODEGA, GALPON, CONSULTORIO, TERRENO, FINCA, GARAJE
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Botón volver (navigate(-1)).
+// - Título "Mis Propiedades".
+// - Botón "+ Nueva Propiedad".
+//
+// Estadísticas (Grid 4 columnas):
+// 1. Total Propiedades
+// 2. Disponibles (icono verde)
+// 3. Arrendadas (icono naranja)
+// 4. Área Total (icono azul)
+//
+// Filtros:
+// - Barra de búsqueda con icono Search.
+// - Select de estado: Todas, Disponibles, Arrendadas, En Mantenimiento, Reservadas, En Verificación.
+//
+// Grid de Propiedades:
+// - Cards con:
+//   * Imagen de Unsplash (rotación del array)
+//   * Badge de estado sobre imagen
+//   * Dirección (título)
+//   * Ciudad con icono MapPin
+//   * Características: Área, Habitaciones, Baños
+//   * Tags: Amoblado, Parqueaderos (si aplica)
+//   * Acciones: Ver, Editar, Eliminar
+//   * Select de transiciones
+//
+// Modal Formulario (CRUD):
+// - Grid 2 columnas con inputs:
+//   * Dirección, Ciudad, Área, Habitaciones, Baños, Parqueaderos
+//   * Pisos, Año Construcción
+//   * Select Tipo de Propiedad (14 opciones)
+//   * Select Estado (5 opciones)
+//   * Checkbox Amoblado
+// - Textarea Descripción (full width)
+//
+// Modal Transiciones:
+// - **Tres estados**:
+//   1. **Cargando**: Spinner con mensaje.
+//   2. **No válida**: Icono ❌, motivo, recomendaciones, alternativas.
+//   3. **Ejecutada**: Icono ✅ o ❌, mensaje, estado actual, información adicional.
+//
+// NAVEGACIÓN:
+// - Volver: navigate(-1) (página anterior)
+// - Ver propiedad: /propietario/propiedades/{id}
+//
+// IMÁGENES:
+// - Array de 9 URLs de Unsplash con propiedades.
+// - Rotación mediante módulo del índice.
+// - Fallback a placeholder si falla la carga.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando propiedades...".
+// - Error: Mensaje y botón reintentar.
+// - Sin datos: Icono Home con mensaje.
+//
+// CARACTERÍSTICAS:
+// - Vista completa para propietario con CRUD y transiciones.
+// - Validación de campos requeridos.
+// - Manejo de errores del backend.
+// - Logging de datos recibidos.
+// - Confirmación antes de eliminar.
+// - Defaults inteligentes (año actual, piso 1, etc).
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive para estadísticas y propiedades.
+// - Cards con imágenes y overlays.
+// - Modal con secciones coloreadas según resultado.
+// - Badges dinámicos según estado.
+// - Tags informativos.
+
 const PropietarioPropiedades: React.FC = () => {
   const navigate = useNavigate();
 
@@ -598,7 +803,7 @@ const PropietarioPropiedades: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* ✅ SELECTOR DE TRANSICIONES ACTUALIZADO */}
+                    {/* SELECTOR DE TRANSICIONES ACTUALIZADO */}
                     <select
                       defaultValue=""
                       onChange={(e) => {
@@ -612,22 +817,22 @@ const PropietarioPropiedades: React.FC = () => {
                     >
                       <option value="">Transición de Estado...</option>
                       <option value="CREAR_CONTRATO_PROPIEDAD">
-                        🏠 Arrendar (Crear Contrato)
+                        Arrendar (Crear Contrato)
                       </option>
                       <option value="TERMINAR_CONTRATO_PROPIEDAD">
-                        🔓 Terminar Contrato
+                        Terminar Contrato
                       </option>
                       <option value="RESERVAR_PROPIEDAD">
-                        📅 Reservar Propiedad
+                        Reservar Propiedad
                       </option>
                       <option value="CANCELAR_RESERVA_PROPIEDAD">
-                        ❌ Cancelar Reserva
+                        Cancelar Reserva
                       </option>
                       <option value="REPORTAR_MANTENIMIENTO_PROPIEDAD">
-                        🔧 Enviar a Mantenimiento
+                        Enviar a Mantenimiento
                       </option>
                       <option value="FINALIZAR_MANTENIMIENTO_PROPIEDAD">
-                        ✅ Finalizar Mantenimiento
+                        Finalizar Mantenimiento
                       </option>
                     </select>
                   </div>
@@ -817,7 +1022,7 @@ const PropietarioPropiedades: React.FC = () => {
                 resultadoTransicion.recomendaciones.length > 0 && (
                   <div className={styles.seccionRecomendaciones}>
                     <h4 className={styles.subtituloSeccion}>
-                      💡 Recomendaciones:
+                      Recomendaciones:
                     </h4>
                     <ul className={styles.listaRecomendaciones}>
                       {resultadoTransicion.recomendaciones.map((rec, i) => (
@@ -835,7 +1040,7 @@ const PropietarioPropiedades: React.FC = () => {
                 resultadoTransicion.alternativas.length > 0 && (
                   <div className={styles.seccionAlternativas}>
                     <h4 className={styles.subtituloSeccion}>
-                      🔀 Transiciones Alternativas Disponibles:
+                      Transiciones Alternativas Disponibles:
                     </h4>
                     <ul className={styles.listaAlternativas}>
                       {resultadoTransicion.alternativas.map((alt, i) => (
@@ -885,7 +1090,7 @@ const PropietarioPropiedades: React.FC = () => {
               {/* Mensaje de resultado */}
               <div className={styles.seccionMensaje}>
                 <h4 className={styles.subtituloSeccion}>
-                  {resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}
+                  {resultadoEjecucion.exito ? "Resultado:" : "Error:"}
                 </h4>
                 <p className={styles.mensajeResultado}>
                   {resultadoEjecucion.mensaje}
@@ -895,7 +1100,7 @@ const PropietarioPropiedades: React.FC = () => {
               {/* Estado actual */}
               <div className={styles.seccionEstadoActual}>
                 <h4 className={styles.subtituloSeccion}>
-                  🏷️ Estado Actual de la Propiedad:
+                  Estado Actual de la Propiedad:
                 </h4>
                 <div className={styles.badgeEstadoActual}>
                   <span className={styles.estadoActualTexto}>

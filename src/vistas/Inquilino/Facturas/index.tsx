@@ -14,17 +14,149 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Download,
   Eye,
   Filter,
   ArrowLeft,
 } from "react-feather";
 
+// ========================================
+// LISTA DE FACTURAS - ROL INQUILINO
+// ========================================
+//
+// Vista de facturas del inquilino con estadísticas, filtros y acciones de pago.
+// Diseñada para consulta y gestión básica de facturas de alquiler.
+//
+// FUNCIONALIDADES:
+// - Listado completo de facturas del inquilino.
+// - Ordenamiento por fecha de emisión (más reciente primero).
+// - Filtrado por estado: Todas, Pendientes, Pagadas.
+// - Estadísticas agregadas: Total, pendientes, pagadas, total pendiente (monetario).
+// - Navegación a detalle de factura.
+// - Botón "Pagar Ahora" para facturas pendientes/generadas.
+// - Grid de cards responsive con diseño visual atractivo.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol INQUILINO exclusivamente.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no es INQUILINO.
+//
+// ESTADO:
+// - facturas: Lista completa de facturas.
+// - facturasFiltradas: Subset filtrado según estado seleccionado.
+// - cargando: Indica operación de carga en curso.
+// - error: Mensaje de error si falla carga.
+// - filtroEstado: Estado seleccionado ("TODAS", "PENDIENTE", "PAGADA").
+//
+// FUNCIONES PRINCIPALES:
+//
+// cargarFacturas():
+// - Obtiene lista completa con obtenerFacturas().
+// - Ordena por fechaEmision descendente (más reciente primero).
+// - Maneja arrays vacíos.
+// - Logging de facturas cargadas.
+//
+// aplicarFiltros():
+// - Se ejecuta automáticamente al cambiar filtroEstado o facturas.
+// - Si estado es "TODAS", muestra todas las facturas.
+// - Si no, filtra por estado específico con normalización a mayúsculas.
+//
+// FORMATEO DE FECHAS:
+//
+// Todas las funciones de formateo usan parsing manual robusto:
+// 1. Split por '-' para obtener [año, mes, día]
+// 2. Validación de formato (3 partes)
+// 3. Creación de Date con valores numéricos
+// 4. Validación de fecha válida con isNaN()
+// 5. Formateo con toLocaleDateString("es-CO")
+// 6. Manejo de errores con mensajes descriptivos
+//
+// formatearFecha(): Formato largo (ej: "15 de enero de 2025")
+// formatearFechaCorta(): Formato corto (ej: "15/01/2025")
+// obtenerNombreMes(): Mes y año (ej: "enero de 2025")
+//
+// UTILIDADES:
+//
+// obtenerEstadoClase():
+// - Asigna clase CSS según estado de factura.
+// - PAGADA/COMPLETADA: Verde
+// - PENDIENTE/GENERADA: Naranja
+// - VENCIDA: Rojo
+// - Default: Naranja
+//
+// obtenerIconoEstado():
+// - Retorna componente React con icono coloreado.
+// - PAGADA/COMPLETADA: CheckCircle verde
+// - PENDIENTE/GENERADA: Clock naranja
+// - VENCIDA: AlertCircle rojo
+// - Default: Clock naranja
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Botón volver al dashboard.
+// - Título "Mis Facturas".
+// - Subtítulo descriptivo.
+//
+// Estadísticas (Grid 4 columnas):
+// 1. Total Facturas: Cantidad total.
+// 2. Pendientes: Cantidad con estado PENDIENTE o GENERADA.
+// 3. Pagadas: Cantidad con estado PAGADA o COMPLETADA.
+// 4. Total Pendiente: Suma monetaria de facturas pendientes.
+//
+// Filtros:
+// - Icono Filter.
+// - Tres botones: Todas, Pendientes, Pagadas.
+// - Botón activo con estilo diferenciado.
+//
+// Grid de Facturas:
+// - Cards con diseño visual completo.
+// - Header:
+//   * ID de factura
+//   * Dirección de propiedad
+//   * Periodo (mes y año de emisión)
+//   * Icono de estado coloreado
+// - Cuerpo:
+//   * Fecha emisión con icono Calendar
+//   * Fecha vencimiento con icono Calendar
+//   * Separador visual
+//   * Total destacado
+//   * Badge de estado
+// - Acciones:
+//   * Botón "Ver Detalle" (siempre visible)
+//   * Botón "Pagar Ahora" (solo si PENDIENTE o GENERADA)
+//
+// NAVEGACIÓN:
+// - A dashboard: /inquilino/dashboard
+// - A detalle de factura: /inquilino/facturas/{id}
+// - A crear pago: /inquilino/pagos/nuevo
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando facturas...".
+// - Error: Icono AlertCircle, mensaje y botón reintentar.
+// - Sin facturas: Icono FileText, mensaje informativo.
+//
+// CARACTERÍSTICAS DESTACADAS:
+// - Parsing robusto de fechas con validación múltiple.
+// - Manejo de errores descriptivo en fechas.
+// - Estadísticas calculadas dinámicamente.
+// - Botón "Pagar Ahora" condicional según estado.
+// - Diseño visual atractivo con iconos y colores semánticos.
+// - Extracción de datos relacionados: contrato → propiedad → dirección.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive de 4 columnas para estadísticas.
+// - Grid adaptativo para cards de facturas.
+// - Badges y botones con estados hover.
+// - Iconos integrados con colores según estado.
+
 const InquilinoFacturas: React.FC = () => {
   const navigate = useNavigate();
 
   const [facturas, setFacturas] = useState<DTOFacturaRespuesta[]>([]);
-  const [facturasFiltradas, setFacturasFiltradas] = useState<DTOFacturaRespuesta[]>([]);
+  const [facturasFiltradas, setFacturasFiltradas] = useState<
+    DTOFacturaRespuesta[]
+  >([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [filtroEstado, setFiltroEstado] = useState<string>("TODAS");
@@ -69,7 +201,7 @@ const InquilinoFacturas: React.FC = () => {
       setError("");
       const data = await obtenerFacturas();
       const facturasArray = Array.isArray(data) ? data : [];
-      
+
       // Ordenar por fecha más reciente
       const facturasOrdenadas = facturasArray.sort((a, b) => {
         const fechaA = a.fechaEmision || "";
@@ -101,12 +233,12 @@ const InquilinoFacturas: React.FC = () => {
   const formatearFecha = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
     try {
-      const partes = fecha.split('-');
+      const partes = fecha.split("-");
       if (partes.length !== 3) return "Fecha inválida";
-      
+
       const [anio, mes, dia] = partes;
       const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
-      
+
       if (isNaN(date.getTime())) return "Fecha inválida";
       return date.toLocaleDateString("es-CO", {
         year: "numeric",
@@ -121,12 +253,12 @@ const InquilinoFacturas: React.FC = () => {
   const formatearFechaCorta = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
     try {
-      const partes = fecha.split('-');
+      const partes = fecha.split("-");
       if (partes.length !== 3) return "Fecha inválida";
-      
+
       const [anio, mes, dia] = partes;
       const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
-      
+
       if (isNaN(date.getTime())) return "Fecha inválida";
       return date.toLocaleDateString("es-CO", {
         year: "numeric",
@@ -141,12 +273,12 @@ const InquilinoFacturas: React.FC = () => {
   const obtenerNombreMes = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
     try {
-      const partes = fecha.split('-');
+      const partes = fecha.split("-");
       if (partes.length !== 3) return "Mes inválido";
-      
+
       const [anio, mes, dia] = partes;
       const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
-      
+
       if (isNaN(date.getTime())) return "Mes inválido";
       return date.toLocaleDateString("es-CO", {
         month: "long",
@@ -270,7 +402,9 @@ const InquilinoFacturas: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Total Facturas</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.total}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.total}
+                </h2>
               </div>
             </div>
 
@@ -280,7 +414,9 @@ const InquilinoFacturas: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Pendientes</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.pendientes}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.pendientes}
+                </h2>
               </div>
             </div>
 
@@ -290,7 +426,9 @@ const InquilinoFacturas: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Pagadas</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.pagadas}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.pagadas}
+                </h2>
               </div>
             </div>
 
@@ -314,19 +452,31 @@ const InquilinoFacturas: React.FC = () => {
               <span>Filtrar por estado:</span>
               <div className={styles.grupoFiltros}>
                 <button
-                  className={filtroEstado === "TODAS" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "TODAS"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("TODAS")}
                 >
                   Todas
                 </button>
                 <button
-                  className={filtroEstado === "PENDIENTE" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "PENDIENTE"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("PENDIENTE")}
                 >
                   Pendientes
                 </button>
                 <button
-                  className={filtroEstado === "PAGADA" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "PAGADA"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("PAGADA")}
                 >
                   Pagadas
@@ -348,10 +498,14 @@ const InquilinoFacturas: React.FC = () => {
                 {facturasFiltradas.map((factura) => {
                   const contrato = factura.contrato;
                   const propiedad = contrato?.propiedad;
-                  const direccion = propiedad?.direccion || "Propiedad no identificada";
+                  const direccion =
+                    propiedad?.direccion || "Propiedad no identificada";
 
                   return (
-                    <div key={factura.idFactura} className={styles.tarjetaFactura}>
+                    <div
+                      key={factura.idFactura}
+                      className={styles.tarjetaFactura}
+                    >
                       <div className={styles.headerFactura}>
                         <div className={styles.infoHeaderFactura}>
                           <h3>Factura #{factura.idFactura}</h3>
@@ -395,7 +549,9 @@ const InquilinoFacturas: React.FC = () => {
                           </span>
                         </div>
 
-                        <span className={obtenerEstadoClase(factura.estado || "")}>
+                        <span
+                          className={obtenerEstadoClase(factura.estado || "")}
+                        >
                           {factura.estado}
                         </span>
                       </div>
@@ -403,13 +559,17 @@ const InquilinoFacturas: React.FC = () => {
                       <div className={styles.accionesFactura}>
                         <button
                           className={styles.btnAccion}
-                          onClick={() => navigate(`/inquilino/facturas/${factura.idFactura}`)}
+                          onClick={() =>
+                            navigate(`/inquilino/facturas/${factura.idFactura}`)
+                          }
                         >
                           <Eye size={16} />
                           Ver Detalle
                         </button>
-                        {(String(factura.estado).toUpperCase() === "PENDIENTE" ||
-                          String(factura.estado).toUpperCase() === "GENERADA") && (
+                        {(String(factura.estado).toUpperCase() ===
+                          "PENDIENTE" ||
+                          String(factura.estado).toUpperCase() ===
+                            "GENERADA") && (
                           <button
                             className={styles.btnPagar}
                             onClick={() => navigate("/inquilino/pagos/nuevo")}

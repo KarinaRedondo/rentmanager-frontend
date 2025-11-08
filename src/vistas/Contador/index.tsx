@@ -14,9 +14,114 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  TrendingUp,
   FileText,
 } from "react-feather";
+
+// ========================================
+// DASHBOARD DE CONTADOR
+// ========================================
+//
+// Panel principal financiero para rol Contador con métricas, pagos recientes y facturas pendientes.
+// Dashboard especializado en gestión contable y financiera.
+//
+// FUNCIONALIDADES:
+// - Visualización de estadísticas financieras del mes actual.
+// - Listado de pagos recientes ordenados por fecha.
+// - Listado de facturas pendientes y vencidas.
+// - Navegación a secciones completas de pagos y facturas.
+// - Cálculo automático de días vencidos en facturas.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol CONTADOR exclusivamente.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no es CONTADOR.
+//
+// ESTADO:
+// - pagos: Lista completa de pagos del sistema.
+// - facturas: Lista completa de facturas.
+// - cargando: Indica operación de carga en curso.
+// - error: Mensaje de error si falla carga.
+// - filtroMeses: Variable declarada pero no utilizada (6 meses por defecto).
+//
+// FUNCIONES DE CARGA:
+// - cargarDatosIniciales(): Carga paralela de pagos y facturas con Promise.allSettled.
+// - cargarPagos(): Obtiene lista de pagos, retorna array vacío si falla.
+// - cargarFacturas(): Obtiene lista de facturas, retorna array vacío si falla.
+//
+// CÁLCULO DE ESTADÍSTICAS:
+//
+// calcularEstadisticas():
+// - Ingresos del mes: Suma de pagos VERIFICADO del mes actual.
+// - Pagos procesados: Cantidad de pagos VERIFICADO del mes actual.
+// - Pagos pendientes: Cantidad de pagos con estado PENDIENTE.
+// - Pagos rechazados: Cantidad de pagos con estado RECHAZADO.
+// - Filtra por mes y año actual usando fechaCreacion.
+//
+// obtenerPagosRecientes():
+// - Ordena pagos por fechaCreacion descendente.
+// - Toma los 4 más recientes.
+// - Extrae datos: ID, inquilino (nombre completo), propiedad (dirección), monto, método, referencia, fecha, estado.
+// - Maneja casos sin inquilino o propiedad con fallbacks.
+//
+// obtenerFacturasPendientes():
+// - Filtra facturas con estado PENDIENTE o GENERADA.
+// - Ordena por fecha de vencimiento ascendente.
+// - Toma las 3 primeras.
+// - Calcula días vencidos: Diferencia entre fecha actual y fecha vencimiento.
+// - Extrae datos: ID, inquilino, propiedad, monto, fecha vencimiento, días vencidos, estado.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato DD/MM/AAAA.
+// - formatearMoneda(): Formatea números con separadores de miles.
+//
+// COMPONENTES VISUALES:
+//
+// Estadísticas (Grid 4 columnas):
+// 1. Ingresos Totales: Suma de pagos verificados del mes.
+// 2. Pagos Procesados: Cantidad de pagos verificados del mes.
+// 3. Pagos Pendientes: Cantidad de pagos pendientes totales.
+// 4. Pagos Rechazados: Cantidad de pagos rechazados totales.
+//
+// Pagos Recientes:
+// - Lista de 4 últimos pagos con cards.
+// - Icono coloreado según estado (verde: VERIFICADO, rojo: RECHAZADO, naranja: PENDIENTE).
+// - Información: Inquilino, propiedad, método, referencia, monto, estado, fecha.
+// - Botón "Ver todos" navega a /contador/pagos.
+//
+// Facturas Pendientes:
+// - Lista de 3 facturas pendientes/vencidas.
+// - Indicador coloreado (rojo: vencida, naranja: pendiente).
+// - Información: Inquilino, propiedad, fecha vencimiento, días vencidos (si aplica), monto, estado.
+// - Badge rojo si vencida, naranja si pendiente.
+// - Botón "Ver todas" navega a /contador/facturas.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando información financiera...".
+// - Error: Mensaje y botón reintentar.
+// - Badges coloreados: Verde (VERIFICADO), Rojo (RECHAZADO/VENCIDA), Naranja (PENDIENTE).
+//
+// LÓGICA DE NEGOCIO:
+// - Fecha actual como referencia para cálculos.
+// - Filtrado por mes/año actual para métricas mensuales.
+// - Cálculo de días vencidos: Solo positivos, si es negativo muestra 0.
+// - Estados normalizados a mayúsculas para comparación.
+//
+// NAVEGACIÓN:
+// - A pagos completos: /contador/pagos
+// - A facturas completas: /contador/facturas
+//
+// LIMITACIONES:
+// - Variable filtroMeses declarada pero no implementada.
+// - No hay filtros de rango de fechas.
+// - No hay gráficas de tendencias.
+// - Estadísticas solo del mes actual.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive para estadísticas.
+// - Grid doble columna para pagos y facturas.
+// - Iconos con colores semánticos.
+// - Cards con hover effects.
 
 const ContadorDashboard: React.FC = () => {
   const navigate = useNavigate();

@@ -1,10 +1,15 @@
-import { urlApi } from "../app/api"; 
-import type { DTOContadorRegistro, DTOContadorRespuesta } from "../modelos/types/Contador";
+import { urlApi } from "../app/api";
+import type {
+  DTOContadorRegistro,
+  DTOContadorRespuesta,
+} from "../modelos/types/Contador";
 
 const API_URL = "/api/v1/contador";
 
 export class ContadorService {
-  static async registrar(data: DTOContadorRegistro): Promise<DTOContadorRespuesta> {
+  static async registrar(
+    data: DTOContadorRegistro
+  ): Promise<DTOContadorRespuesta> {
     const { data: contador } = await urlApi.post(`${API_URL}/registro`, data);
     return contador as DTOContadorRespuesta;
   }
@@ -14,8 +19,14 @@ export class ContadorService {
     return contadores as DTOContadorRespuesta[];
   }
 
-  static async actualizar(id: number, data: DTOContadorRegistro): Promise<DTOContadorRespuesta> {
-    const { data: contador } = await urlApi.put(`${API_URL}/actualizar/${id}`, data);
+  static async actualizar(
+    id: number,
+    data: DTOContadorRegistro
+  ): Promise<DTOContadorRespuesta> {
+    const { data: contador } = await urlApi.put(
+      `${API_URL}/actualizar/${id}`,
+      data
+    );
     return contador as DTOContadorRespuesta;
   }
 

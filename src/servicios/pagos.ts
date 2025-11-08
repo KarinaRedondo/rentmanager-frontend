@@ -37,7 +37,7 @@ export const obtenerPagos = async (): Promise<DTOPagoRespuesta[]> => {
     const res = await urlApi.get(`${API_URL}/obtener`);
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al obtener pagos:", error);
+    console.error("Error al obtener pagos:", error);
     throw error;
   }
 };
@@ -45,12 +45,14 @@ export const obtenerPagos = async (): Promise<DTOPagoRespuesta[]> => {
 /**
  * Obtiene un pago específico por su ID.
  */
-export const obtenerPagoPorId = async (id: number): Promise<DTOPagoRespuesta> => {
+export const obtenerPagoPorId = async (
+  id: number
+): Promise<DTOPagoRespuesta> => {
   try {
     const res = await urlApi.get(`${API_URL}/obtenerPorId/${id}`);
     return res.data;
   } catch (error: any) {
-    console.error(`❌ Error al obtener pago ${id}:`, error);
+    console.error(`Error al obtener pago ${id}:`, error);
     throw error;
   }
 };
@@ -58,12 +60,14 @@ export const obtenerPagoPorId = async (id: number): Promise<DTOPagoRespuesta> =>
 /**
  * Crea un nuevo pago.
  */
-export const crearPago = async (data: DTOPagoRegistro): Promise<DTOPagoRespuesta> => {
+export const crearPago = async (
+  data: DTOPagoRegistro
+): Promise<DTOPagoRespuesta> => {
   try {
     const res = await urlApi.post(`${API_URL}/crear`, data);
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al crear pago:", error);
+    console.error("Error al crear pago:", error);
     throw error;
   }
 };
@@ -79,7 +83,7 @@ export const actualizarPago = async (
     const res = await urlApi.put(`${API_URL}/actualizar/${id}`, data);
     return res.data;
   } catch (error: any) {
-    console.error(`❌ Error al actualizar pago ${id}:`, error);
+    console.error(`Error al actualizar pago ${id}:`, error);
     throw error;
   }
 };
@@ -91,7 +95,7 @@ export const eliminarPago = async (id: number): Promise<void> => {
   try {
     await urlApi.delete(`${API_URL}/eliminar/${id}`);
   } catch (error: any) {
-    console.error(`❌ Error al eliminar pago ${id}:`, error);
+    console.error(`Error al eliminar pago ${id}:`, error);
     throw error;
   }
 };
@@ -109,13 +113,18 @@ export const analizarTransicionPago = async (
   evento: Evento | string
 ): Promise<ResultadoValidacion> => {
   try {
-    const res = await urlApi.get(`${API_URL}/${id}/analizar-transicion/${evento}`);
+    const res = await urlApi.get(
+      `${API_URL}/${id}/analizar-transicion/${evento}`
+    );
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al analizar transición:", error);
+    console.error("Error al analizar transición:", error);
     return {
       valido: false,
-      motivo: error.response?.data?.message || error.message || "Error al analizar la transición",
+      motivo:
+        error.response?.data?.message ||
+        error.message ||
+        "Error al analizar la transición",
       recomendaciones: [],
       alternativas: [],
     };
@@ -124,21 +133,26 @@ export const analizarTransicionPago = async (
 
 /**
  * Ejecuta una transición de estado en el backend.
- * ⚠️ IMPORTANTE: No valida aquí, asume que ya fue validada previamente.
+ * IMPORTANTE: No valida aquí, asume que ya fue validada previamente.
  */
 export const ejecutarTransicionPago = async (
   id: number,
   evento: Evento | string
 ): Promise<ResultadoEjecucion> => {
   try {
-    const res = await urlApi.post(`${API_URL}/${id}/ejecutar-transicion/${evento}`);
+    const res = await urlApi.post(
+      `${API_URL}/${id}/ejecutar-transicion/${evento}`
+    );
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al ejecutar transición:", error);
+    console.error("Error al ejecutar transición:", error);
 
     return {
       exito: false,
-      mensaje: error.response?.data?.message || error.message || "Error al ejecutar la transición",
+      mensaje:
+        error.response?.data?.message ||
+        error.message ||
+        "Error al ejecutar la transición",
       estadoActual: "ERROR",
     };
   }
@@ -152,10 +166,12 @@ export const esTransicionValidaPago = async (
   evento: Evento | string
 ): Promise<boolean> => {
   try {
-    const res = await urlApi.get(`${API_URL}/${id}/transicion-valida/${evento}`);
+    const res = await urlApi.get(
+      `${API_URL}/${id}/transicion-valida/${evento}`
+    );
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al verificar validez:", error);
+    console.error("Error al verificar validez:", error);
     return false;
   }
 };
@@ -171,7 +187,7 @@ export const obtenerRecomendacionesPago = async (
     const res = await urlApi.get(`${API_URL}/${id}/recomendaciones/${evento}`);
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al obtener recomendaciones:", error);
+    console.error("Error al obtener recomendaciones:", error);
     return [];
   }
 };
@@ -181,7 +197,7 @@ export const obtenerRecomendacionesPago = async (
 // ============================
 
 /**
- * ✅ Flujo completo recomendado: Valida primero y luego ejecuta la transición.
+ * Flujo completo recomendado: Valida primero y luego ejecuta la transición.
  * Útil para usar en componentes React o flujos de UI.
  *
  * @returns ResultadoEjecucion con el resultado de la operación
@@ -191,36 +207,38 @@ export const validarYEjecutarTransicionPago = async (
   evento: Evento | string
 ): Promise<ResultadoEjecucion> => {
   try {
-    console.log(`🔄 Iniciando transición: Pago ${id} → Evento: ${evento}`);
+    console.log(`Iniciando transición: Pago ${id} → Evento: ${evento}`);
 
     // Paso 1: Validar primero con el backend
     const validacion = await analizarTransicionPago(id, evento);
 
     if (!validacion.valido) {
-      console.warn("⚠️ Transición rechazada:", validacion.motivo);
+      console.warn("Transición rechazada:", validacion.motivo);
 
       // Retornar un resultado de error en lugar de lanzar excepción
       return {
         exito: false,
-        mensaje: validacion.motivo || "Transición inválida según validación del sistema",
+        mensaje:
+          validacion.motivo ||
+          "Transición inválida según validación del sistema",
         estadoActual: "SIN CAMBIOS",
       };
     }
 
-    console.log("✅ Validación exitosa, ejecutando transición...");
+    console.log("Validación exitosa, ejecutando transición...");
 
     // Paso 2: Si es válida, ejecutar la transición
     const resultado = await ejecutarTransicionPago(id, evento);
 
     if (resultado.exito) {
-      console.info("✅ Transición ejecutada exitosamente:", resultado.mensaje);
+      console.info("Transición ejecutada exitosamente:", resultado.mensaje);
     } else {
-      console.warn("⚠️ La transición falló en ejecución:", resultado.mensaje);
+      console.warn("La transición falló en ejecución:", resultado.mensaje);
     }
 
     return resultado;
   } catch (error: any) {
-    console.error("❌ Error crítico en la transición:", error.message);
+    console.error("Error crítico en la transición:", error.message);
 
     // Retornar resultado de error estructurado
     return {
@@ -236,7 +254,7 @@ export const validarYEjecutarTransicionPago = async (
 // ============================
 
 /**
- * ✅ Obtiene el análisis completo de una transición con manejo robusto de errores.
+ * Obtiene el análisis completo de una transición con manejo robusto de errores.
  * Útil para mostrar información detallada al usuario antes de ejecutar.
  */
 export const obtenerAnalisisCompleto = async (
@@ -245,7 +263,7 @@ export const obtenerAnalisisCompleto = async (
 ): Promise<ResultadoValidacion> => {
   const analisis = await analizarTransicionPago(id, evento);
 
-  console.log("📊 Análisis de transición:", {
+  console.log("Análisis de transición:", {
     valido: analisis.valido,
     motivo: analisis.motivo,
     recomendaciones: analisis.recomendaciones?.length || 0,
@@ -263,7 +281,9 @@ export const obtenerAnalisisCompleto = async (
  * Obtiene todos los pagos del inquilino autenticado.
  * NOTA: El backend ya filtra por rol automáticamente en /obtener
  */
-export const obtenerPagosPorInquilino = async (): Promise<DTOPagoRespuesta[]> => {
+export const obtenerPagosPorInquilino = async (): Promise<
+  DTOPagoRespuesta[]
+> => {
   return obtenerPagos();
 };
 
@@ -271,7 +291,9 @@ export const obtenerPagosPorInquilino = async (): Promise<DTOPagoRespuesta[]> =>
  * Obtiene todos los pagos del propietario autenticado.
  * NOTA: El backend ya filtra por rol automáticamente en /obtener
  */
-export const obtenerPagosPorPropietario = async (): Promise<DTOPagoRespuesta[]> => {
+export const obtenerPagosPorPropietario = async (): Promise<
+  DTOPagoRespuesta[]
+> => {
   return obtenerPagos();
 };
 
@@ -282,4 +304,3 @@ export const obtenerPagosPorPropietario = async (): Promise<DTOPagoRespuesta[]> 
 export const obtenerTodosLosPagos = async (): Promise<DTOPagoRespuesta[]> => {
   return obtenerPagos();
 };
-

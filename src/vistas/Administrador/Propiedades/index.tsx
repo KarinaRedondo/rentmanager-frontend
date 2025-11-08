@@ -13,20 +13,150 @@ import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
 import { TipoPropiedad } from "../../../modelos/enumeraciones/tipoPropiedad";
 import type { Evento } from "../../../modelos/enumeraciones/evento";
-import type { ResultadoValidacion, ResultadoEjecucion } from "../../../servicios/propiedades";
+import type {
+  ResultadoValidacion,
+  ResultadoEjecucion,
+} from "../../../servicios/propiedades";
+
+// ========================================
+// PÁGINA ADMINISTRACIÓN DE PROPIEDADES
+// ========================================
+//
+// Panel principal para gestión completa de propiedades con CRUD, filtros, estadísticas y transiciones de estado.
+// Exclusivo para rol ADMINISTRADOR.
+//
+// FUNCIONALIDADES:
+// - Listado de propiedades en grid con imágenes y datos resumidos.
+// - CRUD completo: Crear, leer, actualizar y eliminar propiedades.
+// - Filtrado por búsqueda de texto (dirección/ciudad) y por estado.
+// - Estadísticas agregadas en tarjetas: Total, disponibles, arrendadas, área total.
+// - Transiciones de estado validadas con autómata/predictor/árbol de reglas.
+// - Modal de resultados detallados para transiciones.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol ADMINISTRADOR.
+// - Lectura de usuario y token desde localStorage.
+// - Redirección a login si no hay autenticación.
+// - Redirección a home si rol no autorizado.
+//
+// ESTADO:
+// - propiedades: Lista completa cargada desde backend.
+// - propiedadesFiltradas: Subset después de aplicar búsqueda y filtros.
+// - cargando: Indica operación en curso.
+// - error: Mensaje de error para mostrar al usuario.
+// - busqueda: Texto de búsqueda por dirección/ciudad.
+// - filtroEstado: Estado seleccionado para filtrar (TODAS, DISPONIBLE, etc).
+// - mostrarModal: Toggle para modal de crear/editar.
+// - propiedadSeleccionada: Propiedad en edición (null si es creación).
+// - Form fields: direccion, ciudad, area, habitaciones, banos, etc.
+// - Transiciones: resultadoTransicion, resultadoEjecucion, mostrarModalTransicion.
+//
+// FUNCIONES PRINCIPALES:
+//
+// cargarPropiedades():
+// - Llama PropiedadService.obtenerPropiedades().
+// - Actualiza estado con lista completa.
+// - Maneja errores mostrando mensaje.
+//
+// aplicarFiltros():
+// - Filtra por texto de búsqueda (direccion/ciudad case-insensitive).
+// - Filtra por estado si no es "TODAS".
+// - Actualiza propiedadesFiltradas.
+// - Se ejecuta automáticamente cuando cambian propiedades, busqueda o filtroEstado.
+//
+// calcularEstadisticas():
+// - Cuenta total de propiedades.
+// - Cuenta disponibles y arrendadas.
+// - Suma área total de todas las propiedades.
+// - Retorna objeto con estadísticas.
+//
+// handleGuardar():
+// - Valida campos obligatorios (direccion, ciudad, area > 0).
+// - Extrae ID de propietario desde localStorage (usuario actual).
+// - Si propiedadSeleccionada es null: Crea nueva propiedad.
+// - Si propiedadSeleccionada existe: Actualiza propiedad existente.
+// - Recarga lista después de operación exitosa.
+// - Cierra modal y limpia formulario.
+//
+// handleEliminar():
+// - Pide confirmación con window.confirm().
+// - Llama PropiedadService.eliminarPropiedad().
+// - Recarga lista después de eliminación exitosa.
+//
+// manejarTransicion():
+// - Primero analiza transición con analizarTransicionPropiedad().
+// - Si no es válida, muestra modal con motivo, recomendaciones y alternativas.
+// - Si es válida, ejecuta con ejecutarTransicionPropiedad().
+// - Muestra modal con resultado de ejecución (éxito o error).
+// - Recarga lista después de transición exitosa.
+//
+// TRANSICIONES DE ESTADO DISPONIBLES:
+// - CREAR_CONTRATO_PROPIEDAD: Marca propiedad como arrendada.
+// - TERMINAR_CONTRATO_PROPIEDAD: Libera propiedad a disponible.
+// - RESERVAR_PROPIEDAD: Marca propiedad como reservada.
+// - CANCELAR_RESERVA_PROPIEDAD: Vuelve a disponible.
+// - REPORTAR_MANTENIMIENTO_PROPIEDAD: Envía a mantenimiento.
+// - FINALIZAR_MANTENIMIENTO_PROPIEDAD: Vuelve a disponible.
+//
+// COMPONENTES VISUALES:
+//
+// Estadísticas:
+// - Grid de 4 tarjetas con iconos y colores distintivos.
+// - Total, Disponibles, Arrendadas, Área Total.
+//
+// Filtros:
+// - Barra de búsqueda con icono de lupa.
+// - Select de estado con opciones predefinidas.
+//
+// Grid Propiedades:
+// - Cards con imagen, badge de estado, datos principales.
+// - Características: Área, habitaciones, baños.
+// - Tags: Amoblado, parqueaderos.
+// - Botones: Ver, Editar, Eliminar.
+// - Select de transiciones en cada card.
+//
+// Modal Crear/Editar:
+// - Formulario con campos organizados en grid 2 columnas.
+// - Campos: Dirección, ciudad, área, habitaciones, baños, parqueaderos, pisos, año construcción.
+// - Selects: Tipo de propiedad (14 opciones), Estado (5 opciones).
+// - Checkbox: Amoblado.
+// - Textarea: Descripción.
+// - Validación en cliente antes de enviar.
+//
+// Modal Resultados Transición:
+// - Tres estados posibles:
+//   1. Cargando: Spinner con mensaje.
+//   2. Transición no válida: Icono error, motivo, recomendaciones, alternativas.
+//   3. Transición exitosa: Icono éxito, mensaje, estado actual.
+// - Diseño semántico con iconos y colores.
+//
+// IMÁGENES:
+// - Array de URLs de Unsplash para ilustración.
+// - Asignación cíclica según índice en lista filtrada.
+// - Fallback a placeholder si falla carga.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive que se adapta a pantalla.
+// - Cards con hover effects y sombras.
+// - Badges coloreados según estado.
+// - Transiciones suaves en interacciones.
 
 const AdministradorPropiedades: React.FC = () => {
   const navigate = useNavigate();
 
   const [propiedades, setPropiedades] = useState<DTOPropiedadRespuesta[]>([]);
-  const [propiedadesFiltradas, setPropiedadesFiltradas] = useState<DTOPropiedadRespuesta[]>([]);
+  const [propiedadesFiltradas, setPropiedadesFiltradas] = useState<
+    DTOPropiedadRespuesta[]
+  >([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [busqueda, setBusqueda] = useState<string>("");
   const [filtroEstado, setFiltroEstado] = useState<string>("TODAS");
 
   const [mostrarModal, setMostrarModal] = useState<boolean>(false);
-  const [propiedadSeleccionada, setPropiedadSeleccionada] = useState<DTOPropiedadRespuesta | null>(null);
+  const [propiedadSeleccionada, setPropiedadSeleccionada] =
+    useState<DTOPropiedadRespuesta | null>(null);
 
   const [direccion, setDireccion] = useState("");
   const [ciudad, setCiudad] = useState("");
@@ -39,11 +169,15 @@ const AdministradorPropiedades: React.FC = () => {
   const [descripcion, setDescripcion] = useState("");
   const [anoConstruccion, setAnoConstruccion] = useState("");
   const [tipo, setTipo] = useState<TipoPropiedad | "">("");
-  const [estado, setEstado] = useState<EstadoPropiedad>(EstadoPropiedad.DISPONIBLE);
+  const [estado, setEstado] = useState<EstadoPropiedad>(
+    EstadoPropiedad.DISPONIBLE
+  );
 
   // Estados para transiciones de estado
-  const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
-  const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
+  const [resultadoTransicion, setResultadoTransicion] =
+    useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] =
+    useState<ResultadoEjecucion | null>(null);
   const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
 
   useEffect(() => {
@@ -67,7 +201,10 @@ const AdministradorPropiedades: React.FC = () => {
       const usuario = JSON.parse(usuarioString);
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
-      if (rolUsuario !== "ADMINISTRADOR" && rolUsuario !== TipoUsuario.ADMINISTRADOR) {
+      if (
+        rolUsuario !== "ADMINISTRADOR" &&
+        rolUsuario !== TipoUsuario.ADMINISTRADOR
+      ) {
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
@@ -102,7 +239,10 @@ const AdministradorPropiedades: React.FC = () => {
       resultado = resultado.filter((prop) => {
         const direccion = (prop.direccion || "").toLowerCase();
         const ciudad = (prop.ciudad || "").toLowerCase();
-        return direccion.includes(busqueda.toLowerCase()) || ciudad.includes(busqueda.toLowerCase());
+        return (
+          direccion.includes(busqueda.toLowerCase()) ||
+          ciudad.includes(busqueda.toLowerCase())
+        );
       });
     }
 
@@ -115,8 +255,12 @@ const AdministradorPropiedades: React.FC = () => {
 
   const calcularEstadisticas = () => {
     const totalPropiedades = propiedades.length;
-    const disponibles = propiedades.filter((p) => p.estado === EstadoPropiedad.DISPONIBLE).length;
-    const ocupadas = propiedades.filter((p) => p.estado === EstadoPropiedad.ARRENDADA).length;
+    const disponibles = propiedades.filter(
+      (p) => p.estado === EstadoPropiedad.DISPONIBLE
+    ).length;
+    const ocupadas = propiedades.filter(
+      (p) => p.estado === EstadoPropiedad.ARRENDADA
+    ).length;
     const areaTotal = propiedades.reduce((sum, p) => sum + (p.area || 0), 0);
 
     return { totalPropiedades, disponibles, ocupadas, areaTotal };
@@ -244,7 +388,8 @@ const AdministradorPropiedades: React.FC = () => {
       limpiarFormulario();
     } catch (err: any) {
       console.error("ERROR COMPLETO:", err);
-      const mensajeError = err.response?.data?.message || err.response?.data?.error || err.message;
+      const mensajeError =
+        err.response?.data?.message || err.response?.data?.error || err.message;
       alert(`Error: ${mensajeError}`);
     }
   };
@@ -264,14 +409,20 @@ const AdministradorPropiedades: React.FC = () => {
   };
 
   // Manejador para transiciones de estado con validación y ejecución
-  const manejarTransicion = async (propiedadId: number, evento: Evento | string) => {
+  const manejarTransicion = async (
+    propiedadId: number,
+    evento: Evento | string
+  ) => {
     if (!evento) return;
     try {
       setResultadoTransicion(null);
       setResultadoEjecucion(null);
 
       // Validar transición
-      const validacion = await PropiedadService.analizarTransicionPropiedad(propiedadId, evento as Evento);
+      const validacion = await PropiedadService.analizarTransicionPropiedad(
+        propiedadId,
+        evento as Evento
+      );
       setResultadoTransicion(validacion);
 
       if (!validacion.valido) {
@@ -280,7 +431,10 @@ const AdministradorPropiedades: React.FC = () => {
       }
 
       // Ejecutar transición
-      const ejecucion = await PropiedadService.ejecutarTransicionPropiedad(propiedadId, evento as Evento);
+      const ejecucion = await PropiedadService.ejecutarTransicionPropiedad(
+        propiedadId,
+        evento as Evento
+      );
       setResultadoEjecucion(ejecucion);
       setMostrarModalTransicion(true);
 
@@ -369,30 +523,46 @@ const AdministradorPropiedades: React.FC = () => {
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Total Propiedades</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.totalPropiedades}</h2>
-                <p className={styles.descripcionEstadistica}>Propiedades registradas</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.totalPropiedades}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  Propiedades registradas
+                </p>
               </div>
             </div>
 
             <div className={styles.tarjetaEstadistica}>
-              <div className={`${styles.iconoEstadistica} ${styles.iconoVerde}`}>
+              <div
+                className={`${styles.iconoEstadistica} ${styles.iconoVerde}`}
+              >
                 <Home size={24} />
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Disponibles</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.disponibles}</h2>
-                <p className={styles.descripcionEstadistica}>Listas para arrendar</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.disponibles}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  Listas para arrendar
+                </p>
               </div>
             </div>
 
             <div className={styles.tarjetaEstadistica}>
-              <div className={`${styles.iconoEstadistica} ${styles.iconoNaranja}`}>
+              <div
+                className={`${styles.iconoEstadistica} ${styles.iconoNaranja}`}
+              >
                 <Home size={24} />
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Arrendadas</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.ocupadas}</h2>
-                <p className={styles.descripcionEstadistica}>En arriendo actualmente</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.ocupadas}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  En arriendo actualmente
+                </p>
               </div>
             </div>
 
@@ -402,8 +572,12 @@ const AdministradorPropiedades: React.FC = () => {
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Área Total</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.areaTotal} m²</h2>
-                <p className={styles.descripcionEstadistica}>Metros cuadrados totales</p>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.areaTotal} m²
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  Metros cuadrados totales
+                </p>
               </div>
             </div>
           </div>
@@ -428,9 +602,13 @@ const AdministradorPropiedades: React.FC = () => {
               <option value="TODAS">Todas</option>
               <option value={EstadoPropiedad.DISPONIBLE}>Disponibles</option>
               <option value={EstadoPropiedad.ARRENDADA}>Arrendadas</option>
-              <option value={EstadoPropiedad.EN_MANTENIMIENTO}>En Mantenimiento</option>
+              <option value={EstadoPropiedad.EN_MANTENIMIENTO}>
+                En Mantenimiento
+              </option>
               <option value={EstadoPropiedad.RESERVADA}>Reservadas</option>
-              <option value={EstadoPropiedad.EN_VERIFICACION}>En Verificación</option>
+              <option value={EstadoPropiedad.EN_VERIFICACION}>
+                En Verificación
+              </option>
             </select>
           </div>
 
@@ -442,10 +620,18 @@ const AdministradorPropiedades: React.FC = () => {
           ) : (
             <div className={styles.gridPropiedades}>
               {propiedadesFiltradas.map((propiedad) => (
-                <div key={propiedad.idPropiedad} className={styles.tarjetaPropiedad}>
+                <div
+                  key={propiedad.idPropiedad}
+                  className={styles.tarjetaPropiedad}
+                >
                   <div className={styles.imagenPropiedad}>
                     <img
-                      src={imagenes[propiedadesFiltradas.indexOf(propiedad) % imagenes.length]}
+                      src={
+                        imagenes[
+                          propiedadesFiltradas.indexOf(propiedad) %
+                            imagenes.length
+                        ]
+                      }
                       alt="Propiedad"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
@@ -461,11 +647,16 @@ const AdministradorPropiedades: React.FC = () => {
                           : styles.badgeMantenimiento
                       }`}
                     >
-                      {propiedad.estado === EstadoPropiedad.DISPONIBLE && "Disponible"}
-                      {propiedad.estado === EstadoPropiedad.ARRENDADA && "Arrendada"}
-                      {propiedad.estado === EstadoPropiedad.EN_MANTENIMIENTO && "Mantenimiento"}
-                      {propiedad.estado === EstadoPropiedad.RESERVADA && "Reservada"}
-                      {propiedad.estado === EstadoPropiedad.EN_VERIFICACION && "En Verificación"}
+                      {propiedad.estado === EstadoPropiedad.DISPONIBLE &&
+                        "Disponible"}
+                      {propiedad.estado === EstadoPropiedad.ARRENDADA &&
+                        "Arrendada"}
+                      {propiedad.estado === EstadoPropiedad.EN_MANTENIMIENTO &&
+                        "Mantenimiento"}
+                      {propiedad.estado === EstadoPropiedad.RESERVADA &&
+                        "Reservada"}
+                      {propiedad.estado === EstadoPropiedad.EN_VERIFICACION &&
+                        "En Verificación"}
                     </span>
                   </div>
 
@@ -505,7 +696,11 @@ const AdministradorPropiedades: React.FC = () => {
                     <div className={styles.acciones}>
                       <button
                         className={styles.btnAccion}
-                        onClick={() => navigate(`/administrador/propiedades/${propiedad.idPropiedad}`)}
+                        onClick={() =>
+                          navigate(
+                            `/administrador/propiedades/${propiedad.idPropiedad}`
+                          )
+                        }
                       >
                         <Eye size={16} />
                         Ver
@@ -519,28 +714,45 @@ const AdministradorPropiedades: React.FC = () => {
                       </button>
                       <button
                         className={styles.btnEliminar}
-                        onClick={() => handleEliminar(propiedad.idPropiedad || 0)}
+                        onClick={() =>
+                          handleEliminar(propiedad.idPropiedad || 0)
+                        }
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
 
-                    {/* ✅ SELECTOR DE TRANSICIONES ACTUALIZADO */}
+                    {/* SELECTOR DE TRANSICIONES ACTUALIZADO */}
                     <select
                       defaultValue=""
                       onChange={(e) => {
-                        manejarTransicion(propiedad.idPropiedad || 0, e.target.value);
+                        manejarTransicion(
+                          propiedad.idPropiedad || 0,
+                          e.target.value
+                        );
                         e.target.value = "";
                       }}
                       className={styles.selectTransicion}
                     >
                       <option value="">Transición de Estado...</option>
-                      <option value="CREAR_CONTRATO_PROPIEDAD">🏠 Arrendar (Crear Contrato)</option>
-                      <option value="TERMINAR_CONTRATO_PROPIEDAD">🔓 Terminar Contrato</option>
-                      <option value="RESERVAR_PROPIEDAD">📅 Reservar Propiedad</option>
-                      <option value="CANCELAR_RESERVA_PROPIEDAD">❌ Cancelar Reserva</option>
-                      <option value="REPORTAR_MANTENIMIENTO_PROPIEDAD">🔧 Enviar a Mantenimiento</option>
-                      <option value="FINALIZAR_MANTENIMIENTO_PROPIEDAD">✅ Finalizar Mantenimiento</option>
+                      <option value="CREAR_CONTRATO_PROPIEDAD">
+                        Arrendar (Crear Contrato)
+                      </option>
+                      <option value="TERMINAR_CONTRATO_PROPIEDAD">
+                        Terminar Contrato
+                      </option>
+                      <option value="RESERVAR_PROPIEDAD">
+                        Reservar Propiedad
+                      </option>
+                      <option value="CANCELAR_RESERVA_PROPIEDAD">
+                        Cancelar Reserva
+                      </option>
+                      <option value="REPORTAR_MANTENIMIENTO_PROPIEDAD">
+                        Enviar a Mantenimiento
+                      </option>
+                      <option value="FINALIZAR_MANTENIMIENTO_PROPIEDAD">
+                        Finalizar Mantenimiento
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -636,10 +848,14 @@ const AdministradorPropiedades: React.FC = () => {
                 <option value={TipoPropiedad.CASA}>Casa</option>
                 <option value={TipoPropiedad.DUPLEX}>Dúplex</option>
                 <option value={TipoPropiedad.PENTHOUSE}>Penthouse</option>
-                <option value={TipoPropiedad.APARTAMENTO_ESTUDIO}>Apartamento Estudio</option>
+                <option value={TipoPropiedad.APARTAMENTO_ESTUDIO}>
+                  Apartamento Estudio
+                </option>
                 <option value={TipoPropiedad.CASA_PLAYA}>Casa de Playa</option>
                 <option value={TipoPropiedad.OFICINA}>Oficina</option>
-                <option value={TipoPropiedad.LOCAL_COMERCIAL}>Local Comercial</option>
+                <option value={TipoPropiedad.LOCAL_COMERCIAL}>
+                  Local Comercial
+                </option>
                 <option value={TipoPropiedad.BODEGA}>Bodega</option>
                 <option value={TipoPropiedad.GALPON}>Galpón</option>
                 <option value={TipoPropiedad.CONSULTORIO}>Consultorio</option>
@@ -659,9 +875,13 @@ const AdministradorPropiedades: React.FC = () => {
               >
                 <option value={EstadoPropiedad.DISPONIBLE}>Disponible</option>
                 <option value={EstadoPropiedad.ARRENDADA}>Arrendada</option>
-                <option value={EstadoPropiedad.EN_MANTENIMIENTO}>En Mantenimiento</option>
+                <option value={EstadoPropiedad.EN_MANTENIMIENTO}>
+                  En Mantenimiento
+                </option>
                 <option value={EstadoPropiedad.RESERVADA}>Reservada</option>
-                <option value={EstadoPropiedad.EN_VERIFICACION}>En Verificación</option>
+                <option value={EstadoPropiedad.EN_VERIFICACION}>
+                  En Verificación
+                </option>
               </select>
             </div>
 
@@ -692,7 +912,7 @@ const AdministradorPropiedades: React.FC = () => {
         </div>
       </ModalComponente>
 
-      {/* ✅ MODAL MEJORADO PARA MOSTRAR RESULTADOS DE TRANSICIONES */}
+      {/* MODAL MEJORADO PARA MOSTRAR RESULTADOS DE TRANSICIONES */}
       <ModalComponente
         openModal={mostrarModalTransicion}
         setOpenModal={setMostrarModalTransicion}
@@ -705,46 +925,56 @@ const AdministradorPropiedades: React.FC = () => {
               {/* TRANSICIÓN NO VÁLIDA */}
               <div className={styles.iconoError}>❌</div>
               <h3 className={styles.tituloError}>Transición No Permitida</h3>
-              
+
               {/* Motivo del rechazo */}
               <div className={styles.seccionMotivo}>
-                <h4 className={styles.subtituloSeccion}>📋 Motivo del Rechazo:</h4>
-                <p className={styles.textoMotivo}>{resultadoTransicion?.motivo || "No se especificó un motivo"}</p>
+                <h4 className={styles.subtituloSeccion}>
+                  📋 Motivo del Rechazo:
+                </h4>
+                <p className={styles.textoMotivo}>
+                  {resultadoTransicion?.motivo || "No se especificó un motivo"}
+                </p>
               </div>
 
               {/* Recomendaciones */}
-              {resultadoTransicion?.recomendaciones && resultadoTransicion.recomendaciones.length > 0 && (
-                <div className={styles.seccionRecomendaciones}>
-                  <h4 className={styles.subtituloSeccion}>💡 Recomendaciones:</h4>
-                  <ul className={styles.listaRecomendaciones}>
-                    {resultadoTransicion.recomendaciones.map((rec, i) => (
-                      <li key={i} className={styles.itemRecomendacion}>
-                        <span className={styles.numeroItem}>{i + 1}</span>
-                        <span className={styles.textoItem}>{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {resultadoTransicion?.recomendaciones &&
+                resultadoTransicion.recomendaciones.length > 0 && (
+                  <div className={styles.seccionRecomendaciones}>
+                    <h4 className={styles.subtituloSeccion}>
+                      Recomendaciones:
+                    </h4>
+                    <ul className={styles.listaRecomendaciones}>
+                      {resultadoTransicion.recomendaciones.map((rec, i) => (
+                        <li key={i} className={styles.itemRecomendacion}>
+                          <span className={styles.numeroItem}>{i + 1}</span>
+                          <span className={styles.textoItem}>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
               {/* Alternativas disponibles */}
-              {resultadoTransicion?.alternativas && resultadoTransicion.alternativas.length > 0 && (
-                <div className={styles.seccionAlternativas}>
-                  <h4 className={styles.subtituloSeccion}>🔀 Transiciones Alternativas Disponibles:</h4>
-                  <ul className={styles.listaAlternativas}>
-                    {resultadoTransicion.alternativas.map((alt, i) => (
-                      <li key={i} className={styles.itemAlternativa}>
-                        <span className={styles.iconoCheck}>✓</span>
-                        <span className={styles.textoItem}>{alt}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {resultadoTransicion?.alternativas &&
+                resultadoTransicion.alternativas.length > 0 && (
+                  <div className={styles.seccionAlternativas}>
+                    <h4 className={styles.subtituloSeccion}>
+                      Transiciones Alternativas Disponibles:
+                    </h4>
+                    <ul className={styles.listaAlternativas}>
+                      {resultadoTransicion.alternativas.map((alt, i) => (
+                        <li key={i} className={styles.itemAlternativa}>
+                          <span className={styles.iconoCheck}>✓</span>
+                          <span className={styles.textoItem}>{alt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
               {/* Botón de cerrar */}
               <div className={styles.accionesModal}>
-                <button 
+                <button
                   className={styles.btnCerrarModal}
                   onClick={() => setMostrarModalTransicion(false)}
                 >
@@ -755,26 +985,46 @@ const AdministradorPropiedades: React.FC = () => {
           ) : resultadoEjecucion ? (
             <>
               {/* TRANSICIÓN EXITOSA */}
-              <div className={resultadoEjecucion.exito ? styles.iconoExito : styles.iconoError}>
+              <div
+                className={
+                  resultadoEjecucion.exito
+                    ? styles.iconoExito
+                    : styles.iconoError
+                }
+              >
                 {resultadoEjecucion.exito ? "✅" : "❌"}
               </div>
-              <h3 className={resultadoEjecucion.exito ? styles.tituloExito : styles.tituloError}>
-                {resultadoEjecucion.exito ? "¡Transición Exitosa!" : "Error en la Transición"}
+              <h3
+                className={
+                  resultadoEjecucion.exito
+                    ? styles.tituloExito
+                    : styles.tituloError
+                }
+              >
+                {resultadoEjecucion.exito
+                  ? "¡Transición Exitosa!"
+                  : "Error en la Transición"}
               </h3>
 
               {/* Mensaje de resultado */}
               <div className={styles.seccionMensaje}>
                 <h4 className={styles.subtituloSeccion}>
-                  {resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}
+                  {resultadoEjecucion.exito ? "Resultado:" : "Error:"}
                 </h4>
-                <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
+                <p className={styles.mensajeResultado}>
+                  {resultadoEjecucion.mensaje}
+                </p>
               </div>
 
               {/* Estado actual */}
               <div className={styles.seccionEstadoActual}>
-                <h4 className={styles.subtituloSeccion}>🏷️ Estado Actual de la Propiedad:</h4>
+                <h4 className={styles.subtituloSeccion}>
+                  Estado Actual de la Propiedad:
+                </h4>
                 <div className={styles.badgeEstadoActual}>
-                  <span className={styles.estadoActualTexto}>{resultadoEjecucion.estadoActual}</span>
+                  <span className={styles.estadoActualTexto}>
+                    {resultadoEjecucion.estadoActual}
+                  </span>
                 </div>
               </div>
 
@@ -782,14 +1032,15 @@ const AdministradorPropiedades: React.FC = () => {
               {resultadoEjecucion.exito && (
                 <div className={styles.seccionInformacion}>
                   <p className={styles.textoInformacion}>
-                    La propiedad ha cambiado de estado exitosamente. Los cambios se han registrado en el historial.
+                    La propiedad ha cambiado de estado exitosamente. Los cambios
+                    se han registrado en el historial.
                   </p>
                 </div>
               )}
 
               {/* Botones de acción */}
               <div className={styles.accionesModal}>
-                <button 
+                <button
                   className={styles.btnCerrarModal}
                   onClick={() => setMostrarModalTransicion(false)}
                 >
@@ -801,7 +1052,9 @@ const AdministradorPropiedades: React.FC = () => {
             <>
               {/* ESTADO DE CARGA */}
               <div className={styles.spinner}></div>
-              <p className={styles.textoCargando}>Analizando transición de estado...</p>
+              <p className={styles.textoCargando}>
+                Analizando transición de estado...
+              </p>
               <p className={styles.textoEspera}>Por favor espera un momento</p>
             </>
           )}

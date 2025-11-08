@@ -1,11 +1,19 @@
-import { urlApi } from "../app/api"; 
-import type { DTOPropietarioRegistro, DTOPropietarioRespuesta } from "../modelos/types/Propietario";
+import { urlApi } from "../app/api";
+import type {
+  DTOPropietarioRegistro,
+  DTOPropietarioRespuesta,
+} from "../modelos/types/Propietario";
 
 const API_URL = "/api/v1/propietario";
 
 export class PropietarioService {
-  static async registrar(data: DTOPropietarioRegistro): Promise<DTOPropietarioRespuesta> {
-    const { data: propietario } = await urlApi.post(`${API_URL}/registro`, data);
+  static async registrar(
+    data: DTOPropietarioRegistro
+  ): Promise<DTOPropietarioRespuesta> {
+    const { data: propietario } = await urlApi.post(
+      `${API_URL}/registro`,
+      data
+    );
     return propietario as DTOPropietarioRespuesta;
   }
 
@@ -14,8 +22,14 @@ export class PropietarioService {
     return propietarios as DTOPropietarioRespuesta[];
   }
 
-  static async actualizar(id: number, data: DTOPropietarioRegistro): Promise<DTOPropietarioRespuesta> {
-    const { data: propietario } = await urlApi.put(`${API_URL}/actualizar/${id}`, data);
+  static async actualizar(
+    id: number,
+    data: DTOPropietarioRegistro
+  ): Promise<DTOPropietarioRespuesta> {
+    const { data: propietario } = await urlApi.put(
+      `${API_URL}/actualizar/${id}`,
+      data
+    );
     return propietario as DTOPropietarioRespuesta;
   }
 

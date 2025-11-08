@@ -99,8 +99,6 @@ export interface DTOReportePropiedadCompleto {
   usuarioGenerador?: DTOUsuarioReporte;
 }
 
-// ✅ NUEVOS INTERFACES PARA PAGOS Y FACTURAS
-
 export interface DTOReportePagoCompleto {
   pago: DTOPagoReporte;
   factura?: DTOFacturaReporte;

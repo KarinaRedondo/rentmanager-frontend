@@ -28,6 +28,136 @@ import {
   AlertCircle,
 } from "react-feather";
 
+// ========================================
+// GESTIÓN DE FACTURAS - ROL CONTADOR
+// ========================================
+//
+// Página completa de administración de facturas con CRUD, transiciones de estado y paginación.
+// Exclusivo para roles CONTADOR y ADMINISTRADOR.
+//
+// FUNCIONALIDADES:
+// - Listado paginado de facturas con datos principales.
+// - CRUD completo: Crear, leer, actualizar facturas.
+// - Transiciones de estado validadas con autómata/predictor.
+// - Modal de edición para cambiar estado de factura.
+// - Modal de creación con formulario completo.
+// - Modal de resultados de transiciones con motivos y recomendaciones.
+// - Navegación a página de detalle de factura.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol CONTADOR o ADMINISTRADOR.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no autorizado.
+//
+// ESTADO:
+// - facturas: Lista completa de facturas cargadas.
+// - facturasMostradas: Subset de facturas para página actual.
+// - paginaActual: Página activa de paginación (10 items por página).
+// - cargando: Indica operación de carga en curso.
+// - error: Mensaje de error para mostrar al usuario.
+// - facturaSeleccionada: Factura en edición.
+// - mostrarModalEditar, mostrarModalCrear, mostrarModalTransicion: Toggle de modales.
+// - resultadoTransicion: Datos de validación de transición.
+// - resultadoEjecucion: Resultado de ejecución de transición.
+//
+// INTERFACES:
+// - ResultadoValidacion: Respuesta de análisis de transición.
+// - ResultadoEjecucion: Respuesta de ejecución de transición.
+// - ModalEditarProps, ModalCrearProps: Props para modales.
+//
+// COMPONENTES MODALES:
+//
+// ModalEditar:
+// - Muestra datos completos de factura (ID, inquilino, propiedad, fechas, total).
+// - Select para cambiar estado con todas las opciones de EstadoFactura.
+// - Botones cancelar y guardar con estado de guardando.
+// - Validación de datos antes de guardar.
+//
+// ModalCrear:
+// - Carga de contratos disponibles con estados de carga y error.
+// - Formulario: Select de contrato, fecha emisión, fecha vencimiento, total.
+// - Validación completa: Campos requeridos, total > 0, fecha vencimiento > emisión.
+// - Estado GENERADA por defecto al crear.
+// - Botones cancelar y crear con estado de creando.
+//
+// FUNCIONES PRINCIPALES:
+//
+// cargarFacturas():
+// - Llama obtenerFacturas() del servicio.
+// - Actualiza estado con lista completa.
+// - Maneja errores mostrando mensaje.
+// - useCallback para evitar recreaciones.
+//
+// actualizarFacturasMostradas():
+// - Calcula slice de facturas según página actual.
+// - Se ejecuta automáticamente al cambiar facturas o página.
+//
+// handleGuardarEdicion():
+// - Actualiza estado de factura con actualizarFactura().
+// - Recarga lista después de éxito.
+// - Cierra modal y limpia selección.
+//
+// handleCrearFactura():
+// - Crea factura con crearFactura().
+// - Recarga lista después de éxito.
+// - Cierra modal de creación.
+//
+// manejarTransicion():
+// - Primero analiza transición con analizarTransicionFactura().
+// - Si no es válida, muestra modal con motivo, recomendaciones y alternativas.
+// - Si es válida, ejecuta con ejecutarTransicionFactura().
+// - Muestra modal con resultado de ejecución.
+// - Recarga lista después de transición exitosa.
+//
+// TRANSICIONES DISPONIBLES:
+// - ENVIAR_FACTURA: Envía factura a inquilino.
+// - REGISTRAR_PAGO_FACTURA: Marca como pagada.
+// - MARCAR_VENCIDA_FACTURA: Marca como vencida.
+// - DISPUTAR_FACTURA: Inicia disputa.
+// - AJUSTAR_FACTURA: Ajusta monto o datos.
+// - RECHAZAR_DISPUTA_FACTURA: Rechaza disputa.
+// - INICIAR_COBRANZA_FACTURA: Inicia proceso de cobranza.
+// - DECLARAR_INCOBRABLE_FACTURA: Marca como incobrable.
+//
+// TABLA DE FACTURAS:
+// - Columnas: #, Fecha emisión, Fecha vencimiento, Total, Estado, Acciones, Transición.
+// - Badge coloreado según estado.
+// - Botones Ver y Editar.
+// - Select de transiciones en cada fila.
+//
+// PAGINACIÓN:
+// - 10 items por página (ITEMS_POR_PAGINA).
+// - Botones anterior/siguiente con disabled.
+// - Indicador de página actual y total.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato corto español.
+// - formatearMoneda(): Formatea números con separadores de miles.
+// - obtenerClaseEstado(): Asigna clase CSS según estado de factura.
+//
+// MODAL DE TRANSICIONES:
+// - Tres estados posibles:
+//   1. Cargando: Spinner con mensaje.
+//   2. Transición no válida: Icono error, motivo, recomendaciones, alternativas.
+//   3. Transición exitosa: Icono éxito, mensaje, estado actual.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje.
+// - Error: Icono AlertCircle, mensaje y botón reintentar.
+// - Sin datos: Icono FileText y mensaje.
+// - Badges coloreados: 9 estados diferentes de factura.
+//
+// VALIDACIONES:
+// - Modal crear: Contrato requerido, fechas requeridas, total > 0, fecha vencimiento > emisión.
+// - Modal editar: Estado requerido.
+// - Transiciones: Validación en backend con respuestas detalladas.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Tabla responsive con scroll horizontal en móviles.
+// - Modales con overlay oscuro y backdrop blur.
+// - Badges con colores semánticos por estado.
+
 const ITEMS_POR_PAGINA = 10;
 
 // ==================== INTERFACES ====================
@@ -58,13 +188,21 @@ interface ModalCrearProps {
 
 // ==================== MODAL DE EDICIÓN ====================
 
-const ModalEditar: React.FC<ModalEditarProps> = ({ factura, onClose, onGuardar }) => {
+const ModalEditar: React.FC<ModalEditarProps> = ({
+  factura,
+  onClose,
+  onGuardar,
+}) => {
   const [estado, setEstado] = useState<EstadoFactura>(EstadoFactura.GENERADA);
   const [guardando, setGuardando] = useState<boolean>(false);
 
   useEffect(() => {
     if (factura) {
-      setEstado(factura.estado ? (factura.estado as EstadoFactura) : EstadoFactura.GENERADA);
+      setEstado(
+        factura.estado
+          ? (factura.estado as EstadoFactura)
+          : EstadoFactura.GENERADA
+      );
     }
   }, [factura]);
 
@@ -87,7 +225,10 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ factura, onClose, onGuardar }
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.modalContenido}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.modalHeader}>
           <h2>
             <Edit3 size={20} />
@@ -118,21 +259,33 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ factura, onClose, onGuardar }
             </div>
             <div className={styles.campo}>
               <label>Fecha Emisión:</label>
-              <p>{factura.fechaEmision ? new Date(factura.fechaEmision).toLocaleDateString("es-CO") : "N/A"}</p>
+              <p>
+                {factura.fechaEmision
+                  ? new Date(factura.fechaEmision).toLocaleDateString("es-CO")
+                  : "N/A"}
+              </p>
             </div>
             <div className={styles.campo}>
               <label>Fecha Vencimiento:</label>
               <p>
-                {factura.fechaVencimiento ? new Date(factura.fechaVencimiento).toLocaleDateString("es-CO") : "N/A"}
+                {factura.fechaVencimiento
+                  ? new Date(factura.fechaVencimiento).toLocaleDateString(
+                      "es-CO"
+                    )
+                  : "N/A"}
               </p>
             </div>
             <div className={styles.campo}>
               <label>Total:</label>
-              <p className={styles.total}>${(factura.total || 0).toLocaleString("es-CO")}</p>
+              <p className={styles.total}>
+                ${(factura.total || 0).toLocaleString("es-CO")}
+              </p>
             </div>
             <div className={styles.campo}>
               <label>Estado Actual:</label>
-              <p className={styles.estadoActual}>{factura.estado || "GENERADA"}</p>
+              <p className={styles.estadoActual}>
+                {factura.estado || "GENERADA"}
+              </p>
             </div>
           </div>
 
@@ -163,10 +316,18 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ factura, onClose, onGuardar }
         </div>
 
         <div className={styles.modalFooter}>
-          <button className={styles.btnCancelar} onClick={onClose} disabled={guardando}>
+          <button
+            className={styles.btnCancelar}
+            onClick={onClose}
+            disabled={guardando}
+          >
             Cancelar
           </button>
-          <button className={styles.btnGuardar} onClick={handleGuardar} disabled={guardando}>
+          <button
+            className={styles.btnGuardar}
+            onClick={handleGuardar}
+            disabled={guardando}
+          >
             <Save size={18} />
             {guardando ? "Guardando..." : "Guardar Cambios"}
           </button>
@@ -245,7 +406,10 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.modalContenido}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.modalHeader}>
           <h2>
             <FileText size={20} />
@@ -280,8 +444,12 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
                 >
                   <option value="">Seleccionar contrato</option>
                   {contratos.map((contrato) => (
-                    <option key={contrato.idContrato} value={contrato.idContrato}>
-                      Contrato #{contrato.idContrato} - {contrato.inquilino?.nombre}{" "}
+                    <option
+                      key={contrato.idContrato}
+                      value={contrato.idContrato}
+                    >
+                      Contrato #{contrato.idContrato} -{" "}
+                      {contrato.inquilino?.nombre}{" "}
                       {contrato.inquilino?.apellido}
                     </option>
                   ))}
@@ -330,10 +498,18 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
         </div>
 
         <div className={styles.modalFooter}>
-          <button className={styles.btnCancelar} onClick={onClose} disabled={guardando}>
+          <button
+            className={styles.btnCancelar}
+            onClick={onClose}
+            disabled={guardando}
+          >
             Cancelar
           </button>
-          <button className={styles.btnGuardar} onClick={handleGuardar} disabled={guardando || cargandoContratos}>
+          <button
+            className={styles.btnGuardar}
+            onClick={handleGuardar}
+            disabled={guardando || cargandoContratos}
+          >
             <Save size={18} />
             {guardando ? "Creando..." : "Crear Factura"}
           </button>
@@ -349,16 +525,21 @@ const ContadorFacturas: React.FC = () => {
   const navigate = useNavigate();
 
   const [facturas, setFacturas] = useState<DTOFacturaRespuesta[]>([]);
-  const [facturasMostradas, setFacturasMostradas] = useState<DTOFacturaRespuesta[]>([]);
+  const [facturasMostradas, setFacturasMostradas] = useState<
+    DTOFacturaRespuesta[]
+  >([]);
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [facturaSeleccionada, setFacturaSeleccionada] = useState<DTOFacturaRespuesta | null>(null);
+  const [facturaSeleccionada, setFacturaSeleccionada] =
+    useState<DTOFacturaRespuesta | null>(null);
   const [mostrarModalEditar, setMostrarModalEditar] = useState<boolean>(false);
   const [mostrarModalCrear, setMostrarModalCrear] = useState<boolean>(false);
 
-  const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
-  const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
+  const [resultadoTransicion, setResultadoTransicion] =
+    useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] =
+    useState<ResultadoEjecucion | null>(null);
   const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
 
   useEffect(() => {
@@ -420,7 +601,10 @@ const ContadorFacturas: React.FC = () => {
     setFacturasMostradas(facturas.slice(inicio, fin));
   };
 
-  const handleGuardarEdicion = async (facturaId: number, estado: EstadoFactura) => {
+  const handleGuardarEdicion = async (
+    facturaId: number,
+    estado: EstadoFactura
+  ) => {
     try {
       console.log("Actualizando factura:", facturaId, estado);
       await actualizarFactura(facturaId, { estado });
@@ -450,24 +634,30 @@ const ContadorFacturas: React.FC = () => {
   const manejarTransicion = async (facturaId: number, evento: string) => {
     if (!evento) return;
 
-    console.log(`🔄 Transición: Factura ${facturaId} → ${evento}`);
+    console.log(`Transición: Factura ${facturaId} → ${evento}`);
 
     try {
       setResultadoTransicion(null);
       setResultadoEjecucion(null);
 
-      const validacion = await analizarTransicionFactura(facturaId, evento as any);
+      const validacion = await analizarTransicionFactura(
+        facturaId,
+        evento as any
+      );
       setResultadoTransicion(validacion);
 
       if (!validacion.valido) {
-        console.warn("⚠️ Rechazada:", validacion.motivo);
+        console.warn("Rechazada:", validacion.motivo);
         setMostrarModalTransicion(true);
         return;
       }
 
-      console.log("✅ Ejecutando...");
+      console.log("Ejecutando...");
 
-      const ejecucion = await ejecutarTransicionFactura(facturaId, evento as any);
+      const ejecucion = await ejecutarTransicionFactura(
+        facturaId,
+        evento as any
+      );
       setResultadoEjecucion(ejecucion);
       setMostrarModalTransicion(true);
 
@@ -475,7 +665,7 @@ const ContadorFacturas: React.FC = () => {
         await cargarFacturas();
       }
     } catch (err: any) {
-      console.error("❌ Error:", err);
+      console.error("Error:", err);
       setResultadoTransicion({
         valido: false,
         motivo: err.message || "Error desconocido",
@@ -487,7 +677,7 @@ const ContadorFacturas: React.FC = () => {
   const obtenerClaseEstado = (estado: string | undefined): string => {
     if (!estado) return styles.estadoGenerada;
     const estadoUpper = estado.toUpperCase();
-    
+
     const mapeoEstados: Record<string, string> = {
       [EstadoFactura.PAGADA]: styles.estadoPagada,
       [EstadoFactura.PENDIENTE]: styles.estadoPendiente,
@@ -563,7 +753,10 @@ const ContadorFacturas: React.FC = () => {
         <div className={styles.contenedor}>
           <div className={styles.encabezado}>
             <h1>Gestión de Facturas</h1>
-            <button className={styles.btnNuevo} onClick={() => setMostrarModalCrear(true)}>
+            <button
+              className={styles.btnNuevo}
+              onClick={() => setMostrarModalCrear(true)}
+            >
               <Plus size={20} />
               Nueva Factura
             </button>
@@ -597,7 +790,11 @@ const ContadorFacturas: React.FC = () => {
                         <td>{formatearFecha(factura.fechaVencimiento)}</td>
                         <td>{formatearMoneda(factura.total)}</td>
                         <td>
-                          <span className={`${styles.badge} ${obtenerClaseEstado(factura.estado)}`}>
+                          <span
+                            className={`${styles.badge} ${obtenerClaseEstado(
+                              factura.estado
+                            )}`}
+                          >
                             {factura.estado || "GENERADA"}
                           </span>
                         </td>
@@ -605,7 +802,11 @@ const ContadorFacturas: React.FC = () => {
                           <div className={styles.acciones}>
                             <button
                               className={styles.botonVer}
-                              onClick={() => navigate(`/contador/facturas/${factura.idFactura}`)}
+                              onClick={() =>
+                                navigate(
+                                  `/contador/facturas/${factura.idFactura}`
+                                )
+                              }
                               title="Ver detalles"
                             >
                               <Eye size={18} /> Ver
@@ -626,20 +827,33 @@ const ContadorFacturas: React.FC = () => {
                           <select
                             defaultValue=""
                             onChange={(e) => {
-                              manejarTransicion(factura.idFactura || 0, e.target.value);
+                              manejarTransicion(
+                                factura.idFactura || 0,
+                                e.target.value
+                              );
                               e.target.value = "";
                             }}
                             className={styles.selectTransicion}
                           >
                             <option value="">Transición...</option>
-                            <option value="ENVIAR_FACTURA">📤 Enviar</option>
-                            <option value="REGISTRAR_PAGO_FACTURA">💰 Registrar Pago</option>
-                            <option value="MARCAR_VENCIDA_FACTURA">⏰ Marcar Vencida</option>
-                            <option value="DISPUTAR_FACTURA">⚠️ Disputar</option>
-                            <option value="AJUSTAR_FACTURA">✏️ Ajustar</option>
-                            <option value="RECHAZAR_DISPUTA_FACTURA">❌ Rechazar Disputa</option>
-                            <option value="INICIAR_COBRANZA_FACTURA">⚖️ Iniciar Cobranza</option>
-                            <option value="DECLARAR_INCOBRABLE_FACTURA">🚫 Incobrable</option>
+                            <option value="ENVIAR_FACTURA">Enviar</option>
+                            <option value="REGISTRAR_PAGO_FACTURA">
+                              Registrar Pago
+                            </option>
+                            <option value="MARCAR_VENCIDA_FACTURA">
+                              Marcar Vencida
+                            </option>
+                            <option value="DISPUTAR_FACTURA">Disputar</option>
+                            <option value="AJUSTAR_FACTURA">Ajustar</option>
+                            <option value="RECHAZAR_DISPUTA_FACTURA">
+                              Rechazar Disputa
+                            </option>
+                            <option value="INICIAR_COBRANZA_FACTURA">
+                              Iniciar Cobranza
+                            </option>
+                            <option value="DECLARAR_INCOBRABLE_FACTURA">
+                              Incobrable
+                            </option>
                           </select>
                         </td>
                       </tr>
@@ -650,14 +864,19 @@ const ContadorFacturas: React.FC = () => {
 
               {totalPaginas > 1 && (
                 <div className={styles.paginacion}>
-                  <button onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))} disabled={paginaActual === 1}>
+                  <button
+                    onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))}
+                    disabled={paginaActual === 1}
+                  >
                     <ChevronLeft size={18} /> Anterior
                   </button>
                   <span>
                     Página {paginaActual} de {totalPaginas}
                   </span>
                   <button
-                    onClick={() => setPaginaActual((p) => Math.min(p + 1, totalPaginas))}
+                    onClick={() =>
+                      setPaginaActual((p) => Math.min(p + 1, totalPaginas))
+                    }
                     disabled={paginaActual === totalPaginas}
                   >
                     Siguiente <ChevronRight size={18} />
@@ -682,15 +901,27 @@ const ContadorFacturas: React.FC = () => {
       )}
 
       {mostrarModalCrear && (
-        <ModalCrear onClose={() => setMostrarModalCrear(false)} onGuardar={handleCrearFactura} />
+        <ModalCrear
+          onClose={() => setMostrarModalCrear(false)}
+          onGuardar={handleCrearFactura}
+        />
       )}
 
       {mostrarModalTransicion && (
-        <div className={styles.modalOverlay} onClick={() => setMostrarModalTransicion(false)}>
-          <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setMostrarModalTransicion(false)}
+        >
+          <div
+            className={styles.modalContenido}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               <h2>Resultado de Transición</h2>
-              <button className={styles.btnCerrar} onClick={() => setMostrarModalTransicion(false)}>
+              <button
+                className={styles.btnCerrar}
+                onClick={() => setMostrarModalTransicion(false)}
+              >
                 <X size={24} />
               </button>
             </div>
@@ -698,77 +929,113 @@ const ContadorFacturas: React.FC = () => {
             <div className={styles.modalBody}>
               {!resultadoTransicion?.valido ? (
                 <>
-                  <div className={styles.iconoError}>❌</div>
-                  <h3 className={styles.tituloError}>Transición No Permitida</h3>
+                  <div className={styles.iconoError}></div>
+                  <h3 className={styles.tituloError}>
+                    Transición No Permitida
+                  </h3>
 
                   <div className={styles.seccionMotivo}>
-                    <h4 className={styles.subtituloSeccion}>📋 Motivo:</h4>
-                    <p className={styles.textoMotivo}>{resultadoTransicion?.motivo || "Sin motivo"}</p>
+                    <h4 className={styles.subtituloSeccion}>Motivo:</h4>
+                    <p className={styles.textoMotivo}>
+                      {resultadoTransicion?.motivo || "Sin motivo"}
+                    </p>
                   </div>
 
-                  {resultadoTransicion?.recomendaciones && resultadoTransicion.recomendaciones.length > 0 && (
-                    <div className={styles.seccionRecomendaciones}>
-                      <h4 className={styles.subtituloSeccion}>💡 Recomendaciones:</h4>
-                      <ul className={styles.listaRecomendaciones}>
-                        {resultadoTransicion.recomendaciones.map((rec, i) => (
-                          <li key={i} className={styles.itemRecomendacion}>
-                            <span className={styles.numeroItem}>{i + 1}</span>
-                            <span className={styles.textoItem}>{rec}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {resultadoTransicion?.recomendaciones &&
+                    resultadoTransicion.recomendaciones.length > 0 && (
+                      <div className={styles.seccionRecomendaciones}>
+                        <h4 className={styles.subtituloSeccion}>
+                          Recomendaciones:
+                        </h4>
+                        <ul className={styles.listaRecomendaciones}>
+                          {resultadoTransicion.recomendaciones.map((rec, i) => (
+                            <li key={i} className={styles.itemRecomendacion}>
+                              <span className={styles.numeroItem}>{i + 1}</span>
+                              <span className={styles.textoItem}>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-                  {resultadoTransicion?.alternativas && resultadoTransicion.alternativas.length > 0 && (
-                    <div className={styles.seccionAlternativas}>
-                      <h4 className={styles.subtituloSeccion}>🔀 Alternativas:</h4>
-                      <ul className={styles.listaAlternativas}>
-                        {resultadoTransicion.alternativas.map((alt, i) => (
-                          <li key={i} className={styles.itemAlternativa}>
-                            <span className={styles.iconoCheck}>✓</span>
-                            <span className={styles.textoItem}>{alt}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {resultadoTransicion?.alternativas &&
+                    resultadoTransicion.alternativas.length > 0 && (
+                      <div className={styles.seccionAlternativas}>
+                        <h4 className={styles.subtituloSeccion}>
+                          Alternativas:
+                        </h4>
+                        <ul className={styles.listaAlternativas}>
+                          {resultadoTransicion.alternativas.map((alt, i) => (
+                            <li key={i} className={styles.itemAlternativa}>
+                              <span className={styles.iconoCheck}>✓</span>
+                              <span className={styles.textoItem}>{alt}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                   <div className={styles.accionesModal}>
-                    <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                    <button
+                      className={styles.btnCerrarModal}
+                      onClick={() => setMostrarModalTransicion(false)}
+                    >
                       Entendido
                     </button>
                   </div>
                 </>
               ) : resultadoEjecucion ? (
                 <>
-                  <div className={resultadoEjecucion.exito ? styles.iconoExito : styles.iconoError}>
+                  <div
+                    className={
+                      resultadoEjecucion.exito
+                        ? styles.iconoExito
+                        : styles.iconoError
+                    }
+                  >
                     {resultadoEjecucion.exito ? "✅" : "❌"}
                   </div>
-                  <h3 className={resultadoEjecucion.exito ? styles.tituloExito : styles.tituloError}>
+                  <h3
+                    className={
+                      resultadoEjecucion.exito
+                        ? styles.tituloExito
+                        : styles.tituloError
+                    }
+                  >
                     {resultadoEjecucion.exito ? "¡Exitosa!" : "Error"}
                   </h3>
 
                   <div className={styles.seccionMensaje}>
-                    <h4 className={styles.subtituloSeccion}>{resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}</h4>
-                    <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
+                    <h4 className={styles.subtituloSeccion}>
+                      {resultadoEjecucion.exito ? "Resultado:" : "Error:"}
+                    </h4>
+                    <p className={styles.mensajeResultado}>
+                      {resultadoEjecucion.mensaje}
+                    </p>
                   </div>
 
                   <div className={styles.seccionEstadoActual}>
-                    <h4 className={styles.subtituloSeccion}>🏷️ Estado:</h4>
+                    <h4 className={styles.subtituloSeccion}>Estado:</h4>
                     <div className={styles.badgeEstadoActual}>
-                      <span className={styles.estadoActualTexto}>{resultadoEjecucion.estadoActual}</span>
+                      <span className={styles.estadoActualTexto}>
+                        {resultadoEjecucion.estadoActual}
+                      </span>
                     </div>
                   </div>
 
                   {resultadoEjecucion.exito && (
                     <div className={styles.seccionInformacion}>
-                      <p className={styles.textoInformacion}>Cambio registrado exitosamente.</p>
+                      <p className={styles.textoInformacion}>
+                        Cambio registrado exitosamente.
+                      </p>
                     </div>
                   )}
 
                   <div className={styles.accionesModal}>
-                    <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                    <button
+                      className={styles.btnCerrarModal}
+                      onClick={() => setMostrarModalTransicion(false)}
+                    >
                       {resultadoEjecucion.exito ? "Perfecto" : "Cerrar"}
                     </button>
                   </div>

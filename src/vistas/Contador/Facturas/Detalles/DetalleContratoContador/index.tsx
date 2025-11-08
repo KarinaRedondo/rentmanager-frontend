@@ -1,11 +1,61 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { obtenerContratoPorId } from "../../../../../servicios/contratos"; 
-import type { DTOContratoRespuesta } from "../../../../../modelos/types/Contrato"; 
+import { obtenerContratoPorId } from "../../../../../servicios/contratos";
+import type { DTOContratoRespuesta } from "../../../../../modelos/types/Contrato";
 import styles from "./DetalleContratoContador.module.css";
 import { ArrowLeft, FileText } from "react-feather";
 import Header from "../../../../../componentes/Header";
 import Footer from "../../../../../componentes/Footer";
+
+// ========================================
+// DETALLE DE CONTRATO - ROL CONTADOR
+// ========================================
+//
+// Vista de solo lectura de contrato para rol Contador.
+// Muestra información básica sin opciones de edición.
+//
+// FUNCIONALIDADES:
+// - Visualización de datos básicos de contrato.
+// - Navegación de retorno a lista de facturas.
+// - Sin opciones de modificación (solo lectura).
+//
+// ESTADO:
+// - contrato: Objeto DTOContratoRespuesta con datos del contrato.
+// - cargando: Indica si está cargando datos.
+//
+// FLUJO:
+// 1. Obtiene ID de contrato desde URL params.
+// 2. Carga contrato con obtenerContratoPorId().
+// 3. Muestra datos en grid de campos.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español.
+// - formatearMoneda(): Formatea números a moneda COP.
+//
+// SECCIONES:
+//
+// Encabezado:
+// - Botón volver a lista de facturas (hardcoded /contador/facturas/1).
+// - Título con ID de contrato.
+// - Badge de estado.
+//
+// Contenido:
+// - Grid 2 columnas con campos: Número, Estado, Fecha emisión (inicio), Fecha vencimiento (fin), Subtotal, Total.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje.
+// - Error/No encontrado: Icono FileText y mensaje.
+//
+// LIMITACIONES:
+// - Navegación de retorno hardcoded (debería usar navigate(-1)).
+// - Campos mapeados incorrectamente (fechaInicio/fechaFin como emisión/vencimiento).
+// - valorMensual repetido como subtotal y total.
+// - Faltan datos completos del contrato (propiedad, inquilino, propietario).
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Badge coloreado para estado.
 
 const DetalleContratoContador: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -149,4 +199,3 @@ const DetalleContratoContador: React.FC = () => {
 };
 
 export default DetalleContratoContador;
-

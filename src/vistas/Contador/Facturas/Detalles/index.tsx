@@ -8,13 +8,93 @@ import { obtenerPagos } from "../../../../servicios/pagos";
 import type { DTOFacturaRespuesta } from "../../../../modelos/types/Factura";
 import type { DTOPagoRespuesta } from "../../../../modelos/types/Pago";
 import styles from "./DetalleFactura.module.css";
-import {
-  ArrowLeft,
-  FileText,
-  CreditCard,
-  Eye,
-  Home,
-} from "react-feather";
+import { ArrowLeft, FileText, CreditCard, Eye, Home } from "react-feather";
+
+// ========================================
+// DETALLE DE FACTURA - ROL CONTADOR
+// ========================================
+//
+// Vista completa de factura con tabs para datos relacionados (contrato, propiedad, pago).
+// Exclusivo para rol Contador con navegación entre entidades relacionadas.
+//
+// FUNCIONALIDADES:
+// - Visualización de datos completos de factura.
+// - Sistema de tabs: Información, Contrato, Propiedad, Pago.
+// - Navegación a páginas de detalle de entidades relacionadas.
+// - Carga automática de pago asociado a la factura.
+// - Manejo de estados vacíos para entidades no disponibles.
+//
+// ESTADO:
+// - factura: Objeto DTOFacturaRespuesta con datos completos.
+// - pago: Objeto DTOPagoRespuesta con pago asociado (si existe).
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla la carga.
+// - tabActiva: Tab seleccionado (informacion, contrato, propiedad, pago).
+//
+// FLUJO DE CARGA:
+// 1. Obtiene ID de factura desde URL params.
+// 2. Carga factura con obtenerFacturaPorId().
+// 3. Carga todos los pagos y filtra por idFactura coincidente.
+// 4. Muestra datos según tab seleccionado.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español.
+// - formatearMoneda(): Formatea números a moneda COP.
+//
+// SECCIONES:
+//
+// Encabezado:
+// - Botón volver a lista de facturas.
+// - Título con ID de factura.
+// - Badge de estado.
+//
+// Tab Información:
+// - Grid con datos de factura: Número, Estado, Fecha emisión, Fecha vencimiento, Subtotal, Total.
+//
+// Tab Contrato:
+// - Grid con datos de contrato asociado: ID, Estado, Fechas, Valor mensual, Tipo.
+// - Botón "Ver Detalles Completos del Contrato" con validación de ID.
+// - Estado vacío si no hay contrato.
+//
+// Tab Propiedad:
+// - Grid con datos de propiedad del contrato: Dirección, Ciudad, Tipo, Área, Habitaciones, Baños.
+// - Botón "Ver Detalles Completos de la Propiedad" con validación de ID.
+// - Estado vacío si no hay propiedad.
+//
+// Tab Pago:
+// - Grid con datos de pago: ID, Estado, Monto, Método, Fecha, Referencia (si existe).
+// - Botón "Ver Detalles Completos del Pago" con validación de ID.
+// - Estado vacío si no hay pago.
+// - Indicador en tab "(Sin pago)" si no existe.
+//
+// NAVEGACIÓN:
+// - A contrato: /contador/contratos/{id}
+// - A propiedad: /contador/propiedades/{id}
+// - A pago: /contador/pagos/{id}
+// - Validación robusta de IDs antes de navegar.
+// - Alertas si ID es inválido.
+//
+// VALIDACIÓN DE IDS:
+// - Verifica que ID exista y no sea NaN.
+// - Muestra alerta con mensaje descriptivo si falla.
+// - Logging de advertencia en consola.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje.
+// - Error/No encontrada: Icono FileText, mensaje y botón volver.
+// - Sin datos: Iconos grandes con mensajes informativos en cada tab.
+// - Tabs con indicador visual de activo.
+//
+// LOGGING:
+// - Console.log de factura, contrato y propiedad cargados.
+// - Console.warn si ID no disponible para navegación.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Tabs con estado activo coloreado.
+// - Badges para estados.
+// - Botones de acción con iconos.
 
 const DetalleFacturaContador: React.FC = () => {
   const navigate = useNavigate();
@@ -24,7 +104,9 @@ const DetalleFacturaContador: React.FC = () => {
   const [pago, setPago] = useState<DTOPagoRespuesta | null>(null);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [tabActiva, setTabActiva] = useState<"informacion" | "contrato" | "propiedad" | "pago">("informacion");
+  const [tabActiva, setTabActiva] = useState<
+    "informacion" | "contrato" | "propiedad" | "pago"
+  >("informacion");
 
   useEffect(() => {
     cargarDatos();
@@ -44,7 +126,9 @@ const DetalleFacturaContador: React.FC = () => {
       console.log("Propiedad asociada:", facturaData.contrato?.propiedad);
 
       const todosPagos = await obtenerPagos();
-      const pagoAsociado = todosPagos.find((p) => p.factura?.idFactura === parseInt(id));
+      const pagoAsociado = todosPagos.find(
+        (p) => p.factura?.idFactura === parseInt(id)
+      );
       setPago(pagoAsociado || null);
 
       console.log("Pago asociado:", pagoAsociado);
@@ -118,7 +202,10 @@ const DetalleFacturaContador: React.FC = () => {
       <main className={styles.main}>
         <div className={styles.contenedor}>
           <div className={styles.encabezado}>
-            <button className={styles.btnVolver} onClick={() => navigate("/contador/facturas")}>
+            <button
+              className={styles.btnVolver}
+              onClick={() => navigate("/contador/facturas")}
+            >
               <ArrowLeft size={20} />
               Volver a Facturas
             </button>
@@ -131,21 +218,27 @@ const DetalleFacturaContador: React.FC = () => {
           {/* Tabs */}
           <div className={styles.tabs}>
             <button
-              className={tabActiva === "informacion" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "informacion" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("informacion")}
             >
               <FileText size={20} />
               Información
             </button>
             <button
-              className={tabActiva === "contrato" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "contrato" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("contrato")}
             >
               <FileText size={20} />
               Contrato
             </button>
             <button
-              className={tabActiva === "propiedad" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "propiedad" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("propiedad")}
             >
               <Home size={20} />
@@ -164,7 +257,10 @@ const DetalleFacturaContador: React.FC = () => {
           {tabActiva === "informacion" && (
             <div className={styles.contenidoTab}>
               <div className={styles.seccion}>
-                <h2><FileText size={24} />Detalles de la Factura</h2>
+                <h2>
+                  <FileText size={24} />
+                  Detalles de la Factura
+                </h2>
                 <div className={styles.grid2}>
                   <div className={styles.campo}>
                     <span className={styles.label}>Número</span>
@@ -176,19 +272,27 @@ const DetalleFacturaContador: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Fecha Emisión</span>
-                    <span className={styles.valor}>{formatearFecha(factura.fechaEmision)}</span>
+                    <span className={styles.valor}>
+                      {formatearFecha(factura.fechaEmision)}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Fecha Vencimiento</span>
-                    <span className={styles.valor}>{formatearFecha(factura.fechaVencimiento)}</span>
+                    <span className={styles.valor}>
+                      {formatearFecha(factura.fechaVencimiento)}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Subtotal</span>
-                    <span className={styles.valor}>{formatearMoneda(factura.total)}</span>
+                    <span className={styles.valor}>
+                      {formatearMoneda(factura.total)}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Total</span>
-                    <span className={styles.valorDestacado}>{formatearMoneda(factura.total)}</span>
+                    <span className={styles.valorDestacado}>
+                      {formatearMoneda(factura.total)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -199,33 +303,48 @@ const DetalleFacturaContador: React.FC = () => {
           {tabActiva === "contrato" && (
             <div className={styles.contenidoTab}>
               <div className={styles.seccion}>
-                <h2><FileText size={24} />Contrato Asociado</h2>
+                <h2>
+                  <FileText size={24} />
+                  Contrato Asociado
+                </h2>
                 {factura.contrato ? (
                   <>
                     <div className={styles.grid2}>
                       <div className={styles.campo}>
                         <span className={styles.label}>ID Contrato</span>
-                        <span className={styles.valor}>#{factura.contrato.idContrato}</span>
+                        <span className={styles.valor}>
+                          #{factura.contrato.idContrato}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Estado</span>
-                        <span className={styles.estadoBadge}>{factura.contrato.estado}</span>
+                        <span className={styles.estadoBadge}>
+                          {factura.contrato.estado}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Fecha Inicio</span>
-                        <span className={styles.valor}>{formatearFecha(factura.contrato.fechaInicio)}</span>
+                        <span className={styles.valor}>
+                          {formatearFecha(factura.contrato.fechaInicio)}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Fecha Fin</span>
-                        <span className={styles.valor}>{formatearFecha(factura.contrato.fechaFin)}</span>
+                        <span className={styles.valor}>
+                          {formatearFecha(factura.contrato.fechaFin)}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Valor Mensual</span>
-                        <span className={styles.valorDestacado}>{formatearMoneda(factura.contrato.valorMensual)}</span>
+                        <span className={styles.valorDestacado}>
+                          {formatearMoneda(factura.contrato.valorMensual)}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Tipo de Contrato</span>
-                        <span className={styles.valor}>{factura.contrato.tipoContrato || "N/A"}</span>
+                        <span className={styles.valor}>
+                          {factura.contrato.tipoContrato || "N/A"}
+                        </span>
                       </div>
                     </div>
 
@@ -237,8 +356,13 @@ const DetalleFacturaContador: React.FC = () => {
                           if (idContrato && !isNaN(Number(idContrato))) {
                             navigate(`/contador/contratos/${idContrato}`);
                           } else {
-                            console.warn("ID de contrato no disponible:", factura);
-                            alert("No se puede navegar: ID de contrato inválido");
+                            console.warn(
+                              "ID de contrato no disponible:",
+                              factura
+                            );
+                            alert(
+                              "No se puede navegar: ID de contrato inválido"
+                            );
                           }
                         }}
                       >
@@ -261,33 +385,48 @@ const DetalleFacturaContador: React.FC = () => {
           {tabActiva === "propiedad" && (
             <div className={styles.contenidoTab}>
               <div className={styles.seccion}>
-                <h2><Home size={24} />Propiedad Asociada</h2>
+                <h2>
+                  <Home size={24} />
+                  Propiedad Asociada
+                </h2>
                 {factura.contrato?.propiedad ? (
                   <>
                     <div className={styles.grid2}>
                       <div className={styles.campo}>
                         <span className={styles.label}>Dirección</span>
-                        <span className={styles.valor}>{factura.contrato.propiedad.direccion}</span>
+                        <span className={styles.valor}>
+                          {factura.contrato.propiedad.direccion}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Ciudad</span>
-                        <span className={styles.valor}>{factura.contrato.propiedad.ciudad}</span>
+                        <span className={styles.valor}>
+                          {factura.contrato.propiedad.ciudad}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Tipo</span>
-                        <span className={styles.valor}>{factura.contrato.propiedad.tipo}</span>
+                        <span className={styles.valor}>
+                          {factura.contrato.propiedad.tipo}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Área</span>
-                        <span className={styles.valor}>{factura.contrato.propiedad.area} m²</span>
+                        <span className={styles.valor}>
+                          {factura.contrato.propiedad.area} m²
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Habitaciones</span>
-                        <span className={styles.valor}>{factura.contrato.propiedad.habitaciones}</span>
+                        <span className={styles.valor}>
+                          {factura.contrato.propiedad.habitaciones}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Baños</span>
-                        <span className={styles.valor}>{factura.contrato.propiedad.banos}</span>
+                        <span className={styles.valor}>
+                          {factura.contrato.propiedad.banos}
+                        </span>
                       </div>
                     </div>
 
@@ -295,12 +434,18 @@ const DetalleFacturaContador: React.FC = () => {
                       <button
                         className={styles.btnVer}
                         onClick={() => {
-                          const idPropiedad = factura?.contrato?.propiedad?.idPropiedad;
+                          const idPropiedad =
+                            factura?.contrato?.propiedad?.idPropiedad;
                           if (idPropiedad && !isNaN(Number(idPropiedad))) {
                             navigate(`/contador/propiedades/${idPropiedad}`);
                           } else {
-                            console.warn("ID de propiedad no disponible:", factura);
-                            alert("No se puede navegar: ID de propiedad inválido");
+                            console.warn(
+                              "ID de propiedad no disponible:",
+                              factura
+                            );
+                            alert(
+                              "No se puede navegar: ID de propiedad inválido"
+                            );
                           }
                         }}
                       >
@@ -323,7 +468,10 @@ const DetalleFacturaContador: React.FC = () => {
           {tabActiva === "pago" && (
             <div className={styles.contenidoTab}>
               <div className={styles.seccion}>
-                <h2><CreditCard size={24} />Pago Asociado</h2>
+                <h2>
+                  <CreditCard size={24} />
+                  Pago Asociado
+                </h2>
                 {pago ? (
                   <>
                     <div className={styles.grid2}>
@@ -333,24 +481,34 @@ const DetalleFacturaContador: React.FC = () => {
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Estado</span>
-                        <span className={styles.estadoBadge}>{pago.estado}</span>
+                        <span className={styles.estadoBadge}>
+                          {pago.estado}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Monto</span>
-                        <span className={styles.valorDestacado}>{formatearMoneda(pago.monto)}</span>
+                        <span className={styles.valorDestacado}>
+                          {formatearMoneda(pago.monto)}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Método</span>
-                        <span className={styles.valor}>{pago.metodoPago || "N/A"}</span>
+                        <span className={styles.valor}>
+                          {pago.metodoPago || "N/A"}
+                        </span>
                       </div>
                       <div className={styles.campo}>
                         <span className={styles.label}>Fecha</span>
-                        <span className={styles.valor}>{formatearFecha((pago as any).fecha)}</span>
+                        <span className={styles.valor}>
+                          {formatearFecha((pago as any).fecha)}
+                        </span>
                       </div>
                       {pago.referenciaTransaccion && (
                         <div className={styles.campo}>
                           <span className={styles.label}>Referencia</span>
-                          <span className={styles.valor}>{pago.referenciaTransaccion}</span>
+                          <span className={styles.valor}>
+                            {pago.referenciaTransaccion}
+                          </span>
                         </div>
                       )}
                     </div>

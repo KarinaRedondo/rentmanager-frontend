@@ -14,7 +14,7 @@ const Configuracion: React.FC = () => {
   // Guardar configuración
   const handleGuardar = async () => {
     setGuardando(true);
-    
+
     // Simular guardado (aquí conectarías con tu API)
     setTimeout(() => {
       const config = {
@@ -60,7 +60,9 @@ const Configuracion: React.FC = () => {
 
             <div className={styles.configItem}>
               <div className={styles.configLabel}>
-                <span className={styles.labelText}>Notificaciones por correo</span>
+                <span className={styles.labelText}>
+                  Notificaciones por correo
+                </span>
                 <span className={styles.labelDesc}>
                   Recibe resúmenes y alertas por email
                 </span>
@@ -137,4 +139,3 @@ const Configuracion: React.FC = () => {
 };
 
 export default Configuracion;
-

@@ -29,6 +29,130 @@ import {
   X,
 } from "react-feather";
 
+// ========================================
+// GESTIÓN DE PAGOS - ROL CONTADOR
+// ========================================
+//
+// Página completa de administración de pagos con filtrado, edición, transiciones de estado y estadísticas.
+// Acceso para roles CONTADOR y ADMINISTRADOR.
+//
+// FUNCIONALIDADES:
+// - Listado completo de pagos con filtros y búsqueda.
+// - Estadísticas de pagos completados y pendientes.
+// - Modal de detalle para visualizar información completa del pago.
+// - Edición de estado de pagos.
+// - Transiciones de estado validadas con autómata/predictor.
+// - Modal de resultados de transiciones con motivos y recomendaciones.
+// - Alerta visual de pagos pendientes.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol CONTADOR o ADMINISTRADOR.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no autorizado.
+//
+// ESTADO:
+// - pagos: Lista completa de pagos cargados.
+// - pagosFiltrados: Subset filtrado para mostrar.
+// - cargando: Operación de carga en curso.
+// - error: Mensaje de error.
+// - busqueda: Texto de búsqueda.
+// - filtroEstado: Estado seleccionado para filtrar.
+// - pagoSeleccionado: Pago en modal de detalle.
+// - mostrarModal: Toggle para modal de detalle/edición.
+// - resultadoTransicion, resultadoEjecucion: Resultados de transiciones.
+// - mostrarModalTransicion: Toggle para modal de transiciones.
+//
+// COMPONENTE MODAL EDITAR:
+// - Muestra información completa del pago: ID, factura, fecha, monto, método, referencia, bancos.
+// - Extrae datos relacionados: Inquilino, propiedad.
+// - Select para cambiar estado con opciones de EstadoPago.
+// - Enlace a comprobante si existe (comprobanteUrl).
+// - Botones cancelar y guardar.
+//
+// FUNCIONES PRINCIPALES:
+//
+// cargarPagos():
+// - Obtiene lista completa de pagos.
+// - Maneja errores y arrays vacíos.
+//
+// aplicarFiltros():
+// - Filtra por búsqueda: ID, nombre inquilino, referencia.
+// - Filtra por estado si no es "TODOS".
+// - Ordena por fecha descendente.
+// - Actualiza pagosFiltrados.
+//
+// manejarTransicion():
+// - Analiza transición con analizarTransicionPago().
+// - Si no es válida, muestra modal con motivo y recomendaciones.
+// - Si es válida, ejecuta con ejecutarTransicionPago().
+// - Muestra modal con resultado.
+// - Recarga lista si exitosa.
+//
+// calcularEstadisticas():
+// - Total completado: Suma de montos de pagos COMPLETADO.
+// - Total pendiente: Suma de montos de pagos PENDIENTE.
+// - Pagos pendientes: Cantidad de pagos PENDIENTE.
+//
+// handleGuardarCambios():
+// - Actualiza estado del pago con actualizarPago().
+// - Recarga lista después de éxito.
+// - Cierra modal.
+//
+// UTILIDADES:
+// - obtenerIconoEstado(): Retorna icono según estado.
+// - obtenerClaseEstado(): Asigna clase CSS según estado.
+//
+// TRANSICIONES DISPONIBLES:
+// - INICIAR_PROCESAMIENTO_PAGO: Inicia procesamiento.
+// - CONFIRMAR_PAGO: Marca como completado.
+// - FALLO_PAGO: Marca como fallido.
+// - REVERSAR_PAGO: Reversa pago.
+// - REINTENTAR_PAGO: Reintenta pago fallido.
+// - CANCELAR_PAGO: Cancela pago.
+//
+// COMPONENTES VISUALES:
+//
+// Estadísticas:
+// - Total completado: Suma monetaria con icono verde.
+// - Total pendiente: Suma monetaria con icono naranja y contador.
+//
+// Alerta:
+// - Banner naranja si hay pagos pendientes.
+// - Muestra cantidad de pagos por verificar.
+//
+// Filtros:
+// - Barra de búsqueda: ID, inquilino, referencia.
+// - Select de estado: Todos, Pendiente, Procesando, Completado, Fallido, Reversado, Cancelado.
+//
+// Tabla:
+// - Columnas: ID, Fecha, Inquilino, Referencia, Método, Monto, Estado, Acciones, Transición.
+// - Badge con icono y color según estado.
+// - Botón Ver para modal de detalles.
+// - Select de transiciones en cada fila.
+//
+// Modal Transiciones:
+// - Tres estados: Cargando, No válida (motivo/recomendaciones/alternativas), Exitosa.
+//
+// ESTADOS DE PAGO:
+// - PENDIENTE: Naranja con icono Clock.
+// - PROCESANDO: Azul con icono RefreshCw.
+// - COMPLETADO: Verde con icono CheckCircle.
+// - FALLIDO: Rojo con icono XCircle.
+// - REVERSADO: Púrpura con icono AlertTriangle.
+// - CANCELADO: Gris con icono genérico.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje.
+// - Error: Icono AlertCircle, mensaje y botón reintentar.
+// - Sin datos: Icono DollarSign y mensaje.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Tabla responsive con scroll horizontal.
+// - Badges coloreados según estado.
+// - Modal con backdrop blur.
+// - Grid de estadísticas responsive.
+
 interface ResultadoValidacion {
   valido: boolean;
   motivo?: string;
@@ -48,7 +172,11 @@ interface ModalEditarProps {
   onGuardar: (pagoId: number, datos: any) => Promise<void>;
 }
 
-const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) => {
+const ModalEditar: React.FC<ModalEditarProps> = ({
+  pago,
+  onClose,
+  onGuardar,
+}) => {
   const [estado, setEstado] = useState<EstadoPago>(EstadoPago.PENDIENTE);
   const [guardando, setGuardando] = useState<boolean>(false);
 
@@ -79,7 +207,10 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.modalContenido}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.modalHeader}>
           <h2>
             <FileText size={20} />
@@ -122,7 +253,9 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
 
             <div className={styles.campo}>
               <label>Monto:</label>
-              <p className={styles.monto}>${(pago.monto || 0).toLocaleString("es-CO")}</p>
+              <p className={styles.monto}>
+                ${(pago.monto || 0).toLocaleString("es-CO")}
+              </p>
             </div>
 
             <div className={styles.campo}>
@@ -132,7 +265,9 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
 
             <div className={styles.campo}>
               <label>Referencia Transacción:</label>
-              <p className={styles.referencia}>{pago.referenciaTransaccion || "N/A"}</p>
+              <p className={styles.referencia}>
+                {pago.referenciaTransaccion || "N/A"}
+              </p>
             </div>
 
             {pago.bancoOrigen && (
@@ -152,7 +287,12 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
             {pago.comprobanteUrl && (
               <div className={styles.campo}>
                 <label>Comprobante:</label>
-                <a href={pago.comprobanteUrl} target="_blank" rel="noopener noreferrer" className={styles.linkComprobante}>
+                <a
+                  href={pago.comprobanteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.linkComprobante}
+                >
                   Ver Comprobante
                 </a>
               </div>
@@ -202,10 +342,18 @@ const ModalEditar: React.FC<ModalEditarProps> = ({ pago, onClose, onGuardar }) =
         </div>
 
         <div className={styles.modalFooter}>
-          <button className={styles.btnCancelar} onClick={onClose} disabled={guardando}>
+          <button
+            className={styles.btnCancelar}
+            onClick={onClose}
+            disabled={guardando}
+          >
             Cancelar
           </button>
-          <button className={styles.btnGuardar} onClick={handleGuardar} disabled={guardando}>
+          <button
+            className={styles.btnGuardar}
+            onClick={handleGuardar}
+            disabled={guardando}
+          >
             {guardando ? "Guardando..." : "Guardar Cambios"}
           </button>
         </div>
@@ -222,11 +370,14 @@ const ContadorGestionPagos: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [busqueda, setBusqueda] = useState<string>("");
   const [filtroEstado, setFiltroEstado] = useState<string>("TODOS");
-  const [pagoSeleccionado, setPagoSeleccionado] = useState<DTOPagoRespuesta | null>(null);
+  const [pagoSeleccionado, setPagoSeleccionado] =
+    useState<DTOPagoRespuesta | null>(null);
   const [mostrarModal, setMostrarModal] = useState<boolean>(false);
 
-  const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
-  const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
+  const [resultadoTransicion, setResultadoTransicion] =
+    useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] =
+    useState<ResultadoEjecucion | null>(null);
   const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
 
   useEffect(() => {
@@ -289,7 +440,9 @@ const ContadorGestionPagos: React.FC = () => {
     if (busqueda) {
       resultado = resultado.filter((pago) => {
         const inquilino = pago.factura?.contrato?.inquilino;
-        const nombreCompleto = `${inquilino?.nombre || ""} ${inquilino?.apellido || ""}`.toLowerCase();
+        const nombreCompleto = `${inquilino?.nombre || ""} ${
+          inquilino?.apellido || ""
+        }`.toLowerCase();
         const referencia = (pago.referenciaTransaccion || "").toLowerCase();
         const idPago = String(pago.idPago || "");
         return (
@@ -301,7 +454,9 @@ const ContadorGestionPagos: React.FC = () => {
     }
 
     if (filtroEstado !== "TODOS") {
-      resultado = resultado.filter((pago) => String(pago.estado).toUpperCase() === filtroEstado);
+      resultado = resultado.filter(
+        (pago) => String(pago.estado).toUpperCase() === filtroEstado
+      );
     }
 
     resultado.sort((a, b) => {
@@ -316,7 +471,7 @@ const ContadorGestionPagos: React.FC = () => {
   const manejarTransicion = async (pagoId: number, evento: string) => {
     if (!evento) return;
 
-    console.log(`🔄 Transición: Pago ${pagoId} → ${evento}`);
+    console.log(`Transición: Pago ${pagoId} → ${evento}`);
 
     try {
       setResultadoTransicion(null);
@@ -326,12 +481,12 @@ const ContadorGestionPagos: React.FC = () => {
       setResultadoTransicion(validacion);
 
       if (!validacion.valido) {
-        console.warn("⚠️ Rechazada:", validacion.motivo);
+        console.warn("Rechazada:", validacion.motivo);
         setMostrarModalTransicion(true);
         return;
       }
 
-      console.log("✅ Ejecutando...");
+      console.log("Ejecutando...");
 
       const ejecucion = await ejecutarTransicionPago(pagoId, evento);
       setResultadoEjecucion(ejecucion);
@@ -341,7 +496,7 @@ const ContadorGestionPagos: React.FC = () => {
         await cargarPagos();
       }
     } catch (err: any) {
-      console.error("❌ Error:", err);
+      console.error("Error:", err);
       setResultadoTransicion({
         valido: false,
         motivo: err.message || "Error desconocido",
@@ -359,7 +514,9 @@ const ContadorGestionPagos: React.FC = () => {
       .filter((p) => String(p.estado).toUpperCase() === EstadoPago.PENDIENTE)
       .reduce((sum, p) => sum + (p.monto || 0), 0);
 
-    const pagosPendientes = pagos.filter((p) => String(p.estado).toUpperCase() === EstadoPago.PENDIENTE).length;
+    const pagosPendientes = pagos.filter(
+      (p) => String(p.estado).toUpperCase() === EstadoPago.PENDIENTE
+    ).length;
 
     return { totalCompletado, totalPendiente, pagosPendientes };
   };
@@ -443,29 +600,41 @@ const ContadorGestionPagos: React.FC = () => {
                 ← Volver
               </button>
               <h1>Gestión de Pagos</h1>
-              <p className={styles.subtitulo}>Administra y verifica todos los pagos del sistema</p>
+              <p className={styles.subtitulo}>
+                Administra y verifica todos los pagos del sistema
+              </p>
             </div>
           </div>
 
           <div className={styles.gridEstadisticas}>
             <div className={styles.tarjetaEstadistica}>
-              <div className={`${styles.iconoEstadistica} ${styles.iconoVerde}`}>
+              <div
+                className={`${styles.iconoEstadistica} ${styles.iconoVerde}`}
+              >
                 <CheckCircle size={24} />
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Total Completado</p>
-                <h2 className={styles.valorEstadistica}>${estadisticas.totalCompletado.toLocaleString("es-CO")}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  ${estadisticas.totalCompletado.toLocaleString("es-CO")}
+                </h2>
               </div>
             </div>
 
             <div className={styles.tarjetaEstadistica}>
-              <div className={`${styles.iconoEstadistica} ${styles.iconoNaranja}`}>
+              <div
+                className={`${styles.iconoEstadistica} ${styles.iconoNaranja}`}
+              >
                 <Clock size={24} />
               </div>
               <div>
                 <p className={styles.labelEstadistica}>Total Pendiente</p>
-                <h2 className={styles.valorEstadistica}>${estadisticas.totalPendiente.toLocaleString("es-CO")}</h2>
-                <p className={styles.descripcionEstadistica}>{estadisticas.pagosPendientes} pagos</p>
+                <h2 className={styles.valorEstadistica}>
+                  ${estadisticas.totalPendiente.toLocaleString("es-CO")}
+                </h2>
+                <p className={styles.descripcionEstadistica}>
+                  {estadisticas.pagosPendientes} pagos
+                </p>
               </div>
             </div>
           </div>
@@ -474,7 +643,9 @@ const ContadorGestionPagos: React.FC = () => {
             <div className={styles.alerta}>
               <AlertCircle size={20} />
               <span>
-                Tienes <strong>{estadisticas.pagosPendientes} pagos pendientes</strong> por verificar
+                Tienes{" "}
+                <strong>{estadisticas.pagosPendientes} pagos pendientes</strong>{" "}
+                por verificar
               </span>
             </div>
           )}
@@ -491,7 +662,11 @@ const ContadorGestionPagos: React.FC = () => {
               />
             </div>
 
-            <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} className={styles.selectFiltro}>
+            <select
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              className={styles.selectFiltro}
+            >
               <option value="TODOS">Todos los estados</option>
               <option value={EstadoPago.PENDIENTE}>Pendiente</option>
               <option value={EstadoPago.PROCESANDO}>Procesando</option>
@@ -540,16 +715,27 @@ const ContadorGestionPagos: React.FC = () => {
                           <td className={styles.celdaId}>#{pago.idPago}</td>
                           <td className={styles.celdaFecha}>
                             <Calendar size={14} />
-                            {pago.fecha ? new Date(pago.fecha).toLocaleDateString("es-CO") : "N/A"}
+                            {pago.fecha
+                              ? new Date(pago.fecha).toLocaleDateString("es-CO")
+                              : "N/A"}
                           </td>
                           <td className={styles.celdaInquilino}>
-                            {inquilino?.nombre || "N/A"} {inquilino?.apellido || ""}
+                            {inquilino?.nombre || "N/A"}{" "}
+                            {inquilino?.apellido || ""}
                           </td>
-                          <td className={styles.celdaReferencia}>{pago.referenciaTransaccion || "N/A"}</td>
+                          <td className={styles.celdaReferencia}>
+                            {pago.referenciaTransaccion || "N/A"}
+                          </td>
                           <td>{pago.metodoPago || "N/A"}</td>
-                          <td className={styles.celdaMonto}>${(pago.monto || 0).toLocaleString("es-CO")}</td>
+                          <td className={styles.celdaMonto}>
+                            ${(pago.monto || 0).toLocaleString("es-CO")}
+                          </td>
                           <td>
-                            <span className={`${styles.badge} ${obtenerClaseEstado(pago.estado)}`}>
+                            <span
+                              className={`${styles.badge} ${obtenerClaseEstado(
+                                pago.estado
+                              )}`}
+                            >
                               {obtenerIconoEstado(pago.estado)}
                               {pago.estado}
                             </span>
@@ -571,18 +757,27 @@ const ContadorGestionPagos: React.FC = () => {
                             <select
                               defaultValue=""
                               onChange={(e) => {
-                                manejarTransicion(pago.idPago || 0, e.target.value);
+                                manejarTransicion(
+                                  pago.idPago || 0,
+                                  e.target.value
+                                );
                                 e.target.value = "";
                               }}
                               className={styles.selectTransicion}
                             >
                               <option value="">Transición...</option>
-                              <option value="INICIAR_PROCESAMIENTO_PAGO">🔄 Iniciar Procesamiento</option>
-                              <option value="CONFIRMAR_PAGO">✅ Confirmar Pago</option>
-                              <option value="FALLO_PAGO">❌ Marcar Fallido</option>
-                              <option value="REVERSAR_PAGO">↩️ Reversar</option>
-                              <option value="REINTENTAR_PAGO">🔁 Reintentar</option>
-                              <option value="CANCELAR_PAGO">🚫 Cancelar</option>
+                              <option value="INICIAR_PROCESAMIENTO_PAGO">
+                                Iniciar Procesamiento
+                              </option>
+                              <option value="CONFIRMAR_PAGO">
+                                Confirmar Pago
+                              </option>
+                              <option value="FALLO_PAGO">Marcar Fallido</option>
+                              <option value="REVERSAR_PAGO">Reversar</option>
+                              <option value="REINTENTAR_PAGO">
+                                Reintentar
+                              </option>
+                              <option value="CANCELAR_PAGO">Cancelar</option>
                             </select>
                           </td>
                         </tr>
@@ -610,11 +805,20 @@ const ContadorGestionPagos: React.FC = () => {
       )}
 
       {mostrarModalTransicion && (
-        <div className={styles.modalOverlay} onClick={() => setMostrarModalTransicion(false)}>
-          <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setMostrarModalTransicion(false)}
+        >
+          <div
+            className={styles.modalContenido}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               <h2>Resultado de Transición</h2>
-              <button className={styles.btnCerrar} onClick={() => setMostrarModalTransicion(false)}>
+              <button
+                className={styles.btnCerrar}
+                onClick={() => setMostrarModalTransicion(false)}
+              >
                 <X size={24} />
               </button>
             </div>
@@ -623,76 +827,112 @@ const ContadorGestionPagos: React.FC = () => {
               {!resultadoTransicion?.valido ? (
                 <>
                   <div className={styles.iconoError}>❌</div>
-                  <h3 className={styles.tituloError}>Transición No Permitida</h3>
+                  <h3 className={styles.tituloError}>
+                    Transición No Permitida
+                  </h3>
 
                   <div className={styles.seccionMotivo}>
-                    <h4 className={styles.subtituloSeccion}>📋 Motivo:</h4>
-                    <p className={styles.textoMotivo}>{resultadoTransicion?.motivo || "Sin motivo"}</p>
+                    <h4 className={styles.subtituloSeccion}>Motivo:</h4>
+                    <p className={styles.textoMotivo}>
+                      {resultadoTransicion?.motivo || "Sin motivo"}
+                    </p>
                   </div>
 
-                  {resultadoTransicion?.recomendaciones && resultadoTransicion.recomendaciones.length > 0 && (
-                    <div className={styles.seccionRecomendaciones}>
-                      <h4 className={styles.subtituloSeccion}>💡 Recomendaciones:</h4>
-                      <ul className={styles.listaRecomendaciones}>
-                        {resultadoTransicion.recomendaciones.map((rec, i) => (
-                          <li key={i} className={styles.itemRecomendacion}>
-                            <span className={styles.numeroItem}>{i + 1}</span>
-                            <span className={styles.textoItem}>{rec}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {resultadoTransicion?.recomendaciones &&
+                    resultadoTransicion.recomendaciones.length > 0 && (
+                      <div className={styles.seccionRecomendaciones}>
+                        <h4 className={styles.subtituloSeccion}>
+                          Recomendaciones:
+                        </h4>
+                        <ul className={styles.listaRecomendaciones}>
+                          {resultadoTransicion.recomendaciones.map((rec, i) => (
+                            <li key={i} className={styles.itemRecomendacion}>
+                              <span className={styles.numeroItem}>{i + 1}</span>
+                              <span className={styles.textoItem}>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-                  {resultadoTransicion?.alternativas && resultadoTransicion.alternativas.length > 0 && (
-                    <div className={styles.seccionAlternativas}>
-                      <h4 className={styles.subtituloSeccion}>🔀 Alternativas:</h4>
-                      <ul className={styles.listaAlternativas}>
-                        {resultadoTransicion.alternativas.map((alt, i) => (
-                          <li key={i} className={styles.itemAlternativa}>
-                            <span className={styles.iconoCheck}>✓</span>
-                            <span className={styles.textoItem}>{alt}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {resultadoTransicion?.alternativas &&
+                    resultadoTransicion.alternativas.length > 0 && (
+                      <div className={styles.seccionAlternativas}>
+                        <h4 className={styles.subtituloSeccion}>
+                          Alternativas:
+                        </h4>
+                        <ul className={styles.listaAlternativas}>
+                          {resultadoTransicion.alternativas.map((alt, i) => (
+                            <li key={i} className={styles.itemAlternativa}>
+                              <span className={styles.iconoCheck}>✓</span>
+                              <span className={styles.textoItem}>{alt}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                   <div className={styles.accionesModal}>
-                    <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                    <button
+                      className={styles.btnCerrarModal}
+                      onClick={() => setMostrarModalTransicion(false)}
+                    >
                       Entendido
                     </button>
                   </div>
                 </>
               ) : resultadoEjecucion ? (
                 <>
-                  <div className={resultadoEjecucion.exito ? styles.iconoExito : styles.iconoError}>
+                  <div
+                    className={
+                      resultadoEjecucion.exito
+                        ? styles.iconoExito
+                        : styles.iconoError
+                    }
+                  >
                     {resultadoEjecucion.exito ? "✅" : "❌"}
                   </div>
-                  <h3 className={resultadoEjecucion.exito ? styles.tituloExito : styles.tituloError}>
+                  <h3
+                    className={
+                      resultadoEjecucion.exito
+                        ? styles.tituloExito
+                        : styles.tituloError
+                    }
+                  >
                     {resultadoEjecucion.exito ? "¡Exitosa!" : "Error"}
                   </h3>
 
                   <div className={styles.seccionMensaje}>
-                    <h4 className={styles.subtituloSeccion}>{resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}</h4>
-                    <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
+                    <h4 className={styles.subtituloSeccion}>
+                      {resultadoEjecucion.exito ? "Resultado:" : "Error:"}
+                    </h4>
+                    <p className={styles.mensajeResultado}>
+                      {resultadoEjecucion.mensaje}
+                    </p>
                   </div>
 
                   <div className={styles.seccionEstadoActual}>
-                    <h4 className={styles.subtituloSeccion}>🏷️ Estado:</h4>
+                    <h4 className={styles.subtituloSeccion}>Estado:</h4>
                     <div className={styles.badgeEstadoActual}>
-                      <span className={styles.estadoActualTexto}>{resultadoEjecucion.estadoActual}</span>
+                      <span className={styles.estadoActualTexto}>
+                        {resultadoEjecucion.estadoActual}
+                      </span>
                     </div>
                   </div>
 
                   {resultadoEjecucion.exito && (
                     <div className={styles.seccionInformacion}>
-                      <p className={styles.textoInformacion}>Cambio registrado exitosamente.</p>
+                      <p className={styles.textoInformacion}>
+                        Cambio registrado exitosamente.
+                      </p>
                     </div>
                   )}
 
                   <div className={styles.accionesModal}>
-                    <button className={styles.btnCerrarModal} onClick={() => setMostrarModalTransicion(false)}>
+                    <button
+                      className={styles.btnCerrarModal}
+                      onClick={() => setMostrarModalTransicion(false)}
+                    >
                       {resultadoEjecucion.exito ? "Perfecto" : "Cerrar"}
                     </button>
                   </div>

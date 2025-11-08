@@ -6,12 +6,113 @@ import { BotonComponente } from "../../../../componentes/ui/Boton";
 import { obtenerPagoPorId } from "../../../../servicios/pagos";
 import type { DTOPagoRespuesta } from "../../../../modelos/types/Pago";
 import styles from "./DetallePago.module.css";
-import {
-  ArrowLeft,
-  CreditCard,
-  FileText,
-  Eye,
-} from "react-feather";
+import { ArrowLeft, CreditCard, FileText, Eye } from "react-feather";
+
+// ========================================
+// DETALLE DE PAGO - ROL INQUILINO
+// ========================================
+//
+// Vista de solo lectura de pago para rol Inquilino con tabs de información relacionada.
+// Permite visualizar pago, factura asociada y contrato relacionado.
+//
+// FUNCIONALIDADES:
+// - Visualización completa de datos del pago.
+// - Sistema de tabs para organizar información (Información, Factura, Contrato).
+// - Navegación a detalle de factura y contrato.
+// - Sin opciones de edición (solo lectura).
+//
+// ESTADO:
+// - pago: Objeto DTOPagoRespuesta con datos completos.
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla la carga.
+// - tabActiva: Tab seleccionado (informacion, factura, contrato).
+//
+// FLUJO DE CARGA:
+// 1. Obtiene ID de pago desde URL params.
+// 2. Valida que ID no sea undefined.
+// 3. Carga pago con obtenerPagoPorId().
+// 4. Muestra datos según tab seleccionado.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español.
+// - formatearMoneda(): Formatea números a moneda COP.
+//
+// SECCIONES:
+//
+// Encabezado:
+// - Botón volver a lista de pagos.
+// - Título con ID de pago.
+// - Badge de estado.
+//
+// Tab Información:
+// - Grid con datos del pago:
+//   * Monto (destacado)
+//   * Estado (badge)
+//   * Método de pago
+//   * Fecha (intenta fechaCreacion o fecha con type casting)
+//   * Referencia de transacción (condicional, solo si existe)
+//
+// Tab Factura:
+// - Grid con datos de factura asociada:
+//   * ID Factura
+//   * Estado (badge)
+//   * Total (destacado)
+//   * Fecha de emisión
+// - Botón "Ver Detalles Completos de la Factura" con:
+//   * Validación robusta de ID
+//   * Navegación a /inquilino/facturas/{id}
+//   * Logging de advertencia si ID inválido
+// - Estado vacío si no hay factura.
+//
+// Tab Contrato:
+// - Grid con datos de contrato (extraído de factura.contrato):
+//   * ID Contrato
+//   * Estado (badge)
+//   * Valor mensual (destacado)
+//   * Fecha inicio
+//   * Fecha fin
+// - Botón "Ver Detalles Completos del Contrato" con:
+//   * Validación robusta de ID
+//   * Navegación a /inquilino/contratos/{id}
+//   * Logging de advertencia si ID inválido
+// - Estado vacío si no hay contrato.
+//
+// NAVEGACIÓN:
+// - A lista de pagos: /inquilino/pagos
+// - A detalle de factura: /inquilino/facturas/{id}
+// - A detalle de contrato: /inquilino/contratos/{id}
+//
+// VALIDACIÓN DE IDS:
+// - Verifica que ID exista (no undefined/null).
+// - Convierte a Number y valida que no sea NaN.
+// - Logging en consola si validación falla.
+// - Previene navegación con IDs inválidos.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando pago...".
+// - Error/No encontrado: Icono CreditCard, mensaje y botón volver.
+// - Sin datos: Iconos FileText grandes con mensajes informativos en tabs vacíos.
+// - Tabs con indicador visual de activo.
+//
+// MANEJO DE CAMPOS:
+// - referenciaTransaccion: Campo condicional, solo se renderiza si existe.
+// - fecha: Intenta primero (pago as any).fechaCreacion, luego (pago as any).fecha.
+// - Acceso anidado seguro: pago.factura?.contrato con optional chaining.
+//
+// CARACTERÍSTICAS:
+// - Vista de solo lectura para inquilino.
+// - Acceso a información financiera propia.
+// - Navegación entre entidades relacionadas (pago → factura → contrato).
+// - Diseño limpio sin opciones de modificación.
+// - Validaciones robustas antes de navegar.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Tabs con estado activo coloreado.
+// - Badges para estados.
+// - Botones de navegación con iconos Eye.
+// - Valores destacados para montos.
 
 const DetallePagoInquilino: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +121,9 @@ const DetallePagoInquilino: React.FC = () => {
   const [pago, setPago] = useState<DTOPagoRespuesta | null>(null);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [tabActiva, setTabActiva] = useState<"informacion" | "factura" | "contrato">("informacion");
+  const [tabActiva, setTabActiva] = useState<
+    "informacion" | "factura" | "contrato"
+  >("informacion");
 
   useEffect(() => {
     cargarPago();
@@ -124,21 +227,27 @@ const DetallePagoInquilino: React.FC = () => {
           {/* Tabs */}
           <div className={styles.tabs}>
             <button
-              className={tabActiva === "informacion" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "informacion" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("informacion")}
             >
               <CreditCard size={20} />
               Información
             </button>
             <button
-              className={tabActiva === "factura" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "factura" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("factura")}
             >
               <FileText size={20} />
               Factura
             </button>
             <button
-              className={tabActiva === "contrato" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "contrato" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("contrato")}
             >
               <FileText size={20} />
@@ -174,7 +283,9 @@ const DetallePagoInquilino: React.FC = () => {
                   <div className={styles.campo}>
                     <span className={styles.label}>Fecha</span>
                     <span className={styles.valor}>
-                      {formatearFecha((pago as any).fechaCreacion || (pago as any).fecha)}
+                      {formatearFecha(
+                        (pago as any).fechaCreacion || (pago as any).fecha
+                      )}
                     </span>
                   </div>
                   {pago.referenciaTransaccion && (
@@ -301,7 +412,8 @@ const DetallePagoInquilino: React.FC = () => {
                       <button
                         className={styles.btnVer}
                         onClick={() => {
-                          const idContrato = pago?.factura?.contrato?.idContrato;
+                          const idContrato =
+                            pago?.factura?.contrato?.idContrato;
                           if (idContrato && !isNaN(Number(idContrato))) {
                             navigate(`/inquilino/contratos/${idContrato}`);
                           } else {
@@ -331,4 +443,3 @@ const DetallePagoInquilino: React.FC = () => {
 };
 
 export default DetallePagoInquilino;
-

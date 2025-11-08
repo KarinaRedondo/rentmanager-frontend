@@ -1,5 +1,9 @@
-import { urlApi } from "../app/api"; 
-import type { DTOServicioExtraActualizar, DTOServicioExtraRegistro, DTOServicioExtraRespuesta } from "../modelos/types/ServicioExtra";
+import { urlApi } from "../app/api";
+import type {
+  DTOServicioExtraActualizar,
+  DTOServicioExtraRegistro,
+  DTOServicioExtraRespuesta,
+} from "../modelos/types/ServicioExtra";
 
 const API_URL = "/api/v1/servicios-extra";
 

@@ -36,6 +36,230 @@ import {
   Filter,
 } from "react-feather";
 
+// ========================================
+// GESTIÓN DE CONTRATOS - ROL PROPIETARIO
+// ========================================
+//
+// Página completa de administración de contratos para propietarios con CRUD y transiciones.
+// Permite crear, editar, visualizar y gestionar estados de contratos de propiedades.
+//
+// FUNCIONALIDADES:
+// - Listado completo de contratos con filtros.
+// - CRUD completo: Crear, editar, visualizar contratos.
+// - Transiciones de estado validadas con autómata.
+// - Modal de formulario para crear/editar.
+// - Modal de resultados de transiciones.
+// - Estadísticas de contratos por estado.
+// - Navegación a detalle de contrato.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol PROPIETARIO exclusivamente.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no es PROPIETARIO.
+//
+// ESTADO PRINCIPAL:
+// - contratos: Lista completa de contratos.
+// - contratosFiltrados: Subset filtrado por estado.
+// - propiedades: Lista de propiedades para selección.
+// - inquilinos: Lista de usuarios con rol INQUILINO.
+// - cargando: Indica carga inicial.
+// - error: Mensaje de error.
+// - filtroEstado: Estado seleccionado ("TODOS", "ACTIVO", "CREADO", "TERMINADO").
+//
+// ESTADO DEL MODAL:
+// - modalAbierto: Boolean para mostrar/ocultar modal formulario.
+// - modoEdicion: Boolean (true: editar, false: crear).
+// - contratoEditando: Contrato que se está editando.
+// - guardando: Indica operación de guardado en curso.
+//
+// ESTADO DE TRANSICIONES:
+// - resultadoTransicion: Resultado de validación (ResultadoValidacion).
+// - resultadoEjecucion: Resultado de ejecución (ResultadoEjecucion).
+// - mostrarModalTransicion: Boolean para modal de transiciones.
+//
+// ESTADO DEL FORMULARIO:
+// - idPropiedad: ID de propiedad seleccionada (string).
+// - idInquilino: ID de inquilino seleccionado (string).
+// - fechaInicio, fechaFin: Fechas del contrato.
+// - valorMensual: Valor mensual del arriendo (string para input).
+// - estadoContrato: Estado del contrato (enum EstadoContrato).
+// - tipoContrato: Tipo (RESIDENCIAL, COMERCIAL, etc).
+// - formaPago: Forma de pago (MENSUAL, TRIMESTRAL, etc).
+// - observaciones: Texto opcional.
+//
+// INTERFACES:
+// - ResultadoValidacion: { valido, motivo?, recomendaciones?, alternativas? }
+// - ResultadoEjecucion: { exito, mensaje, estadoActual }
+//
+// FUNCIONES DE CARGA:
+//
+// cargarDatos():
+// - Carga paralela con Promise.all de contratos, propiedades y usuarios.
+// - Ordena contratos por fechaInicio descendente.
+// - Filtra usuarios para obtener solo INQUILINO/INQUILINOS.
+// - Logging extensivo de datos recibidos y procesados.
+// - Advertencias si no hay propiedades o inquilinos.
+// - Maneja arrays vacíos como fallback.
+//
+// aplicarFiltros():
+// - Filtra por estado si no es "TODOS".
+// - Actualiza contratosFiltrados.
+//
+// FUNCIONES DEL MODAL:
+//
+// abrirModalNuevo():
+// - Resetea todos los campos del formulario.
+// - Establece modoEdicion = false.
+// - Establece valores por defecto.
+// - Logging de apertura.
+//
+// abrirModalEditar():
+// - **CORRECCIÓN**: Carga IDs correctamente desde objetos anidados.
+// - Intenta contrato.propiedad?.idPropiedad o contrato.propiedad.
+// - Intenta contrato.inquilino?.idUsuario o contrato.idInquilino.
+// - Convierte a string para selects.
+// - Carga todos los campos del contrato.
+// - Logging de datos cargados.
+// - Establece modoEdicion = true.
+//
+// handleGuardar():
+// - Validaciones:
+//   * Propiedad seleccionada (id != 0)
+//   * Inquilino seleccionado (id != 0)
+//   * Fechas ingresadas
+//   * Valor mensual > 0
+// - Construye objeto contratoData con:
+//   * Objeto propiedad completo (busca en array)
+//   * idInquilino, idPropietario (desde usuario logueado)
+//   * Fechas, valor mensual, estado, tipo, forma de pago, observaciones
+// - Si modoEdicion: actualizarContrato()
+// - Si no: crearContrato()
+// - Logging de datos enviados.
+// - Recarga datos después de éxito.
+// - Alert con mensajes de éxito/error.
+//
+// FUNCIONES DE TRANSICIONES:
+//
+// manejarTransicion():
+// - Recibe contratoId y evento.
+// - Logging de inicio.
+// - **Análisis**: analizarTransicionContrato(contratoId, evento).
+// - Si no válida: Muestra modal con motivo, recomendaciones, alternativas.
+// - Si válida: **Ejecuta** ejecutarTransicionContrato(contratoId, evento).
+// - Muestra modal con resultado.
+// - Si exitosa: Recarga datos.
+// - Try-catch con manejo de errores.
+//
+// TRANSICIONES DISPONIBLES:
+// - ACTIVAR_CONTRATO
+// - SUSPENDER_CONTRATO
+// - REANUDAR_CONTRATO
+// - TERMINAR_CONTRATO
+// - RENOVAR_CONTRATO
+// - RECHAZAR_CONTRATO
+//
+// ESTADOS DE CONTRATO:
+// - CREADO: Azul con icono Clock
+// - ACTIVO: Verde con icono CheckCircle
+// - SUSPENDIDO: Rojo con icono XCircle
+// - RECHAZADO: Rojo con icono XCircle
+// - TERMINADO: Gris con icono FileText
+//
+// UTILIDADES:
+//
+// formatearFecha():
+// - Parsing manual robusto con split('-').
+// - Validación de 3 partes.
+// - Creación de Date con valores numéricos.
+// - Validación con isNaN().
+// - Formato corto DD/MM/AAAA.
+//
+// obtenerEstadoClase(): Asigna clase CSS según estado.
+// obtenerIconoEstado(): Retorna icono coloreado según estado.
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Botón volver al dashboard.
+// - Título "Mis Contratos".
+// - Botón "+ Nuevo Contrato".
+//
+// Estadísticas (Grid 4 columnas):
+// 1. Total Contratos
+// 2. Activos
+// 3. Creados
+// 4. Finalizados
+//
+// Filtros:
+// - Botones: Todos, Activos, Creados, Terminados.
+// - Botón activo con estilo diferenciado.
+//
+// Grid de Contratos:
+// - Cards con:
+//   * Header: ID, dirección propiedad, icono de estado
+//   * Cuerpo:
+//     - Inquilino (nombre completo con fallback)
+//     - Fecha inicio
+//     - Fecha fin
+//     - Separador
+//     - Valor mensual (destacado)
+//     - Badge de estado
+//   * Acciones:
+//     - Botón "Ver Detalle"
+//     - Botón "Editar"
+//   * Select de transiciones
+//
+// Modal Formulario (CRUD):
+// - Select de propiedad con mensaje si vacío.
+// - Select de inquilino con mensaje si vacío.
+// - Inputs de fechas (row).
+// - Input valor mensual (number).
+// - Select tipo contrato (RESIDENCIAL, COMERCIAL, etc).
+// - Select forma de pago (MENSUAL, TRIMESTRAL, etc).
+// - Input observaciones (opcional).
+// - Select estado (CREADO, ACTIVO, etc).
+// - Logging en onChange de selects.
+//
+// Modal Transiciones:
+// - **Tres estados**:
+//   1. **Cargando**: Spinner con mensaje.
+//   2. **No válida**: Icono ❌, motivo, recomendaciones, alternativas.
+//   3. **Ejecutada**: Icono ✅ o ❌, mensaje, estado actual, información adicional.
+//
+// NAVEGACIÓN:
+// - Volver: /propietario/dashboard
+// - Ver detalle: /propietario/contratos/{id}
+// - Editar: Modal con datos del contrato
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando contratos...".
+// - Sin contratos: Icono FileText, mensaje informativo.
+// - Estados vacíos: Mensajes si no hay propiedades o inquilinos en selects.
+//
+// LOGGING EXTENSIVO:
+// - Apertura de modales.
+// - Propiedad e inquilino seleccionados.
+// - Datos cargados en formulario de edición.
+// - Datos enviados al guardar.
+// - Inicio y resultado de transiciones.
+// - Estado actual de datos (useEffect).
+// - Warnings si no hay datos.
+//
+// CARACTERÍSTICAS DESTACADAS:
+// - **Corrección marcada**: Carga correcta de IDs en edición.
+// - **Validaciones completas**: Antes de guardar.
+// - **Sistema de transiciones**: Con validación previa y feedback detallado.
+// - **Logging exhaustivo**: Para debugging en producción.
+// - **Manejo robusto de datos**: Fallbacks múltiples.
+// - **Estados condicionales**: Mensajes si no hay datos.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive para estadísticas y contratos.
+// - Cards con diseño visual completo.
+// - Modal con secciones coloreadas según resultado.
+// - Badges y botones con estados hover.
+
 const { obtenerPropiedades } = PropiedadService;
 
 // Interfaces para transiciones
@@ -56,7 +280,9 @@ const PropietarioContratos: React.FC = () => {
   const navigate = useNavigate();
 
   const [contratos, setContratos] = useState<DTOContratoRespuesta[]>([]);
-  const [contratosFiltrados, setContratosFiltrados] = useState<DTOContratoRespuesta[]>([]);
+  const [contratosFiltrados, setContratosFiltrados] = useState<
+    DTOContratoRespuesta[]
+  >([]);
   const [propiedades, setPropiedades] = useState<DTOPropiedadRespuesta[]>([]);
   const [inquilinos, setInquilinos] = useState<DTOUsuarioRespuesta[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
@@ -66,12 +292,15 @@ const PropietarioContratos: React.FC = () => {
   // Estado del Modal
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [modoEdicion, setModoEdicion] = useState<boolean>(false);
-  const [contratoEditando, setContratoEditando] = useState<DTOContratoRespuesta | null>(null);
+  const [contratoEditando, setContratoEditando] =
+    useState<DTOContratoRespuesta | null>(null);
   const [guardando, setGuardando] = useState<boolean>(false);
 
   // Estados para transiciones
-  const [resultadoTransicion, setResultadoTransicion] = useState<ResultadoValidacion | null>(null);
-  const [resultadoEjecucion, setResultadoEjecucion] = useState<ResultadoEjecucion | null>(null);
+  const [resultadoTransicion, setResultadoTransicion] =
+    useState<ResultadoValidacion | null>(null);
+  const [resultadoEjecucion, setResultadoEjecucion] =
+    useState<ResultadoEjecucion | null>(null);
   const [mostrarModalTransicion, setMostrarModalTransicion] = useState(false);
 
   // Estados del formulario
@@ -80,7 +309,9 @@ const PropietarioContratos: React.FC = () => {
   const [fechaInicio, setFechaInicio] = useState<string>("");
   const [fechaFin, setFechaFin] = useState<string>("");
   const [valorMensual, setValorMensual] = useState<string>("0");
-  const [estadoContrato, setEstadoContrato] = useState<EstadoContrato>(EstadoContrato.CREADO);
+  const [estadoContrato, setEstadoContrato] = useState<EstadoContrato>(
+    EstadoContrato.CREADO
+  );
   const [tipoContrato, setTipoContrato] = useState<string>("RESIDENCIAL");
   const [formaPago, setFormaPago] = useState<string>("MENSUAL");
   const [observaciones, setObservaciones] = useState<string>("");
@@ -93,9 +324,9 @@ const PropietarioContratos: React.FC = () => {
     aplicarFiltros();
   }, [filtroEstado, contratos]);
 
-  // ✅ Efecto para debug
+  // Efecto para debug
   useEffect(() => {
-    console.log("📊 Estado actual de datos:", {
+    console.log("Estado actual de datos:", {
       propiedades: propiedades.length,
       inquilinos: inquilinos.length,
       contratos: contratos.length,
@@ -115,7 +346,10 @@ const PropietarioContratos: React.FC = () => {
       const usuario = JSON.parse(usuarioString);
       const rolUsuario = usuario.rol || usuario.tipoUsuario;
 
-      if (rolUsuario !== "PROPIETARIO" && rolUsuario !== TipoUsuario.PROPIETARIO) {
+      if (
+        rolUsuario !== "PROPIETARIO" &&
+        rolUsuario !== TipoUsuario.PROPIETARIO
+      ) {
         alert("No tienes permisos para acceder a esta sección");
         navigate("/");
         return;
@@ -133,7 +367,7 @@ const PropietarioContratos: React.FC = () => {
       setCargando(true);
       setError("");
 
-      console.log("🔄 Iniciando carga de datos...");
+      console.log("Iniciando carga de datos...");
 
       const [contratosData, propiedadesData, usuariosData] = await Promise.all([
         obtenerContratos(),
@@ -142,10 +376,12 @@ const PropietarioContratos: React.FC = () => {
       ]);
 
       const contratosArray = Array.isArray(contratosData) ? contratosData : [];
-      const propiedadesArray = Array.isArray(propiedadesData) ? propiedadesData : [];
+      const propiedadesArray = Array.isArray(propiedadesData)
+        ? propiedadesData
+        : [];
       const usuariosArray = Array.isArray(usuariosData) ? usuariosData : [];
 
-      console.log("📦 Datos recibidos del backend:", {
+      console.log("Datos recibidos del backend:", {
         contratos: contratosArray.length,
         propiedades: propiedadesArray.length,
         usuarios: usuariosArray.length,
@@ -162,7 +398,7 @@ const PropietarioContratos: React.FC = () => {
         return tipo === "INQUILINO" || tipo === "INQUILINOS";
       });
 
-      console.log("✅ Datos procesados:", {
+      console.log("Datos procesados:", {
         contratos: contratosOrdenados.length,
         propiedades: propiedadesArray.length,
         inquilinos: inquilinosArray.length,
@@ -174,13 +410,13 @@ const PropietarioContratos: React.FC = () => {
 
       // Advertencias si no hay datos
       if (propiedadesArray.length === 0) {
-        console.warn("⚠️ No se cargaron propiedades");
+        console.warn("No se cargaron propiedades");
       }
       if (inquilinosArray.length === 0) {
-        console.warn("⚠️ No se cargaron inquilinos");
+        console.warn("No se cargaron inquilinos");
       }
     } catch (err: any) {
-      console.error("❌ Error al cargar datos:", err);
+      console.error("Error al cargar datos:", err);
       setError("Error al cargar los datos");
     } finally {
       setCargando(false);
@@ -216,25 +452,31 @@ const PropietarioContratos: React.FC = () => {
 
   const abrirModalEditar = (contrato: DTOContratoRespuesta) => {
     console.log("📝 Abriendo modal para editar contrato:", contrato);
-    
+
     setModoEdicion(true);
     setContratoEditando(contrato);
-    
-    // ✅ CORREGIDO: Cargar IDs correctamente
-    const propiedadId = String(contrato.propiedad?.idPropiedad || contrato.propiedad || 0);
-    const inquilinoId = String(contrato.inquilino?.idUsuario || contrato.idInquilino || 0);
-    
+
+    // CORREGIDO: Cargar IDs correctamente
+    const propiedadId = String(
+      contrato.propiedad?.idPropiedad || contrato.propiedad || 0
+    );
+    const inquilinoId = String(
+      contrato.inquilino?.idUsuario || contrato.idInquilino || 0
+    );
+
     setIdPropiedad(propiedadId);
     setIdInquilino(inquilinoId);
     setFechaInicio(contrato.fechaInicio || "");
     setFechaFin(contrato.fechaFin || "");
     setValorMensual(String(contrato.valorMensual || 0));
-    setEstadoContrato((contrato.estado as EstadoContrato) || EstadoContrato.CREADO);
+    setEstadoContrato(
+      (contrato.estado as EstadoContrato) || EstadoContrato.CREADO
+    );
     setTipoContrato(contrato.tipoContrato || "RESIDENCIAL");
     setFormaPago(contrato.formaPago || "MENSUAL");
     setObservaciones(contrato.observaciones || "");
-    
-    console.log("✅ Datos cargados en formulario:", {
+
+    console.log("Datos cargados en formulario:", {
       propiedadId,
       inquilinoId,
       fechaInicio: contrato.fechaInicio,
@@ -242,30 +484,30 @@ const PropietarioContratos: React.FC = () => {
       valorMensual: contrato.valorMensual,
       estado: contrato.estado,
     });
-    
+
     setModalAbierto(true);
   };
 
   const handleGuardar = async () => {
-    console.log("💾 Intentando guardar contrato...");
-    
+    console.log("Intentando guardar contrato...");
+
     if (!idPropiedad || parseInt(idPropiedad) === 0) {
-      alert("⚠️ Debe seleccionar una propiedad");
+      alert("Debe seleccionar una propiedad");
       return;
     }
 
     if (!idInquilino || parseInt(idInquilino) === 0) {
-      alert("⚠️ Debe seleccionar un inquilino");
+      alert("Debe seleccionar un inquilino");
       return;
     }
 
     if (!fechaInicio || !fechaFin) {
-      alert("⚠️ Debe ingresar las fechas de inicio y fin del contrato");
+      alert("Debe ingresar las fechas de inicio y fin del contrato");
       return;
     }
 
     if (!valorMensual || parseInt(valorMensual) <= 0) {
-      alert("⚠️ El valor mensual debe ser mayor a 0");
+      alert("El valor mensual debe ser mayor a 0");
       return;
     }
 
@@ -291,60 +533,74 @@ const PropietarioContratos: React.FC = () => {
         observaciones,
       };
 
-      console.log("📤 Enviando datos:", contratoData);
+      console.log("Enviando datos:", contratoData);
 
       if (modoEdicion && contratoEditando) {
-        await actualizarContrato(contratoEditando.idContrato || 0, contratoData as any);
-        alert("✅ Contrato actualizado exitosamente");
+        await actualizarContrato(
+          contratoEditando.idContrato || 0,
+          contratoData as any
+        );
+        alert("Contrato actualizado exitosamente");
       } else {
         await crearContrato(contratoData as any);
-        alert("✅ Contrato creado exitosamente");
+        alert("Contrato creado exitosamente");
       }
 
       setModalAbierto(false);
       await cargarDatos();
     } catch (err: any) {
-      console.error("❌ Error al guardar:", err);
-      alert(`❌ Error: ${err.response?.data?.message || err.message}`);
+      console.error("Error al guardar:", err);
+      alert(`Error: ${err.response?.data?.message || err.message}`);
     } finally {
       setGuardando(false);
     }
   };
 
-  const manejarTransicion = async (contratoId: number, evento: Evento | string) => {
+  const manejarTransicion = async (
+    contratoId: number,
+    evento: Evento | string
+  ) => {
     if (!evento) return;
-    
-    console.log(`🔄 Iniciando transición: Contrato ${contratoId} → Evento: ${evento}`);
-    
+
+    console.log(
+      `Iniciando transición: Contrato ${contratoId} → Evento: ${evento}`
+    );
+
     try {
       setResultadoTransicion(null);
       setResultadoEjecucion(null);
 
       // Validar transición
-      const validacion = await analizarTransicionContrato(contratoId, evento as Evento);
+      const validacion = await analizarTransicionContrato(
+        contratoId,
+        evento as Evento
+      );
       setResultadoTransicion(validacion);
 
       if (!validacion.valido) {
-        console.warn("⚠️ Transición rechazada:", validacion.motivo);
+        console.warn("Transición rechazada:", validacion.motivo);
         setMostrarModalTransicion(true);
         return;
       }
 
-      console.log("✅ Validación exitosa, ejecutando...");
+      console.log("Validación exitosa, ejecutando...");
 
       // Ejecutar transición
-      const ejecucion = await ejecutarTransicionContrato(contratoId, evento as Evento);
+      const ejecucion = await ejecutarTransicionContrato(
+        contratoId,
+        evento as Evento
+      );
       setResultadoEjecucion(ejecucion);
       setMostrarModalTransicion(true);
 
       if (ejecucion.exito) {
-        console.log("✅ Transición ejecutada correctamente");
+        console.log("Transición ejecutada correctamente");
         await cargarDatos();
       } else {
-        console.warn("⚠️ La ejecución falló:", ejecucion.mensaje);
+        console.warn("La ejecución falló:", ejecucion.mensaje);
       }
     } catch (err: any) {
-      console.error("❌ Error en transición:", err);
+      console.error("Error en transición:", err);
       setResultadoTransicion({
         valido: false,
         motivo: err.message || "Error desconocido",
@@ -422,9 +678,15 @@ const PropietarioContratos: React.FC = () => {
 
   const estadisticas = {
     total: contratos.length,
-    activos: contratos.filter((c) => String(c.estado).toUpperCase() === "ACTIVO").length,
-    pendientes: contratos.filter((c) => String(c.estado).toUpperCase() === "CREADO").length,
-    finalizados: contratos.filter((c) => String(c.estado).toUpperCase() === "TERMINADO").length,
+    activos: contratos.filter(
+      (c) => String(c.estado).toUpperCase() === "ACTIVO"
+    ).length,
+    pendientes: contratos.filter(
+      (c) => String(c.estado).toUpperCase() === "CREADO"
+    ).length,
+    finalizados: contratos.filter(
+      (c) => String(c.estado).toUpperCase() === "TERMINADO"
+    ).length,
   };
 
   return (
@@ -434,15 +696,23 @@ const PropietarioContratos: React.FC = () => {
       <main className={styles.main}>
         <div className={styles.contenedor}>
           <div className={styles.encabezado}>
-            <button className={styles.btnVolver} onClick={() => navigate("/propietario/dashboard")}>
+            <button
+              className={styles.btnVolver}
+              onClick={() => navigate("/propietario/dashboard")}
+            >
               <ArrowLeft size={20} />
               Volver al Dashboard
             </button>
             <div className={styles.tituloSeccion}>
               <h1>Mis Contratos</h1>
-              <p className={styles.subtitulo}>Administra los contratos de tus propiedades</p>
+              <p className={styles.subtitulo}>
+                Administra los contratos de tus propiedades
+              </p>
             </div>
-            <BotonComponente label="+ Nuevo Contrato" onClick={abrirModalNuevo} />
+            <BotonComponente
+              label="+ Nuevo Contrato"
+              onClick={abrirModalNuevo}
+            />
           </div>
 
           {/* Estadísticas */}
@@ -453,7 +723,9 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Total Contratos</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.total}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.total}
+                </h2>
               </div>
             </div>
 
@@ -463,7 +735,9 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Activos</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.activos}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.activos}
+                </h2>
               </div>
             </div>
 
@@ -473,7 +747,9 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Creados</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.pendientes}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.pendientes}
+                </h2>
               </div>
             </div>
 
@@ -483,7 +759,9 @@ const PropietarioContratos: React.FC = () => {
               </div>
               <div className={styles.contenidoEstadistica}>
                 <p className={styles.labelEstadistica}>Finalizados</p>
-                <h2 className={styles.valorEstadistica}>{estadisticas.finalizados}</h2>
+                <h2 className={styles.valorEstadistica}>
+                  {estadisticas.finalizados}
+                </h2>
               </div>
             </div>
           </div>
@@ -495,25 +773,41 @@ const PropietarioContratos: React.FC = () => {
               <span>Filtrar por estado:</span>
               <div className={styles.grupoFiltros}>
                 <button
-                  className={filtroEstado === "TODOS" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "TODOS"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("TODOS")}
                 >
                   Todos
                 </button>
                 <button
-                  className={filtroEstado === "ACTIVO" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "ACTIVO"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("ACTIVO")}
                 >
                   Activos
                 </button>
                 <button
-                  className={filtroEstado === "CREADO" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "CREADO"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("CREADO")}
                 >
                   Creados
                 </button>
                 <button
-                  className={filtroEstado === "TERMINADO" ? styles.filtroActivo : styles.filtroBton}
+                  className={
+                    filtroEstado === "TERMINADO"
+                      ? styles.filtroActivo
+                      : styles.filtroBton
+                  }
                   onClick={() => setFiltroEstado("TERMINADO")}
                 >
                   Terminados
@@ -534,14 +828,20 @@ const PropietarioContratos: React.FC = () => {
               <div className={styles.gridContratos}>
                 {contratosFiltrados.map((contrato) => {
                   const propiedad = contrato.propiedad;
-                  const direccion = propiedad?.direccion || "Propiedad no identificada";
+                  const direccion =
+                    propiedad?.direccion || "Propiedad no identificada";
                   const nombreCompleto =
                     contrato.nombreInquilino && contrato.apellidoInquilino
                       ? `${contrato.nombreInquilino} ${contrato.apellidoInquilino}`
-                      : `${contrato.nombreInquilino ?? ""} ${contrato.apellidoInquilino ?? ""}`.trim() || "N/A";
+                      : `${contrato.nombreInquilino ?? ""} ${
+                          contrato.apellidoInquilino ?? ""
+                        }`.trim() || "N/A";
 
                   return (
-                    <div key={contrato.idContrato} className={styles.tarjetaContrato}>
+                    <div
+                      key={contrato.idContrato}
+                      className={styles.tarjetaContrato}
+                    >
                       <div className={styles.headerContrato}>
                         <div className={styles.infoHeaderContrato}>
                           <h3>Contrato #{contrato.idContrato}</h3>
@@ -561,7 +861,9 @@ const PropietarioContratos: React.FC = () => {
                             <User size={16} />
                             Inquilino:
                           </span>
-                          <span className={styles.valorDetalle}>{nombreCompleto}</span>
+                          <span className={styles.valorDetalle}>
+                            {nombreCompleto}
+                          </span>
                         </div>
 
                         <div className={styles.detalleContrato}>
@@ -592,11 +894,16 @@ const PropietarioContratos: React.FC = () => {
                             Valor Mensual:
                           </span>
                           <span className={styles.valorMensual}>
-                            ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
+                            $
+                            {(contrato.valorMensual || 0).toLocaleString(
+                              "es-CO"
+                            )}
                           </span>
                         </div>
 
-                        <span className={obtenerEstadoClase(contrato.estado || "")}>
+                        <span
+                          className={obtenerEstadoClase(contrato.estado || "")}
+                        >
                           {contrato.estado}
                         </span>
                       </div>
@@ -604,7 +911,11 @@ const PropietarioContratos: React.FC = () => {
                       <div className={styles.accionesContrato}>
                         <button
                           className={styles.btnAccion}
-                          onClick={() => navigate(`/propietario/contratos/${contrato.idContrato}`)}
+                          onClick={() =>
+                            navigate(
+                              `/propietario/contratos/${contrato.idContrato}`
+                            )
+                          }
                         >
                           <Eye size={16} />
                           Ver Detalle
@@ -622,18 +933,33 @@ const PropietarioContratos: React.FC = () => {
                       <select
                         defaultValue=""
                         onChange={(e) => {
-                          manejarTransicion(contrato.idContrato || 0, e.target.value);
+                          manejarTransicion(
+                            contrato.idContrato || 0,
+                            e.target.value
+                          );
                           e.target.value = "";
                         }}
                         className={styles.selectTransicion}
                       >
                         <option value="">Transición de Estado...</option>
-                        <option value="ACTIVAR_CONTRATO">✅ Activar Contrato</option>
-                        <option value="SUSPENDER_CONTRATO">⏸️ Suspender Contrato</option>
-                        <option value="REANUDAR_CONTRATO">▶️ Reanudar Contrato</option>
-                        <option value="TERMINAR_CONTRATO">🔚 Terminar Contrato</option>
-                        <option value="RENOVAR_CONTRATO">🔄 Renovar Contrato</option>
-                        <option value="RECHAZAR_CONTRATO">❌ Rechazar Contrato</option>
+                        <option value="ACTIVAR_CONTRATO">
+                          Activar Contrato
+                        </option>
+                        <option value="SUSPENDER_CONTRATO">
+                          Suspender Contrato
+                        </option>
+                        <option value="REANUDAR_CONTRATO">
+                          Reanudar Contrato
+                        </option>
+                        <option value="TERMINAR_CONTRATO">
+                          Terminar Contrato
+                        </option>
+                        <option value="RENOVAR_CONTRATO">
+                          Renovar Contrato
+                        </option>
+                        <option value="RECHAZAR_CONTRATO">
+                          Rechazar Contrato
+                        </option>
                       </select>
                     </div>
                   );
@@ -671,7 +997,9 @@ const PropietarioContratos: React.FC = () => {
               ))}
             </select>
             {propiedades.length === 0 && (
-              <small style={{ color: "red" }}>⚠️ No hay propiedades disponibles</small>
+              <small style={{ color: "red" }}>
+                No hay propiedades disponibles
+              </small>
             )}
           </div>
 
@@ -694,7 +1022,9 @@ const PropietarioContratos: React.FC = () => {
               ))}
             </select>
             {inquilinos.length === 0 && (
-              <small style={{ color: "red" }}>⚠️ No hay inquilinos registrados</small>
+              <small style={{ color: "red" }}>
+                No hay inquilinos registrados
+              </small>
             )}
           </div>
 
@@ -705,7 +1035,12 @@ const PropietarioContratos: React.FC = () => {
               value={fechaInicio}
               setValue={setFechaInicio}
             />
-            <InputCustom title="Fecha Fin *" type="date" value={fechaFin} setValue={setFechaFin} />
+            <InputCustom
+              title="Fecha Fin *"
+              type="date"
+              value={fechaFin}
+              setValue={setFechaFin}
+            />
           </div>
 
           <InputCustom
@@ -759,7 +1094,9 @@ const PropietarioContratos: React.FC = () => {
             <select
               className={styles.selectModal}
               value={estadoContrato}
-              onChange={(e) => setEstadoContrato(e.target.value as EstadoContrato)}
+              onChange={(e) =>
+                setEstadoContrato(e.target.value as EstadoContrato)
+              }
               disabled={guardando}
             >
               <option value={EstadoContrato.CREADO}>Creado</option>
@@ -786,39 +1123,45 @@ const PropietarioContratos: React.FC = () => {
               <h3 className={styles.tituloError}>Transición No Permitida</h3>
 
               <div className={styles.seccionMotivo}>
-                <h4 className={styles.subtituloSeccion}>📋 Motivo del Rechazo:</h4>
+                <h4 className={styles.subtituloSeccion}>Motivo del Rechazo:</h4>
                 <p className={styles.textoMotivo}>
                   {resultadoTransicion?.motivo || "No se especificó un motivo"}
                 </p>
               </div>
 
-              {resultadoTransicion?.recomendaciones && resultadoTransicion.recomendaciones.length > 0 && (
-                <div className={styles.seccionRecomendaciones}>
-                  <h4 className={styles.subtituloSeccion}>💡 Recomendaciones:</h4>
-                  <ul className={styles.listaRecomendaciones}>
-                    {resultadoTransicion.recomendaciones.map((rec, i) => (
-                      <li key={i} className={styles.itemRecomendacion}>
-                        <span className={styles.numeroItem}>{i + 1}</span>
-                        <span className={styles.textoItem}>{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {resultadoTransicion?.recomendaciones &&
+                resultadoTransicion.recomendaciones.length > 0 && (
+                  <div className={styles.seccionRecomendaciones}>
+                    <h4 className={styles.subtituloSeccion}>
+                      Recomendaciones:
+                    </h4>
+                    <ul className={styles.listaRecomendaciones}>
+                      {resultadoTransicion.recomendaciones.map((rec, i) => (
+                        <li key={i} className={styles.itemRecomendacion}>
+                          <span className={styles.numeroItem}>{i + 1}</span>
+                          <span className={styles.textoItem}>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-              {resultadoTransicion?.alternativas && resultadoTransicion.alternativas.length > 0 && (
-                <div className={styles.seccionAlternativas}>
-                  <h4 className={styles.subtituloSeccion}>🔀 Transiciones Alternativas:</h4>
-                  <ul className={styles.listaAlternativas}>
-                    {resultadoTransicion.alternativas.map((alt, i) => (
-                      <li key={i} className={styles.itemAlternativa}>
-                        <span className={styles.iconoCheck}>✓</span>
-                        <span className={styles.textoItem}>{alt}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {resultadoTransicion?.alternativas &&
+                resultadoTransicion.alternativas.length > 0 && (
+                  <div className={styles.seccionAlternativas}>
+                    <h4 className={styles.subtituloSeccion}>
+                      Transiciones Alternativas:
+                    </h4>
+                    <ul className={styles.listaAlternativas}>
+                      {resultadoTransicion.alternativas.map((alt, i) => (
+                        <li key={i} className={styles.itemAlternativa}>
+                          <span className={styles.iconoCheck}>✓</span>
+                          <span className={styles.textoItem}>{alt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
               <div className={styles.accionesModal}>
                 <button
@@ -831,32 +1174,50 @@ const PropietarioContratos: React.FC = () => {
             </>
           ) : resultadoEjecucion ? (
             <>
-              <div className={resultadoEjecucion.exito ? styles.iconoExito : styles.iconoError}>
+              <div
+                className={
+                  resultadoEjecucion.exito
+                    ? styles.iconoExito
+                    : styles.iconoError
+                }
+              >
                 {resultadoEjecucion.exito ? "✅" : "❌"}
               </div>
-              <h3 className={resultadoEjecucion.exito ? styles.tituloExito : styles.tituloError}>
-                {resultadoEjecucion.exito ? "¡Transición Exitosa!" : "Error en la Transición"}
+              <h3
+                className={
+                  resultadoEjecucion.exito
+                    ? styles.tituloExito
+                    : styles.tituloError
+                }
+              >
+                {resultadoEjecucion.exito
+                  ? "¡Transición Exitosa!"
+                  : "Error en la Transición"}
               </h3>
 
               <div className={styles.seccionMensaje}>
                 <h4 className={styles.subtituloSeccion}>
-                  {resultadoEjecucion.exito ? "✨ Resultado:" : "⚠️ Error:"}
+                  {resultadoEjecucion.exito ? "Resultado:" : "Error:"}
                 </h4>
-                <p className={styles.mensajeResultado}>{resultadoEjecucion.mensaje}</p>
+                <p className={styles.mensajeResultado}>
+                  {resultadoEjecucion.mensaje}
+                </p>
               </div>
 
               <div className={styles.seccionEstadoActual}>
-                <h4 className={styles.subtituloSeccion}>🏷️ Estado Actual:</h4>
+                <h4 className={styles.subtituloSeccion}>Estado Actual:</h4>
                 <div className={styles.badgeEstadoActual}>
-                  <span className={styles.estadoActualTexto}>{resultadoEjecucion.estadoActual}</span>
+                  <span className={styles.estadoActualTexto}>
+                    {resultadoEjecucion.estadoActual}
+                  </span>
                 </div>
               </div>
 
               {resultadoEjecucion.exito && (
                 <div className={styles.seccionInformacion}>
                   <p className={styles.textoInformacion}>
-                    El contrato ha cambiado de estado exitosamente. Los cambios se han registrado en
-                    el historial.
+                    El contrato ha cambiado de estado exitosamente. Los cambios
+                    se han registrado en el historial.
                   </p>
                 </div>
               )}

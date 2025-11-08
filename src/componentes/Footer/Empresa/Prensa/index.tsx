@@ -17,16 +17,18 @@ const Prensa = () => {
 
           <div className={styles.seccion}>
             <p className={styles.texto}>
-              Bienvenidos a la sala de prensa de RentManager. Aquí encontrarás toda la información 
-              corporativa, comunicados oficiales, recursos multimedia y contactos para consultas periodísticas.
+              Bienvenidos a la sala de prensa de RentManager. Aquí encontrarás
+              toda la información corporativa, comunicados oficiales, recursos
+              multimedia y contactos para consultas periodísticas.
             </p>
           </div>
 
           <div className={styles.tarjeta}>
             <h3>Últimas Noticias</h3>
             <p>
-              RentManager continúa su expansión en el mercado latinoamericano, alcanzando más de 10,000 
-              propiedades gestionadas activamente en la plataforma durante 2025.
+              RentManager continúa su expansión en el mercado latinoamericano,
+              alcanzando más de 10,000 propiedades gestionadas activamente en la
+              plataforma durante 2025.
             </p>
           </div>
 
@@ -66,8 +68,12 @@ const Prensa = () => {
           <div className={styles.contacto}>
             <h3>Contacto de Prensa</h3>
             <p>Departamento de Comunicaciones</p>
-            <p>Email: <strong>prensa@rentmanager.com</strong></p>
-            <p>Teléfono: <strong>+57 (1) 234 5678 ext. 201</strong></p>
+            <p>
+              Email: <strong>prensa@rentmanager.com</strong>
+            </p>
+            <p>
+              Teléfono: <strong>+57 (1) 234 5678 ext. 201</strong>
+            </p>
             <p>Horario: Lunes a Viernes, 9:00 AM - 6:00 PM</p>
           </div>
         </div>

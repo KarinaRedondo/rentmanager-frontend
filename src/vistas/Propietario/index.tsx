@@ -28,6 +28,187 @@ import {
   XCircle,
 } from "react-feather";
 
+// ========================================
+// DASHBOARD DE PROPIETARIO
+// ========================================
+//
+// Panel principal completo para rol Propietario con estadísticas, propiedades, contratos y facturas.
+// Dashboard personalizado con información financiera y gestión de portfolio.
+//
+// FUNCIONALIDADES:
+// - Visualización de estadísticas principales del propietario.
+// - Resumen de ocupación con barra de progreso.
+// - Listado de propiedades recientes (4 más recientes) con imágenes.
+// - Listado de contratos activos (3 más recientes).
+// - Listado de facturas recientes (5 más recientes).
+// - Menús desplegables en cards de propiedades.
+// - Navegación rápida a secciones completas.
+// - Logging extensivo para debugging.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol PROPIETARIO exclusivamente.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no es PROPIETARIO.
+// - Logging de acceso verificado con nombre de usuario.
+//
+// ESTADO:
+// - propiedades: Lista completa de propiedades del propietario.
+// - contratos: Lista completa de contratos.
+// - facturas: Lista completa de facturas.
+// - cargando: Indica carga inicial.
+// - error: Mensaje de error.
+// - menuAbierto: ID de propiedad con menú desplegable abierto (para cerrar otros).
+//
+// CARGA DE DATOS:
+// - cargarDatosIniciales(): Carga paralela con Promise.allSettled.
+// - No bloquea si una carga falla (arrays vacíos como fallback).
+// - Logging detallado de cada resultado.
+// - cargarPropiedades(), cargarContratos(), cargarFacturas(): Funciones individuales con try-catch.
+//
+// CONSTANTES:
+// - IMAGENES_PROPIEDADES: Array de 9 URLs de Unsplash para imágenes de propiedades.
+//
+// FUNCIONES DE CÁLCULO:
+//
+// calcularEstadisticas():
+// - **Total propiedades**: Cantidad total.
+// - **Propiedades arrendadas**: Con estado ARRENDADA.
+// - **Ingresos mes**: Suma de facturas PAGADA del mes actual.
+// - **Contratos activos**: Con estado ACTIVO.
+// - **Disponibles**: Con estado DISPONIBLE.
+// - **Mantenimiento**: Con estado EN_MANTENIMIENTO.
+// - **Reservadas**: Con estado RESERVADA.
+// - **Porcentaje ocupación**: (Arrendadas / Total) * 100.
+//
+// HANDLERS:
+// - handleVerPropiedad(): Navega a detalle, cierra menú.
+// - handleEditarPropiedad(): Navega a edición, cierra menú.
+// - handleVerContrato(): Navega a detalle de contrato.
+// - handleVerFactura(): Navega a detalle de factura.
+// - toggleMenu(): Abre/cierra menú de propiedad (solo uno a la vez).
+//
+// UTILIDADES:
+//
+// obtenerImagenPropiedad():
+// - Retorna URL de imagen según índice (módulo 9).
+//
+// obtenerColorEstado():
+// - Asigna clase CSS según estado de propiedad.
+// - ARRENDADA: Verde, DISPONIBLE: Azul, MANTENIMIENTO: Naranja, RESERVADA: Morado.
+//
+// obtenerColorEstadoContrato():
+// - Asigna clase CSS según estado de contrato.
+// - ACTIVO: Verde, FINALIZADO: Gris, CANCELADO: Rojo, PENDIENTE: Amarillo.
+//
+// formatearEstado():
+// - Reemplaza guiones bajos por espacios.
+//
+// formatearFecha():
+// - Formato corto español (DD/MM/AAAA).
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Título "Mi Portafolio".
+// - Subtítulo descriptivo.
+//
+// Grid de Estadísticas (3 columnas):
+// 1. **Mis Propiedades**: Total con descripción.
+// 2. **Propiedades Arrendadas**: Cantidad con porcentaje de ocupación.
+// 3. **Contratos Activos**: Cantidad con descripción.
+//
+// Mis Propiedades:
+// - Header con título y botón "Ver todas".
+// - Grid de 4 propiedades más recientes:
+//   * Imagen de Unsplash (o placeholder)
+//   * Badge de estado sobre imagen
+//   * Dirección (título)
+//   * Ciudad con icono MapPin
+//   * Botón menú (tres puntos) con:
+//     - Ver detalles
+//     - Editar
+//   * Detalles: Área, Propietario, Estado
+// - Estado vacío: Icono Home y botón "Agregar Primera Propiedad".
+//
+// Grid Inferior (2 columnas):
+//
+// 1. **Resumen de Ocupación**:
+//    - Porcentaje general con fracción (X/Y).
+//    - Barra de progreso con ancho dinámico.
+//    - Grid de 4 estados con indicador coloreado:
+//      * Arrendadas (verde)
+//      * Disponibles (azul)
+//      * Mantenimiento (naranja)
+//      * Reservadas (morado)
+//
+// 2. **Contratos Activos**:
+//    - Lista de 3 contratos más recientes:
+//      * ID de contrato
+//      * Nombre completo de inquilino (maneja ambos: objeto inquilino o campos planos)
+//      * Fechas inicio - fin
+//      * Valor mensual
+//      * Badge de estado
+//    - Botón "Ver todos los contratos".
+//    - Estado vacío: Icono FileText y mensaje.
+//
+// Facturas Recientes:
+// - Header con título y botón "Ver todas".
+// - Lista de 5 facturas más recientes:
+//   * Icono coloreado según estado (CheckCircle verde, Clock amarillo, XCircle rojo)
+//   * ID de factura
+//   * Concepto "Arriendo mensual"
+//   * Fecha de emisión
+//   * Monto
+//   * Badge de estado
+//   * Botón "Ver"
+// - Estado vacío: Icono DollarSign y mensaje.
+//
+// NAVEGACIÓN:
+// - Ver propiedad: /propietario/propiedades/{id}
+// - Editar propiedad: /propietario/propiedades/editar/{id}
+// - Ver contrato: /propietario/contratos/{id}
+// - Ver factura: /propietario/facturas/{id}
+// - Ver todas propiedades: /propietario/propiedades
+// - Ver todos contratos: /propietario/contratos
+// - Ver todas facturas: /propietario/facturas
+// - Agregar propiedad: /propietario/propiedades/nueva
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con "Cargando tu portfolio...".
+// - Error: Mensaje y botón reintentar.
+// - Estados vacíos: Iconos grandes con mensajes y botones de acción.
+//
+// LOGGING EXTENSIVO:
+// - Acceso verificado con nombre de usuario.
+// - Inicio de carga de datos.
+// - Resultados de Promise.allSettled.
+// - Cantidad y contenido de cada tipo de dato cargado.
+// - Estado final de arrays.
+// - Contratos completos con detalles de inquilinos.
+//
+// CARACTERÍSTICAS DESTACADAS:
+// - **Manejo robusto de nombre de inquilino**: Intenta objeto inquilino primero, luego campos planos.
+// - **Construcción dinámica**: `${nombre} ${apellido}`.trim() con fallback "Sin inquilino asignado".
+// - **Menú desplegable interactivo**: Cierra al hacer clic fuera (useEffect con event listener).
+// - **Barra de progreso visual**: Ancho calculado dinámicamente según ocupación.
+// - **Imágenes de Unsplash**: URLs reales de propiedades.
+// - **Fallback de imágenes**: Placeholder si falla la carga.
+// - **Estadísticas reactivas**: Se recalculan según datos disponibles.
+// - **Estados vacíos informativos**: Con botones de acción.
+//
+// USEEFFECT ESPECIAL:
+// - Listener para cerrar menú al hacer clic fuera del componente.
+// - Cleanup del listener al desmontar.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive para estadísticas (3 cols) y propiedades (4 cols).
+// - Grid inferior 2 columnas.
+// - Barra de progreso con transiciones.
+// - Cards con imágenes y overlays.
+// - Menú desplegable posicionado absolutamente.
+// - Badges y botones con estados hover.
+
 // Imágenes de propiedades por defecto
 const IMAGENES_PROPIEDADES = [
   "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=250&fit=crop",
@@ -152,10 +333,7 @@ const PropietarioDashboard: React.FC = () => {
           resultados[1].value
         );
       } else {
-        console.warn(
-          "No se pudieron cargar contratos:",
-          resultados[1].reason
-        );
+        console.warn("No se pudieron cargar contratos:", resultados[1].reason);
         setContratos([]);
       }
 
@@ -168,10 +346,7 @@ const PropietarioDashboard: React.FC = () => {
           resultados[2].value
         );
       } else {
-        console.warn(
-          "No se pudieron cargar facturas:",
-          resultados[2].reason
-        );
+        console.warn("No se pudieron cargar facturas:", resultados[2].reason);
         setFacturas([]);
       }
 
@@ -354,12 +529,15 @@ const PropietarioDashboard: React.FC = () => {
       day: "2-digit",
     });
   };
-console.log("🔍 Contratos completos con inquilinos:", contratos.map(c => ({
-  id: c.idContrato,
-  inquilino: c.inquilino,
-  nombreInquilino: c.nombreInquilino,
-  apellidoInquilino: c.apellidoInquilino
-})));
+  console.log(
+    "Contratos completos con inquilinos:",
+    contratos.map((c) => ({
+      id: c.idContrato,
+      inquilino: c.inquilino,
+      nombreInquilino: c.nombreInquilino,
+      apellidoInquilino: c.apellidoInquilino,
+    }))
+  );
 
   // ============================================
   // RENDERIZADO - LOADING
@@ -420,8 +598,7 @@ console.log("🔍 Contratos completos con inquilinos:", contratos.map(c => ({
                 Gestiona tus propiedades, contratos y pagos
               </p>
             </div>
-            <div className={styles.accionesEncabezado}>
-            </div>
+            <div className={styles.accionesEncabezado}></div>
           </div>
 
           {/* Grid de estadísticas */}
@@ -696,38 +873,52 @@ console.log("🔍 Contratos completos con inquilinos:", contratos.map(c => ({
                     <p>No hay contratos registrados</p>
                   </div>
                 ) : (
-              contratos.slice(0, 3).map((contrato) => {
-  // Construir nombre completo del inquilino
-  const nombreCompleto = contrato.inquilino
-    ? `${contrato.inquilino.nombre || ""} ${contrato.inquilino.apellido || ""}`.trim()
-    : `${contrato.nombreInquilino || ""} ${contrato.apellidoInquilino || ""}`.trim() || "Sin inquilino asignado";
+                  contratos.slice(0, 3).map((contrato) => {
+                    // Construir nombre completo del inquilino
+                    const nombreCompleto = contrato.inquilino
+                      ? `${contrato.inquilino.nombre || ""} ${
+                          contrato.inquilino.apellido || ""
+                        }`.trim()
+                      : `${contrato.nombreInquilino || ""} ${
+                          contrato.apellidoInquilino || ""
+                        }`.trim() || "Sin inquilino asignado";
 
-  return (
-    <div key={contrato.idContrato} className={styles.itemPago}>
-      <div className={styles.infoPago}>
-        <p className={styles.propiedadPago}>
-          Contrato #{contrato.idContrato}
-        </p>
-        <p className={styles.inquilinoPago}>
-          {nombreCompleto}
-        </p>
-        <p className={styles.fechaPago}>
-          <Calendar size={12} />{" "}
-          {formatearFecha(contrato.fechaInicio)} -{" "}
-          {formatearFecha(contrato.fechaFin)}
-        </p>
-      </div>
-      <div className={styles.montoPago}>
-        <p className={styles.valorPago}>
-          ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
-        </p>
-        <span className={obtenerColorEstadoContrato(contrato.estado)}>
-          {formatearEstado(contrato.estado)}
-        </span>
-      </div>
-    </div>
-  );
-})
+                    return (
+                      <div
+                        key={contrato.idContrato}
+                        className={styles.itemPago}
+                      >
+                        <div className={styles.infoPago}>
+                          <p className={styles.propiedadPago}>
+                            Contrato #{contrato.idContrato}
+                          </p>
+                          <p className={styles.inquilinoPago}>
+                            {nombreCompleto}
+                          </p>
+                          <p className={styles.fechaPago}>
+                            <Calendar size={12} />{" "}
+                            {formatearFecha(contrato.fechaInicio)} -{" "}
+                            {formatearFecha(contrato.fechaFin)}
+                          </p>
+                        </div>
+                        <div className={styles.montoPago}>
+                          <p className={styles.valorPago}>
+                            $
+                            {(contrato.valorMensual || 0).toLocaleString(
+                              "es-CO"
+                            )}
+                          </p>
+                          <span
+                            className={obtenerColorEstadoContrato(
+                              contrato.estado
+                            )}
+                          >
+                            {formatearEstado(contrato.estado)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
 
                 <button

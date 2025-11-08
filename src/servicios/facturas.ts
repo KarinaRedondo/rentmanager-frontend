@@ -37,7 +37,7 @@ export const obtenerFacturas = async (): Promise<DTOFacturaRespuesta[]> => {
     const res = await urlApi.get(`${API_URL}/obtener`);
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al obtener facturas:", error);
+    console.error("Error al obtener facturas:", error);
     throw error;
   }
 };
@@ -52,7 +52,7 @@ export const obtenerFacturaPorId = async (
     const res = await urlApi.get(`${API_URL}/obtenerPorId/${id}`);
     return res.data;
   } catch (error: any) {
-    console.error(`❌ Error al obtener factura ${id}:`, error);
+    console.error(`Error al obtener factura ${id}:`, error);
     throw error;
   }
 };
@@ -67,7 +67,7 @@ export const crearFactura = async (
     const res = await urlApi.post(`${API_URL}/crear`, data);
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al crear factura:", error);
+    console.error("Error al crear factura:", error);
     throw error;
   }
 };
@@ -83,7 +83,7 @@ export const actualizarFactura = async (
     const res = await urlApi.put(`${API_URL}/actualizar/${id}`, data);
     return res.data;
   } catch (error: any) {
-    console.error(`❌ Error al actualizar factura ${id}:`, error);
+    console.error(`Error al actualizar factura ${id}:`, error);
     throw error;
   }
 };
@@ -95,7 +95,7 @@ export const eliminarFactura = async (id: number): Promise<void> => {
   try {
     await urlApi.delete(`${API_URL}/eliminar/${id}`);
   } catch (error: any) {
-    console.error(`❌ Error al eliminar factura ${id}:`, error);
+    console.error(`Error al eliminar factura ${id}:`, error);
     throw error;
   }
 };
@@ -113,13 +113,18 @@ export const analizarTransicionFactura = async (
   evento: Evento | string
 ): Promise<ResultadoValidacion> => {
   try {
-    const res = await urlApi.get(`${API_URL}/${id}/analizar-transicion/${evento}`);
+    const res = await urlApi.get(
+      `${API_URL}/${id}/analizar-transicion/${evento}`
+    );
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al analizar transición:", error);
+    console.error("Error al analizar transición:", error);
     return {
       valido: false,
-      motivo: error.response?.data?.message || error.message || "Error al analizar la transición",
+      motivo:
+        error.response?.data?.message ||
+        error.message ||
+        "Error al analizar la transición",
       recomendaciones: [],
       alternativas: [],
     };
@@ -128,21 +133,26 @@ export const analizarTransicionFactura = async (
 
 /**
  * Ejecuta una transición de estado en el backend.
- * ⚠️ IMPORTANTE: No valida aquí, asume que ya fue validada previamente.
+ * IMPORTANTE: No valida aquí, asume que ya fue validada previamente.
  */
 export const ejecutarTransicionFactura = async (
   id: number,
   evento: Evento | string
 ): Promise<ResultadoEjecucion> => {
   try {
-    const res = await urlApi.post(`${API_URL}/${id}/ejecutar-transicion/${evento}`);
+    const res = await urlApi.post(
+      `${API_URL}/${id}/ejecutar-transicion/${evento}`
+    );
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al ejecutar transición:", error);
-    
+    console.error("Error al ejecutar transición:", error);
+
     return {
       exito: false,
-      mensaje: error.response?.data?.message || error.message || "Error al ejecutar la transición",
+      mensaje:
+        error.response?.data?.message ||
+        error.message ||
+        "Error al ejecutar la transición",
       estadoActual: "ERROR",
     };
   }
@@ -156,10 +166,12 @@ export const esTransicionValidaFactura = async (
   evento: Evento | string
 ): Promise<boolean> => {
   try {
-    const res = await urlApi.get(`${API_URL}/${id}/transicion-valida/${evento}`);
+    const res = await urlApi.get(
+      `${API_URL}/${id}/transicion-valida/${evento}`
+    );
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al verificar validez:", error);
+    console.error("Error al verificar validez:", error);
     return false;
   }
 };
@@ -175,7 +187,7 @@ export const obtenerRecomendacionesFactura = async (
     const res = await urlApi.get(`${API_URL}/${id}/recomendaciones/${evento}`);
     return res.data;
   } catch (error: any) {
-    console.error("❌ Error al obtener recomendaciones:", error);
+    console.error("Error al obtener recomendaciones:", error);
     return [];
   }
 };
@@ -185,9 +197,9 @@ export const obtenerRecomendacionesFactura = async (
 // ============================
 
 /**
- * ✅ Flujo completo recomendado: Valida primero y luego ejecuta la transición.
+ * Flujo completo recomendado: Valida primero y luego ejecuta la transición.
  * Útil para usar en componentes React o flujos de UI.
- * 
+ *
  * @returns ResultadoEjecucion con el resultado de la operación
  */
 export const validarYEjecutarTransicionFactura = async (
@@ -195,37 +207,39 @@ export const validarYEjecutarTransicionFactura = async (
   evento: Evento | string
 ): Promise<ResultadoEjecucion> => {
   try {
-    console.log(`🔄 Iniciando transición: Factura ${id} → Evento: ${evento}`);
+    console.log(`Iniciando transición: Factura ${id} → Evento: ${evento}`);
 
     // Paso 1: Validar primero con el backend
     const validacion = await analizarTransicionFactura(id, evento);
 
     if (!validacion.valido) {
-      console.warn("⚠️ Transición rechazada:", validacion.motivo);
-      
+      console.warn("Transición rechazada:", validacion.motivo);
+
       // Retornar un resultado de error en lugar de lanzar excepción
       return {
         exito: false,
-        mensaje: validacion.motivo || "Transición inválida según validación del sistema",
+        mensaje:
+          validacion.motivo ||
+          "Transición inválida según validación del sistema",
         estadoActual: "SIN CAMBIOS",
       };
     }
 
-    console.log("✅ Validación exitosa, ejecutando transición...");
+    console.log("Validación exitosa, ejecutando transición...");
 
     // Paso 2: Si es válida, ejecutar la transición
     const resultado = await ejecutarTransicionFactura(id, evento);
-    
+
     if (resultado.exito) {
-      console.info("✅ Transición ejecutada exitosamente:", resultado.mensaje);
+      console.info("Transición ejecutada exitosamente:", resultado.mensaje);
     } else {
-      console.warn("⚠️ La transición falló en ejecución:", resultado.mensaje);
+      console.warn("La transición falló en ejecución:", resultado.mensaje);
     }
 
     return resultado;
   } catch (error: any) {
-    console.error("❌ Error crítico en la transición:", error.message);
-    
+    console.error("Error crítico en la transición:", error.message);
+
     // Retornar resultado de error estructurado
     return {
       exito: false,
@@ -240,7 +254,7 @@ export const validarYEjecutarTransicionFactura = async (
 // ============================
 
 /**
- * ✅ Obtiene el análisis completo de una transición con manejo robusto de errores.
+ * Obtiene el análisis completo de una transición con manejo robusto de errores.
  * Útil para mostrar información detallada al usuario antes de ejecutar.
  */
 export const obtenerAnalisisCompleto = async (
@@ -248,14 +262,14 @@ export const obtenerAnalisisCompleto = async (
   evento: Evento | string
 ): Promise<ResultadoValidacion> => {
   const analisis = await analizarTransicionFactura(id, evento);
-  
-  console.log("📊 Análisis de transición:", {
+
+  console.log("Análisis de transición:", {
     valido: analisis.valido,
     motivo: analisis.motivo,
     recomendaciones: analisis.recomendaciones?.length || 0,
     alternativas: analisis.alternativas?.length || 0,
   });
-  
+
   return analisis;
 };
 
@@ -267,7 +281,9 @@ export const obtenerAnalisisCompleto = async (
  * Obtiene todas las facturas del propietario autenticado.
  * NOTA: El backend ya filtra por rol automáticamente en /obtener
  */
-export const obtenerFacturasPropietario = async (): Promise<DTOFacturaRespuesta[]> => {
+export const obtenerFacturasPropietario = async (): Promise<
+  DTOFacturaRespuesta[]
+> => {
   return obtenerFacturas();
 };
 
@@ -275,7 +291,9 @@ export const obtenerFacturasPropietario = async (): Promise<DTOFacturaRespuesta[
  * Obtiene todas las facturas del inquilino autenticado.
  * NOTA: El backend ya filtra por rol automáticamente en /obtener
  */
-export const obtenerFacturasInquilino = async (): Promise<DTOFacturaRespuesta[]> => {
+export const obtenerFacturasInquilino = async (): Promise<
+  DTOFacturaRespuesta[]
+> => {
   return obtenerFacturas();
 };
 
@@ -283,6 +301,8 @@ export const obtenerFacturasInquilino = async (): Promise<DTOFacturaRespuesta[]>
  * Obtiene todas las facturas (para administrador/contador).
  * NOTA: El backend ya filtra por rol automáticamente en /obtener
  */
-export const obtenerTodasLasFacturas = async (): Promise<DTOFacturaRespuesta[]> => {
+export const obtenerTodasLasFacturas = async (): Promise<
+  DTOFacturaRespuesta[]
+> => {
   return obtenerFacturas();
 };

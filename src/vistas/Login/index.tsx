@@ -98,10 +98,7 @@ const Login: React.FC = () => {
             >
               ¿Olvidaste tu contraseña?
             </span>
-            <span
-              className={styles.link}
-              onClick={() => navigate("/registro")}
-            >
+            <span className={styles.link} onClick={() => navigate("/registro")}>
               ¿No tienes una cuenta? Regístrate
             </span>
           </div>

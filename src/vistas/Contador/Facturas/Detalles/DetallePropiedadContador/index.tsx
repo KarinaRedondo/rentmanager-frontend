@@ -8,6 +8,67 @@ import type { DTOPropiedadRespuesta } from "../../../../../modelos/types/Propied
 import styles from "./DetallePropiedadContador.module.css";
 import { ArrowLeft, Home } from "react-feather";
 
+// ========================================
+// DETALLE DE PROPIEDAD - ROL CONTADOR
+// ========================================
+//
+// Vista de solo lectura de propiedad para rol Contador.
+// Muestra información básica de propiedad sin opciones de modificación.
+//
+// FUNCIONALIDADES:
+// - Visualización de datos básicos de propiedad.
+// - Carga de contratos asociados (sin renderizar).
+// - Navegación de retorno a lista de facturas.
+// - Sistema de tabs preparado pero no implementado.
+//
+// ESTADO:
+// - propiedad: Objeto DTOPropiedadRespuesta con datos de la propiedad.
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla la carga.
+// - tabActiva: Tab seleccionado (informacion, contratos, facturas, pagos).
+//
+// FLUJO:
+// 1. Obtiene ID de propiedad desde URL params.
+// 2. Carga propiedad con obtenerPropiedadPorId().
+// 3. Carga contratos asociados pero no los guarda en estado.
+// 4. Muestra datos en grid de campos.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español (no utilizada).
+// - formatearMoneda(): Formatea números a moneda COP (no utilizada).
+//
+// SECCIONES:
+//
+// Encabezado:
+// - Botón volver a lista de facturas (hardcoded /contador/facturas/1).
+// - Título con dirección de propiedad.
+// - Badge de estado.
+//
+// Detalles de la Propiedad:
+// - Grid 2 columnas con campos: Dirección, Ciudad, Tipo, Área, Habitaciones, Baños.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje.
+// - Error/No encontrada: Icono Home y mensaje.
+//
+// LIMITACIONES:
+// - Navegación hardcoded en lugar de navigate(-1).
+// - Tabs declarados pero no implementados visualmente.
+// - Contratos cargados pero no almacenados ni mostrados.
+// - Funciones de formato declaradas pero no utilizadas.
+// - No muestra datos completos de propiedad (descripción, servicios, propietario).
+// - Variable contratosPropiedad calculada pero no usada.
+//
+// CÓDIGO INACTIVO:
+// - formatearFecha y formatearMoneda no se usan.
+// - contratosPropiedad se filtra pero no se guarda en estado.
+// - tabActiva tiene múltiples valores posibles pero solo renderiza "informacion".
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Badge coloreado para estado.
+
 const DetallePropiedadContador: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -98,7 +159,6 @@ const DetallePropiedadContador: React.FC = () => {
           <div className={styles.error}>
             <Home size={64} />
             <h3>{error || "Propiedad no encontrada"}</h3>
-           
           </div>
         </main>
         <Footer />
@@ -119,7 +179,7 @@ const DetallePropiedadContador: React.FC = () => {
               onClick={() => navigate("/contador/facturas/1")}
             >
               <ArrowLeft size={20} />
-              Volver 
+              Volver
             </button>
             <div className={styles.tituloSeccion}>
               <h1>{propiedad.direccion}</h1>
@@ -146,19 +206,21 @@ const DetallePropiedadContador: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Tipo</span>
-                    <span className={styles.valor}>{propiedad.tipo}</span>     
+                    <span className={styles.valor}>{propiedad.tipo}</span>
                   </div>
-                   <div className={styles.campo}>
+                  <div className={styles.campo}>
                     <span className={styles.label}>Area</span>
-                    <span className={styles.valor}>{propiedad.area}</span>     
+                    <span className={styles.valor}>{propiedad.area}</span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Habitaciones</span>
-                    <span className={styles.valor}>{propiedad.habitaciones}</span>     
+                    <span className={styles.valor}>
+                      {propiedad.habitaciones}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Baños</span>
-                    <span className={styles.valor}>{propiedad.banos}</span>     
+                    <span className={styles.valor}>{propiedad.banos}</span>
                   </div>
                 </div>
               </div>

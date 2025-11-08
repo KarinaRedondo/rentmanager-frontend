@@ -17,38 +17,42 @@ const Privacidad = () => {
 
           <div className={styles.seccion}>
             <p className={styles.texto}>
-              En RentManager nos tomamos muy en serio la privacidad de nuestros usuarios. Esta política 
-              explica qué información recopilamos, cómo la utilizamos y tus derechos sobre ella.
+              En RentManager nos tomamos muy en serio la privacidad de nuestros
+              usuarios. Esta política explica qué información recopilamos, cómo
+              la utilizamos y tus derechos sobre ella.
             </p>
           </div>
 
           <h2 className={styles.subtitulo}>1. Información que Recopilamos</h2>
-          
+
           <div className={styles.tarjeta}>
             <h3>Información de Registro</h3>
             <p>
-              Nombre, correo electrónico, número de teléfono, documento de identidad, información de 
-              pago y datos relacionados con tu actividad inmobiliaria.
+              Nombre, correo electrónico, número de teléfono, documento de
+              identidad, información de pago y datos relacionados con tu
+              actividad inmobiliaria.
             </p>
           </div>
 
           <div className={styles.tarjeta}>
             <h3>Información de Uso</h3>
             <p>
-              Direcciones IP, tipo de navegador, páginas visitadas, tiempo de uso, interacciones con 
-              la plataforma y datos de dispositivos.
+              Direcciones IP, tipo de navegador, páginas visitadas, tiempo de
+              uso, interacciones con la plataforma y datos de dispositivos.
             </p>
           </div>
 
           <div className={styles.tarjeta}>
             <h3>Información de Propiedades</h3>
             <p>
-              Datos de propiedades, contratos, facturas, pagos y documentos asociados a la gestión 
-              inmobiliaria.
+              Datos de propiedades, contratos, facturas, pagos y documentos
+              asociados a la gestión inmobiliaria.
             </p>
           </div>
 
-          <h2 className={styles.subtitulo}>2. Cómo Utilizamos tu Información</h2>
+          <h2 className={styles.subtitulo}>
+            2. Cómo Utilizamos tu Información
+          </h2>
           <ul className={styles.lista}>
             <li>Proporcionar y mejorar nuestros servicios</li>
             <li>Procesar transacciones y pagos</li>
@@ -61,19 +65,22 @@ const Privacidad = () => {
 
           <h2 className={styles.subtitulo}>3. Compartir Información</h2>
           <p className={styles.texto}>
-            NO vendemos tu información personal a terceros. Compartimos información únicamente en 
-            estas circunstancias:
+            NO vendemos tu información personal a terceros. Compartimos
+            información únicamente en estas circunstancias:
           </p>
           <ul className={styles.lista}>
             <li>Con tu consentimiento explícito</li>
-            <li>Con proveedores de servicios (procesadores de pago, hosting)</li>
+            <li>
+              Con proveedores de servicios (procesadores de pago, hosting)
+            </li>
             <li>Cuando sea requerido por ley o autoridades competentes</li>
             <li>Para proteger nuestros derechos legales</li>
           </ul>
 
           <h2 className={styles.subtitulo}>4. Seguridad de los Datos</h2>
           <p className={styles.texto}>
-            Implementamos medidas de seguridad técnicas y organizativas apropiadas:
+            Implementamos medidas de seguridad técnicas y organizativas
+            apropiadas:
           </p>
           <ul className={styles.lista}>
             <li>Encriptación SSL/TLS en todas las comunicaciones</li>
@@ -86,8 +93,8 @@ const Privacidad = () => {
 
           <h2 className={styles.subtitulo}>5. Tus Derechos</h2>
           <p className={styles.texto}>
-            Conforme a la legislación colombiana de protección de datos (Ley 1581 de 2012), tienes 
-            derecho a:
+            Conforme a la legislación colombiana de protección de datos (Ley
+            1581 de 2012), tienes derecho a:
           </p>
           <ul className={styles.lista}>
             <li>Acceder a tu información personal</li>
@@ -98,43 +105,56 @@ const Privacidad = () => {
             <li>Solicitar la portabilidad de tus datos</li>
           </ul>
 
-          <h2 className={styles.subtitulo}>6. Cookies y Tecnologías Similares</h2>
+          <h2 className={styles.subtitulo}>
+            6. Cookies y Tecnologías Similares
+          </h2>
           <p className={styles.texto}>
-            Utilizamos cookies para mejorar tu experiencia, analizar el uso de la plataforma y 
-            recordar tus preferencias. Puedes configurar tu navegador para rechazar cookies, aunque 
-            esto puede afectar la funcionalidad de RentManager.
+            Utilizamos cookies para mejorar tu experiencia, analizar el uso de
+            la plataforma y recordar tus preferencias. Puedes configurar tu
+            navegador para rechazar cookies, aunque esto puede afectar la
+            funcionalidad de RentManager.
           </p>
 
           <h2 className={styles.subtitulo}>7. Retención de Datos</h2>
           <p className={styles.texto}>
-            Conservamos tu información personal mientras tu cuenta esté activa o según sea necesario 
-            para cumplir con obligaciones legales. Los datos pueden ser archivados conforme a 
-            requisitos fiscales y legales aplicables.
+            Conservamos tu información personal mientras tu cuenta esté activa o
+            según sea necesario para cumplir con obligaciones legales. Los datos
+            pueden ser archivados conforme a requisitos fiscales y legales
+            aplicables.
           </p>
 
-          <h2 className={styles.subtitulo}>8. Transferencias Internacionales</h2>
+          <h2 className={styles.subtitulo}>
+            8. Transferencias Internacionales
+          </h2>
           <p className={styles.texto}>
-            Tus datos pueden ser almacenados y procesados en servidores ubicados fuera de Colombia. 
-            Garantizamos que estos proveedores cumplen con estándares adecuados de protección de datos.
+            Tus datos pueden ser almacenados y procesados en servidores ubicados
+            fuera de Colombia. Garantizamos que estos proveedores cumplen con
+            estándares adecuados de protección de datos.
           </p>
 
           <h2 className={styles.subtitulo}>9. Menores de Edad</h2>
           <p className={styles.texto}>
-            RentManager no está dirigido a menores de 18 años. No recopilamos intencionalmente 
-            información de menores. Si detectamos información de un menor, la eliminaremos de inmediato.
+            RentManager no está dirigido a menores de 18 años. No recopilamos
+            intencionalmente información de menores. Si detectamos información
+            de un menor, la eliminaremos de inmediato.
           </p>
 
           <h2 className={styles.subtitulo}>10. Cambios a esta Política</h2>
           <p className={styles.texto}>
-            Nos reservamos el derecho de modificar esta política en cualquier momento. Los cambios 
-            significativos serán notificados por correo electrónico y/o mediante aviso en la plataforma.
+            Nos reservamos el derecho de modificar esta política en cualquier
+            momento. Los cambios significativos serán notificados por correo
+            electrónico y/o mediante aviso en la plataforma.
           </p>
 
           <div className={styles.contacto}>
             <h3>Contacto sobre Privacidad</h3>
             <p>Oficial de Protección de Datos</p>
-            <p><strong>privacidad@rentmanager.com</strong></p>
-            <p>Para ejercer tus derechos o realizar consultas sobre privacidad</p>
+            <p>
+              <strong>privacidad@rentmanager.com</strong>
+            </p>
+            <p>
+              Para ejercer tus derechos o realizar consultas sobre privacidad
+            </p>
           </div>
         </div>
       </div>

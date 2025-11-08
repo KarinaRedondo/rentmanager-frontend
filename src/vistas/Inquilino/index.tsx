@@ -22,6 +22,184 @@ import {
   MoreVertical,
 } from "react-feather";
 
+// ========================================
+// DASHBOARD DE INQUILINO
+// ========================================
+//
+// Panel principal completo para rol Inquilino con estadísticas, contratos, facturas y pagos.
+// Dashboard personalizado con información financiera y gestión de alquileres.
+//
+// FUNCIONALIDADES:
+// - Visualización de estadísticas principales del inquilino.
+// - Listado de contratos activos con imágenes.
+// - Historial de pagos recientes (últimos 3).
+// - Recordatorios de pagos próximos a vencer (2 más urgentes).
+// - Estado de facturas pendientes y pagadas (4 más recientes).
+// - Navegación rápida a secciones de contratos, facturas y pagos.
+// - Botón destacado para registrar nuevo pago.
+// - Logging extensivo para debugging.
+//
+// SEGURIDAD:
+// - verificarAcceso(): Valida autenticación y rol INQUILINO exclusivamente.
+// - Redirección a login si no hay sesión.
+// - Redirección a home si rol no es INQUILINO.
+// - Logging de acceso verificado con nombre de usuario.
+//
+// ESTADO:
+// - contratos: Lista completa de contratos del inquilino.
+// - facturas: Lista completa de facturas.
+// - pagos: Lista completa de pagos.
+// - cargando: Indica carga inicial.
+// - error: Mensaje de error.
+//
+// CARGA DE DATOS:
+// - cargarDatosIniciales(): Carga paralela con Promise.allSettled.
+// - No bloquea si una carga falla (arrays vacíos como fallback).
+// - Logging detallado de cada resultado.
+// - cargarContratos(), cargarFacturas(), cargarPagos(): Funciones individuales con try-catch.
+//
+// CONSTANTES:
+// - IMAGENES_PROPIEDADES: Array de 9 URLs de Unsplash para imágenes de propiedades.
+//
+// FUNCIONES DE CÁLCULO:
+//
+// calcularEstadisticas():
+// - **Contratos activos**: Cantidad con estado ACTIVO.
+// - **Próximo pago**: Monto de la factura más próxima a vencer.
+// - **Fecha próximo pago**: Fecha de vencimiento de factura más próxima.
+// - **Días restantes**: Días hasta próximo vencimiento (>=0).
+// - **Porcentaje pagos**: (Facturas pagadas / Total facturas) * 100.
+// - **Pagos al día**: Boolean si todas las facturas están pagadas.
+// - Ordena facturas pendientes por fecha de vencimiento.
+// - Usa setHours(0,0,0,0) para comparación de fechas sin hora.
+//
+// obtenerHistorialPagos():
+// - Filtra pagos: COMPLETADO, VERIFICADO, APROBADO, PENDIENTE.
+// - Ordena por pago.fecha descendente.
+// - Toma los 3 más recientes.
+// - Extrae: ID, dirección propiedad, método, referencia, fecha, monto, estado.
+// - Genera referencia automática si no existe: PAG-000001.
+// - Logging de cada pago procesado.
+//
+// obtenerRecordatorios():
+// - Filtra facturas: PENDIENTE o GENERADA.
+// - Ordena por fecha de vencimiento ascendente.
+// - Toma las 2 más urgentes.
+// - Calcula días restantes para cada una.
+// - Extrae: ID, dirección propiedad, fecha vencimiento, días restantes.
+//
+// FORMATEO DE FECHAS:
+// Todas las funciones usan parsing manual robusto:
+// - Split por '-' para [año, mes, día]
+// - Validación de 3 partes
+// - Creación de Date con valores numéricos
+// - Validación con isNaN()
+// - Manejo de errores con mensajes descriptivos
+//
+// formatearFecha(): Formato largo (ej: "15 de enero de 2025")
+// formatearFechaCorta(): Formato corto (ej: "15/01/2025")
+// obtenerNombreMes(): Mes y año (ej: "enero de 2025")
+// obtenerImagenPropiedad(): Retorna URL de imagen según índice (módulo 9)
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Título "Mi Panel de Inquilino".
+// - Subtítulo descriptivo.
+// - Botón destacado "Registrar Pago".
+//
+// Grid Principal (4 tarjetas):
+// 1. **Contratos Activos**: Cantidad con descripción "Propiedades arrendadas".
+// 2. **Próximo Pago**: Monto con fecha de vencimiento.
+// 3. **Pagos al Día**: Porcentaje con mensaje según estado.
+// 4. **Días Restantes**: Días hasta próximo vencimiento.
+//
+// Historial de Pagos:
+// - Header con título y botón "Ver historial completo".
+// - Lista de últimos 3 pagos:
+//   * Icono coloreado según estado (verde: COMPLETADO/VERIFICADO, naranja: otros)
+//   * Dirección de propiedad
+//   * Tipo de pago y referencia
+//   * Fecha
+//   * Monto
+//   * Badge de estado
+// - Estado vacío: Icono DollarSign y mensaje.
+//
+// Recordatorios de Pago:
+// - Header con título y descripción.
+// - Lista de 2 facturas más próximas a vencer:
+//   * Icono AlertCircle naranja
+//   * Título "Pago próximo a vencer"
+//   * Detalle: Propiedad, fecha, días restantes
+// - Estado vacío: Icono CheckCircle verde y mensaje "No tienes pagos pendientes".
+//
+// Mis Contratos Activos:
+// - Header con título y descripción.
+// - Grid de contratos activos (máximo 2):
+//   * Imagen de propiedad (Unsplash o placeholder)
+//   * Badge "ACTIVO" sobre imagen
+//   * Dirección
+//   * Ciudad y detalles (habitaciones/baños o área)
+//   * Renta mensual
+//   * Fecha inicio
+//   * Fecha vencimiento
+//   * Botón "Ver detalles"
+// - Estado vacío: Icono Home y mensaje.
+// - Fallback de imagen en caso de error.
+//
+// Estado de Facturas:
+// - Header con título y botón "Ver todas las facturas".
+// - Lista de 4 facturas más recientes:
+//   * Indicador coloreado (verde: PAGADA, naranja: otros)
+//   * Título "Alquiler [mes año]"
+//   * Dirección propiedad
+//   * Fecha vencimiento (+ fecha pago si está pagada)
+//   * Monto
+//   * Badge de estado
+// - Estado vacío: Icono FileText y mensaje.
+//
+// NAVEGACIÓN:
+// - Registrar pago: /inquilino/pagos/nuevo
+// - Historial completo: /inquilino/pagos
+// - Detalle de contrato: /inquilino/contratos/{id}
+// - Todas las facturas: /inquilino/facturas
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con "Cargando tu información...".
+// - Error: Mensaje y botón reintentar.
+// - Estados vacíos: Iconos grandes con mensajes descriptivos.
+//
+// LOGGING EXTENSIVO:
+// - Acceso verificado con nombre de usuario.
+// - Inicio de carga de datos.
+// - Resultados de Promise.allSettled.
+// - Cantidad y contenido de cada tipo de dato cargado.
+// - Estadísticas calculadas.
+// - Historial de pagos procesado.
+// - Recordatorios generados.
+// - Contratos y propiedades renderizados.
+// - Estados de pagos en filtrado.
+// - Direcciones encontradas.
+// - Errores en cada operación.
+//
+// CARACTERÍSTICAS DESTACADAS:
+// - **Parsing robusto de fechas**: Manejo manual sin zona horaria.
+// - **Comentarios de corrección**: Marcados con ":" donde se corrigieron bugs.
+// - **Imágenes de Unsplash**: URLs reales de propiedades.
+// - **Fallback de imágenes**: Placeholder si falla la carga.
+// - **Cálculos dinámicos**: Estadísticas reactivas según datos.
+// - **Estados vacíos informativos**: Mensajes amigables.
+// - **Logging completo**: Debug exhaustivo en producción.
+// - **Extracción segura**: Optional chaining en datos anidados.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive para tarjetas principales.
+// - Cards con imágenes y overlays.
+// - Badges y indicadores coloreados.
+// - Listas con separadores visuales.
+// - Botones primarios y secundarios.
+
 const IMAGENES_PROPIEDADES = [
   "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=250&fit=crop",
   "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=250&fit=crop",
@@ -93,7 +271,11 @@ const InquilinoDashboard: React.FC = () => {
 
       if (resultados[0].status === "fulfilled") {
         setContratos(resultados[0].value);
-        console.log("Contratos cargados:", resultados[0].value.length, resultados[0].value);
+        console.log(
+          "Contratos cargados:",
+          resultados[0].value.length,
+          resultados[0].value
+        );
       } else {
         console.warn("Error al cargar contratos:", resultados[0].reason);
         setContratos([]);
@@ -101,7 +283,11 @@ const InquilinoDashboard: React.FC = () => {
 
       if (resultados[1].status === "fulfilled") {
         setFacturas(resultados[1].value);
-        console.log("Facturas cargadas:", resultados[1].value.length, resultados[1].value);
+        console.log(
+          "Facturas cargadas:",
+          resultados[1].value.length,
+          resultados[1].value
+        );
       } else {
         console.warn("Error al cargar facturas:", resultados[1].reason);
         setFacturas([]);
@@ -109,7 +295,11 @@ const InquilinoDashboard: React.FC = () => {
 
       if (resultados[2].status === "fulfilled") {
         setPagos(resultados[2].value);
-        console.log("Pagos cargados:", resultados[2].value.length, resultados[2].value);
+        console.log(
+          "Pagos cargados:",
+          resultados[2].value.length,
+          resultados[2].value
+        );
       } else {
         console.warn("Error al cargar pagos:", resultados[2].reason);
         setPagos([]);
@@ -181,7 +371,9 @@ const InquilinoDashboard: React.FC = () => {
 
     const diasRestantes = proximoPago
       ? Math.ceil(
-          (new Date(proximoPago.fechaVencimiento || proximoPago.fechaEmision || "").getTime() -
+          (new Date(
+            proximoPago.fechaVencimiento || proximoPago.fechaEmision || ""
+          ).getTime() -
             new Date().setHours(0, 0, 0, 0)) /
             (1000 * 60 * 60 * 24)
         )
@@ -199,7 +391,8 @@ const InquilinoDashboard: React.FC = () => {
     return {
       contratosActivos,
       proximoPago: proximoPago?.total || 0,
-      fechaProximoPago: proximoPago?.fechaVencimiento || proximoPago?.fechaEmision || "",
+      fechaProximoPago:
+        proximoPago?.fechaVencimiento || proximoPago?.fechaEmision || "",
       diasRestantes: Math.max(0, diasRestantes),
       porcentajePagos,
       pagosAlDia: pagosAlDia === totalFacturas && totalFacturas > 0,
@@ -233,7 +426,12 @@ const InquilinoDashboard: React.FC = () => {
 
         const direccion = propiedad?.direccion || "Propiedad no identificada";
 
-        console.log("Dirección encontrada:", direccion, "Pago ID:", pago.idPago);
+        console.log(
+          "Dirección encontrada:",
+          direccion,
+          "Pago ID:",
+          pago.idPago
+        );
 
         return {
           id: pago.idPago || 0,
@@ -263,7 +461,9 @@ const InquilinoDashboard: React.FC = () => {
       .slice(0, 2)
       .map((factura) => {
         const diasRestantes = Math.ceil(
-          (new Date(factura.fechaVencimiento || factura.fechaEmision || "").getTime() -
+          (new Date(
+            factura.fechaVencimiento || factura.fechaEmision || ""
+          ).getTime() -
             new Date().setHours(0, 0, 0, 0)) /
             (1000 * 60 * 60 * 24)
         );
@@ -286,12 +486,12 @@ const InquilinoDashboard: React.FC = () => {
   const formatearFecha = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
     try {
-      const partes = fecha.split('-');
+      const partes = fecha.split("-");
       if (partes.length !== 3) return "Fecha inválida";
-      
+
       const [anio, mes, dia] = partes;
       const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
-      
+
       if (isNaN(date.getTime())) return "Fecha inválida";
       return date.toLocaleDateString("es-CO", {
         year: "numeric",
@@ -307,12 +507,12 @@ const InquilinoDashboard: React.FC = () => {
   const formatearFechaCorta = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
     try {
-      const partes = fecha.split('-');
+      const partes = fecha.split("-");
       if (partes.length !== 3) return "Fecha inválida";
-      
+
       const [anio, mes, dia] = partes;
       const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
-      
+
       if (isNaN(date.getTime())) return "Fecha inválida";
       return date.toLocaleDateString("es-CO", {
         year: "numeric",
@@ -332,12 +532,12 @@ const InquilinoDashboard: React.FC = () => {
   const obtenerNombreMes = (fecha: string | undefined): string => {
     if (!fecha) return "N/A";
     try {
-      const partes = fecha.split('-');
+      const partes = fecha.split("-");
       if (partes.length !== 3) return "Mes inválido";
-      
+
       const [anio, mes, dia] = partes;
       const date = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
-      
+
       if (isNaN(date.getTime())) return "Mes inválido";
       return date.toLocaleDateString("es-CO", {
         month: "long",
@@ -372,7 +572,10 @@ const InquilinoDashboard: React.FC = () => {
           <div className={styles.errorContenedor}>
             <h2>Error al cargar datos</h2>
             <p className={styles.error}>{error}</p>
-            <BotonComponente label="Reintentar" onClick={cargarDatosIniciales} />
+            <BotonComponente
+              label="Reintentar"
+              onClick={cargarDatosIniciales}
+            />
           </div>
         </main>
         <Footer />
@@ -418,7 +621,9 @@ const InquilinoDashboard: React.FC = () => {
                 <h2 className={styles.valorTarjeta}>
                   {estadisticas.contratosActivos}
                 </h2>
-                <p className={styles.descripcionTarjeta}>Propiedades arrendadas</p>
+                <p className={styles.descripcionTarjeta}>
+                  Propiedades arrendadas
+                </p>
               </div>
             </div>
 
@@ -502,8 +707,12 @@ const InquilinoDashboard: React.FC = () => {
                   {historialPagos.map((pago) => (
                     <div key={pago.id} className={styles.itemPago}>
                       <div className={styles.iconoPago}>
-                        {pago.estado === "COMPLETADO" || pago.estado === "VERIFICADO" ? (
-                          <CheckCircle size={20} className={styles.iconoVerde} />
+                        {pago.estado === "COMPLETADO" ||
+                        pago.estado === "VERIFICADO" ? (
+                          <CheckCircle
+                            size={20}
+                            className={styles.iconoVerde}
+                          />
                         ) : (
                           <Clock size={20} className={styles.iconoNaranja} />
                         )}
@@ -523,7 +732,8 @@ const InquilinoDashboard: React.FC = () => {
                         </p>
                         <span
                           className={
-                            pago.estado === "COMPLETADO" || pago.estado === "VERIFICADO"
+                            pago.estado === "COMPLETADO" ||
+                            pago.estado === "VERIFICADO"
                               ? styles.estadoConfirmado
                               : styles.estadoPendiente
                           }
@@ -589,8 +799,9 @@ const InquilinoDashboard: React.FC = () => {
             </div>
 
             <div className={styles.tarjetaBlanca}>
-              {contratos.filter((c) => String(c.estado).toUpperCase() === "ACTIVO")
-                .length === 0 ? (
+              {contratos.filter(
+                (c) => String(c.estado).toUpperCase() === "ACTIVO"
+              ).length === 0 ? (
                 <div className={styles.sinDatos}>
                   <Home size={48} />
                   <p>No tienes contratos activos</p>
@@ -602,13 +813,19 @@ const InquilinoDashboard: React.FC = () => {
                     .slice(0, 2)
                     .map((contrato, index) => {
                       const propiedad = contrato.propiedad;
-                      const direccion = propiedad?.direccion || "Dirección no disponible";
+                      const direccion =
+                        propiedad?.direccion || "Dirección no disponible";
                       const ciudad = propiedad?.ciudad || "N/A";
-                      const detalles = propiedad?.habitaciones 
+                      const detalles = propiedad?.habitaciones
                         ? `${propiedad.habitaciones} hab. • ${propiedad.banos} baños`
                         : `${propiedad?.area || 0} m²`;
 
-                      console.log(" Contrato:", contrato.idContrato, "Propiedad:", propiedad);
+                      console.log(
+                        " Contrato:",
+                        contrato.idContrato,
+                        "Propiedad:",
+                        propiedad
+                      );
 
                       return (
                         <div
@@ -635,7 +852,10 @@ const InquilinoDashboard: React.FC = () => {
                               <div className={styles.detalleContrato}>
                                 <span>Renta mensual:</span>
                                 <strong>
-                                  ${(contrato.valorMensual || 0).toLocaleString("es-CO")}
+                                  $
+                                  {(contrato.valorMensual || 0).toLocaleString(
+                                    "es-CO"
+                                  )}
                                 </strong>
                               </div>
                               <div className={styles.detalleContrato}>
@@ -654,7 +874,9 @@ const InquilinoDashboard: React.FC = () => {
                             <button
                               className={styles.btnDescargar}
                               onClick={() =>
-                                navigate(`/inquilino/contratos/${contrato.idContrato}`)
+                                navigate(
+                                  `/inquilino/contratos/${contrato.idContrato}`
+                                )
                               }
                             >
                               <MoreVertical size={16} />
@@ -701,7 +923,10 @@ const InquilinoDashboard: React.FC = () => {
                       propiedad?.direccion || "Propiedad no identificada";
 
                     return (
-                      <div key={factura.idFactura} className={styles.itemFactura}>
+                      <div
+                        key={factura.idFactura}
+                        className={styles.itemFactura}
+                      >
                         <div className={styles.indicadorFactura}>
                           {String(factura.estado).toUpperCase() === "PAGADA" ? (
                             <div className={styles.puntoVerde}></div>
@@ -719,7 +944,8 @@ const InquilinoDashboard: React.FC = () => {
                             {formatearFechaCorta(
                               factura.fechaVencimiento || factura.fechaEmision
                             )}
-                            {String(factura.estado).toUpperCase() === "PAGADA" &&
+                            {String(factura.estado).toUpperCase() ===
+                              "PAGADA" &&
                               ` • Pagado: ${formatearFechaCorta(
                                 factura.fechaEmision
                               )}`}

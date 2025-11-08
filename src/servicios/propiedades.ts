@@ -3,7 +3,7 @@ import type { Evento } from "../modelos/enumeraciones/evento";
 import type {
   DTOPropiedadActualizar,
   DTOPropiedadRegistro,
-  DTOPropiedadRespuesta
+  DTOPropiedadRespuesta,
 } from "../modelos/types/Propiedad";
 
 export interface ResultadoValidacion {
@@ -36,12 +36,17 @@ export const PropiedadService = {
     return res.data;
   },
 
-  async crearPropiedad(data: DTOPropiedadRegistro): Promise<DTOPropiedadRespuesta> {
+  async crearPropiedad(
+    data: DTOPropiedadRegistro
+  ): Promise<DTOPropiedadRespuesta> {
     const res = await urlApi.post(`${API_URL}/crear`, data);
     return res.data;
   },
 
-  async actualizarPropiedad(id: number, data: DTOPropiedadActualizar): Promise<DTOPropiedadRespuesta> {
+  async actualizarPropiedad(
+    id: number,
+    data: DTOPropiedadActualizar
+  ): Promise<DTOPropiedadRespuesta> {
     const res = await urlApi.put(`${API_URL}/actualizar/${id}`, data);
     return res.data;
   },
@@ -54,29 +59,48 @@ export const PropiedadService = {
   // TRANSICIONES DE ESTADO
   // =========================
 
-  async analizarTransicionPropiedad(id: number, evento: Evento): Promise<ResultadoValidacion> {
+  async analizarTransicionPropiedad(
+    id: number,
+    evento: Evento
+  ): Promise<ResultadoValidacion> {
     try {
-      const res = await urlApi.get(`${API_URL}/${id}/analizar-transicion/${evento}`);
+      const res = await urlApi.get(
+        `${API_URL}/${id}/analizar-transicion/${evento}`
+      );
       return res.data;
     } catch (error: any) {
       return {
         valido: false,
-        motivo: error.response?.data?.message || "Error al analizar la transición"
+        motivo:
+          error.response?.data?.message || "Error al analizar la transición",
       };
     }
   },
 
-  async ejecutarTransicionPropiedad(id: number, evento: Evento): Promise<ResultadoEjecucion> {
-    const res = await urlApi.post(`${API_URL}/${id}/ejecutar-transicion/${evento}`);
+  async ejecutarTransicionPropiedad(
+    id: number,
+    evento: Evento
+  ): Promise<ResultadoEjecucion> {
+    const res = await urlApi.post(
+      `${API_URL}/${id}/ejecutar-transicion/${evento}`
+    );
     return res.data;
   },
 
-  async esTransicionValidaPropiedad(id: number, evento: Evento): Promise<boolean> {
-    const res = await urlApi.get(`${API_URL}/${id}/transicion-valida/${evento}`);
+  async esTransicionValidaPropiedad(
+    id: number,
+    evento: Evento
+  ): Promise<boolean> {
+    const res = await urlApi.get(
+      `${API_URL}/${id}/transicion-valida/${evento}`
+    );
     return res.data;
   },
 
-  async obtenerRecomendacionesPropiedad(id: number, evento: Evento): Promise<string[]> {
+  async obtenerRecomendacionesPropiedad(
+    id: number,
+    evento: Evento
+  ): Promise<string[]> {
     const res = await urlApi.get(`${API_URL}/${id}/recomendaciones/${evento}`);
     return res.data;
   },
@@ -88,7 +112,10 @@ export const PropiedadService = {
    * Valida con el backend si una transición de propiedad es válida.
    * Si pasa la validación, la ejecuta y devuelve el resultado.
    */
-  async validarYEjecutarTransicionPropiedad(id: number, evento: Evento): Promise<ResultadoEjecucion> {
+  async validarYEjecutarTransicionPropiedad(
+    id: number,
+    evento: Evento
+  ): Promise<ResultadoEjecucion> {
     try {
       // Analizar primero la transición
       const validacion = await this.analizarTransicionPropiedad(id, evento);
@@ -106,5 +133,5 @@ export const PropiedadService = {
       console.error("Error en la transición de propiedad:", error.message);
       throw error;
     }
-  }
+  },
 };

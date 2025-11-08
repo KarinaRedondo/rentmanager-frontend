@@ -17,6 +17,114 @@ import {
   XCircle,
 } from "react-feather";
 
+// ========================================
+// DETALLE DE FACTURA - ROL PROPIETARIO
+// ========================================
+//
+// Vista completa de factura para rol Propietario con tabs de información relacionada.
+// Permite visualizar factura, contrato asociado y pago (si existe).
+//
+// FUNCIONALIDADES:
+// - Visualización completa de datos de la factura.
+// - Sistema de tabs: Información de Factura, Contrato Asociado, Pago.
+// - Carga automática de pago asociado a la factura.
+// - Navegación a detalle de contrato.
+// - Vista de solo lectura (sin opciones de edición en esta vista).
+//
+// ESTADO:
+// - factura: Objeto DTOFacturaRespuesta con datos completos.
+// - pago: Objeto DTOPagoRespuesta con pago asociado (si existe).
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla la carga.
+// - tabActiva: Tab seleccionado (informacion, contrato, pago).
+//
+// FLUJO DE CARGA:
+// 1. Obtiene ID de factura desde URL params.
+// 2. Valida que ID exista.
+// 3. Carga factura con obtenerFacturaPorId().
+// 4. Carga todos los pagos y filtra por idFactura coincidente.
+// 5. Muestra datos según tab seleccionado.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO a formato largo español.
+// - formatearMoneda(): Formatea números a moneda COP.
+// - obtenerIconoEstado(): Retorna icono coloreado según estado de factura.
+//
+// FUNCIÓN obtenerIconoEstado():
+// - PAGADA: CheckCircle verde
+// - PENDIENTE: Clock amarillo
+// - VENCIDA: XCircle rojo
+// - Default: Clock azul
+//
+// SECCIONES:
+//
+// Encabezado:
+// - Botón volver a lista de facturas.
+// - Título con ID de factura.
+// - Badge de estado con icono coloreado.
+//
+// Tab Información de Factura:
+// - Grid 2 columnas con datos:
+//   * Número de factura
+//   * Estado (badge)
+//   * Fecha de emisión
+//   * Fecha de vencimiento
+//   * Subtotal (igual que total)
+//   * Total (destacado)
+//
+// Tab Contrato Asociado:
+// - Grid 2 columnas con datos de contrato:
+//   * ID Contrato
+//   * Estado (badge)
+//   * Fecha inicio/fin
+//   * Valor mensual (destacado)
+//   * Tipo de contrato
+// - Botón "Ver Detalles Completos del Contrato" con navegación.
+// - Estado vacío si no hay contrato.
+//
+// Tab Pago:
+// - Grid 2 columnas con datos de pago:
+//   * ID Pago
+//   * Estado (badge)
+//   * Monto (destacado)
+//   * Método de pago
+//   * Fecha de pago
+//   * Referencia de transacción (condicional, solo si existe)
+// - Estado vacío si no hay pago.
+// - Indicador en tab "(Sin pago)" si no existe.
+//
+// NAVEGACIÓN:
+// - Volver: /propietario/facturas
+// - Ver contrato: /propietario/contratos/{id}
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje "Cargando factura...".
+// - Error/No encontrada: Icono FileText, mensaje y botón volver.
+// - Sin datos: Iconos grandes con mensajes informativos en tabs vacíos.
+// - Tabs con indicador visual de activo.
+// - Badge con icono integrado en header.
+//
+// CARACTERÍSTICAS:
+// - Vista de solo lectura para propietario.
+// - Acceso a información financiera de sus propiedades.
+// - Navegación a entidad relacionada (contrato).
+// - Diseño limpio y profesional.
+// - Íconos visuales para estados.
+//
+// LIMITACIONES:
+// - No hay verificación de acceso (falta validación de rol PROPIETARIO).
+// - Subtotal y total muestran el mismo valor (no hay cálculo de subtotal).
+// - No muestra detalles del inquilino.
+// - No muestra propiedad asociada.
+//
+// ESTILOS:
+// - CSS Modules encapsulado.
+// - Grid responsive 2 columnas.
+// - Tabs con estado activo coloreado.
+// - Badges para estados.
+// - Botones de navegación.
+// - Valores destacados para montos.
+
 const DetalleFactura: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();

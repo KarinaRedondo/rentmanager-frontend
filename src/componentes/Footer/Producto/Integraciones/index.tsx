@@ -17,8 +17,9 @@ const Integraciones = () => {
 
           <div className={styles.seccion}>
             <p className={styles.texto}>
-              RentManager se integra perfectamente con las principales plataformas y servicios del mercado, 
-              permitiéndote crear un ecosistema de trabajo completamente conectado y automatizado.
+              RentManager se integra perfectamente con las principales
+              plataformas y servicios del mercado, permitiéndote crear un
+              ecosistema de trabajo completamente conectado y automatizado.
             </p>
           </div>
 
@@ -73,16 +74,18 @@ const Integraciones = () => {
           <div className={styles.tarjeta}>
             <h3>API RESTful Disponible</h3>
             <p>
-              Desarrolla integraciones personalizadas con nuestra API documentada. Perfecta para 
-              empresas que necesitan conectar RentManager con sistemas internos o aplicaciones 
-              propietarias.
+              Desarrolla integraciones personalizadas con nuestra API
+              documentada. Perfecta para empresas que necesitan conectar
+              RentManager con sistemas internos o aplicaciones propietarias.
             </p>
           </div>
 
           <div className={styles.contacto}>
             <h3>¿Necesitas una integración específica?</h3>
             <p>Consulta con nuestro equipo técnico</p>
-            <p><strong>soporte@rentmanager.com</strong></p>
+            <p>
+              <strong>soporte@rentmanager.com</strong>
+            </p>
           </div>
         </div>
       </div>

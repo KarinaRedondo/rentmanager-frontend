@@ -17,9 +17,10 @@ const Caracteristicas = () => {
 
           <div className={styles.seccion}>
             <p className={styles.texto}>
-              RentManager integra todas las herramientas necesarias para gestionar propiedades de manera 
-              eficiente, segura y transparente. Nuestra plataforma está diseñada para adaptarse a las 
-              necesidades específicas de cada usuario.
+              RentManager integra todas las herramientas necesarias para
+              gestionar propiedades de manera eficiente, segura y transparente.
+              Nuestra plataforma está diseñada para adaptarse a las necesidades
+              específicas de cada usuario.
             </p>
           </div>
 
@@ -27,11 +28,15 @@ const Caracteristicas = () => {
           <div className={styles.tarjeta}>
             <h3>Gestión Integral de Propiedades</h3>
             <p>
-              Control total sobre tu portafolio inmobiliario desde un único panel de control.
+              Control total sobre tu portafolio inmobiliario desde un único
+              panel de control.
             </p>
           </div>
           <ul className={styles.lista}>
-            <li>Registro completo de propiedades con detalles técnicos y fotográficos</li>
+            <li>
+              Registro completo de propiedades con detalles técnicos y
+              fotográficos
+            </li>
             <li>Seguimiento en tiempo real del estado de cada propiedad</li>
             <li>Gestión de contratos con renovaciones automáticas</li>
             <li>Facturación automatizada y recordatorios de pago</li>
@@ -43,7 +48,8 @@ const Caracteristicas = () => {
           <div className={styles.tarjeta}>
             <h3>Portal del Inquilino</h3>
             <p>
-              Acceso completo a tu información contractual y facilidades de pago en línea.
+              Acceso completo a tu información contractual y facilidades de pago
+              en línea.
             </p>
           </div>
           <ul className={styles.lista}>
@@ -59,7 +65,8 @@ const Caracteristicas = () => {
           <div className={styles.tarjeta}>
             <h3>Panel de Administración Avanzado</h3>
             <p>
-              Supervisión completa del sistema con herramientas de gestión empresarial.
+              Supervisión completa del sistema con herramientas de gestión
+              empresarial.
             </p>
           </div>
           <ul className={styles.lista}>
@@ -90,7 +97,9 @@ const Caracteristicas = () => {
           <div className={styles.contacto}>
             <h3>¿Quieres ver RentManager en acción?</h3>
             <p>Solicita una demo personalizada</p>
-            <p><strong>ventas@rentmanager.com</strong></p>
+            <p>
+              <strong>ventas@rentmanager.com</strong>
+            </p>
           </div>
         </div>
       </div>

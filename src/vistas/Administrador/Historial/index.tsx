@@ -32,22 +32,176 @@ import {
   ExternalLink,
   Clock,
 } from "react-feather";
+// ========================================
+// PÁGINA ADMINISTRACIÓN DE HISTORIAL
+// ========================================
+//
+// Panel de auditoría para visualizar, filtrar y analizar historial completo de cambios del sistema.
+// Acceso exclusivo para roles ADMINISTRADOR y CONTADOR.
+//
+// FUNCIONALIDADES PRINCIPALES:
+// - Visualización completa del historial de cambios en tabla paginada.
+// - Filtrado avanzado por entidad, acción, usuario, fechas y ID.
+// - Estadísticas agregadas de cambios por tipo de entidad.
+// - Exportación de reportes en PDF con filtros aplicados.
+// - Vista detallada de cada cambio con datos antes/después.
+// - Navegación a reportes específicos de entidad.
+//
+// SEGURIDAD Y ACCESO:
+// - Validación de rol en verificarAcceso(): Solo ADMINISTRADOR y CONTADOR.
+// - Lectura de token y usuario desde localStorage.
+// - Redirección a login si no hay autenticación.
+// - Redirección a home si rol no autorizado.
+//
+// ESTADO:
+// - historiales: Lista completa de cambios cargados desde backend.
+// - historialesFiltrados: Subset filtrado para mostrar en tabla.
+// - usuariosDisponibles: Lista única de usuarios responsables para filtro.
+// - paginaActual: Control de paginación (15 items por página).
+// - cargando: Indica operación en curso (carga, filtrado, exportación).
+// - error: Mensaje de error para mostrar al usuario.
+// - mostrarFiltros: Toggle para panel de filtros avanzados.
+// - historialSeleccionado: Cambio seleccionado para modal de detalles.
+// - estadisticas: Datos agregados (total cambios, cambios por tipo).
+// - mostrarEstadisticas: Toggle para panel de estadísticas.
+// - filtros: Objeto con criterios de búsqueda activos.
+//
+// FUNCIONES PRINCIPALES:
+//
+// verificarAcceso():
+// - Valida autenticación y autorización al cargar componente.
+// - Lee usuario y token de localStorage.
+// - Verifica que rol sea CONTADOR o ADMINISTRADOR.
+// - Redirige si falla validación.
+// - Carga datos iniciales si validación exitosa.
+//
+// cargarHistoriales():
+// - Llama obtenerTodosHistoriales() del servicio.
+// - Actualiza estados de historiales y historialesFiltrados.
+// - Extrae lista única de usuarios para filtro.
+// - Maneja errores mostrando mensaje al usuario.
+//
+// cargarEstadisticas():
+// - Obtiene datos agregados del backend.
+// - Muestra total de cambios y distribución por tipo de entidad.
+// - Se renderiza en panel colapsable.
+//
+// aplicarFiltros():
+// - Construye objeto de filtros limpiando valores vacíos.
+// - Llama buscarHistorialConFiltros() con criterios activos.
+// - Actualiza historialesFiltrados con resultados.
+// - Resetea paginación a página 1.
+// - Si no hay filtros, muestra lista completa.
+//
+// limpiarFiltros():
+// - Resetea objeto filtros a valores por defecto.
+// - Restaura lista completa en historialesFiltrados.
+// - Vuelve a página 1.
+//
+// exportarPDF():
+// - Genera reporte PDF con filtros aplicados.
+// - Descarga archivo usando Blob y URL temporal.
+// - Nombre archivo incluye timestamp para unicidad.
+//
+// verReporte():
+// - Navega a reporte específico según tipo de entidad.
+// - Construye URL dinámica con rol del usuario.
+// - Soporta: CONTRATO, PROPIEDAD, PAGO, FACTURA.
+//
+// RENDERIZADO DE DATOS:
+// - renderizarDatosEntidad(): Dispatcher según tipo de entidad.
+// - renderizarDatosContrato(): Grid con campos específicos de contrato.
+// - renderizarDatosPropiedad(): Grid con campos de propiedad.
+// - renderizarDatosFactura(): Grid con campos de factura.
+// - renderizarDatosPago(): Grid con campos de pago.
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO string a formato legible español.
+// - obtenerClaseTipoAccion(): Asigna clase CSS según tipo de acción.
+// - obtenerIconoEntidad(): Retorna emoji según tipo de entidad.
+// - tieneReporteDisponible(): Valida si entidad tiene reporte detallado.
+//
+// PAGINACIÓN:
+// - 15 items por página (ITEMS_POR_PAGINA).
+// - Controles anterior/siguiente con estado disabled.
+// - Indicador de página actual y total.
+// - Rango de items mostrados (ej: 1-15 de 243).
+//
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Título con icono y contador de registros.
+// - Botones: Estadísticas, Filtros, Exportar PDF.
+//
+// Panel Estadísticas (colapsable):
+// - Total de cambios del sistema.
+// - Tarjetas con cambios por tipo de entidad.
+//
+// Panel Filtros (colapsable):
+// - Select: Tipo de entidad (PROPIEDAD, CONTRATO, FACTURA, PAGO).
+// - Input: ID de registro específico.
+// - Select: Tipo de acción (CREACION, ACTUALIZACION, etc).
+// - Select: Usuario responsable (lista dinámica).
+// - Input: Fecha inicio y fecha fin (datetime-local).
+// - Botones: Aplicar Filtros, Limpiar.
+//
+// Tabla:
+// - Columnas: ID, Entidad, ID Reg, Tipo Acción, Estado Anterior, Estado Nuevo, Usuario, Fecha, Ver, Acciones.
+// - Badges coloreados para entidad y acción.
+// - Botón ojo para modal de detalles.
+// - Botón link externo para reportes (si disponible).
+//
+// Modal Detalles:
+// - Overlay oscuro con modal centrado.
+// - Información general: ID, entidad, acción, versión, fecha.
+// - Usuario responsable: Nombre, email, IP.
+// - Transición visual: Estado anterior -> Estado nuevo.
+// - Datos anteriores y datos nuevos en grids formateados.
+// - Botón cerrar (X) y botón Ver Reporte.
+//
+// Estados Vacíos:
+// - Sin datos: Mensaje con icono y botón limpiar filtros.
+// - Cargando: Spinner animado con mensaje.
+// - Error: Icono, mensaje de error y botón reintentar.
+//
+// ESTILOS CSS:
+// - CSS Modules para encapsulación (AdministradorHistorial.module.css).
+// - Grid responsive para estadísticas y filtros.
+// - Tabla con scroll horizontal en móviles.
+// - Modal con backdrop blur y animación fade-in.
+// - Badges con colores semánticos por tipo de acción.
+// - Hover effects en botones y filas de tabla.
+//
+// MEJORAS FUTURAS:
+// - Implementar búsqueda por texto en observaciones/motivo.
+// - Exportar a Excel además de PDF.
+// - Comparación visual diff entre datos anteriores/nuevos.
+// - Filtro por rango de versiones.
+// - Gráficas de tendencias temporales.
+// - Notificaciones en tiempo real de cambios críticos.
 
 const ITEMS_POR_PAGINA = 15;
 
 const AdministradorHistorial: React.FC = () => {
   const navigate = useNavigate();
 
-  const [historiales, setHistoriales] = useState<DTOHistorialCambioEstadoRespuesta[]>([]);
-  const [historialesFiltrados, setHistorialesFiltrados] = useState<DTOHistorialCambioEstadoRespuesta[]>([]);
+  const [historiales, setHistoriales] = useState<
+    DTOHistorialCambioEstadoRespuesta[]
+  >([]);
+  const [historialesFiltrados, setHistorialesFiltrados] = useState<
+    DTOHistorialCambioEstadoRespuesta[]
+  >([]);
   const [usuariosDisponibles, setUsuariosDisponibles] = useState<string[]>([]);
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [mostrarFiltros, setMostrarFiltros] = useState<boolean>(false);
-  const [historialSeleccionado, setHistorialSeleccionado] = useState<DTOHistorialCambioEstadoRespuesta | null>(null);
-  const [estadisticas, setEstadisticas] = useState<EstadisticasHistorial | null>(null);
-  const [mostrarEstadisticas, setMostrarEstadisticas] = useState<boolean>(false);
+  const [historialSeleccionado, setHistorialSeleccionado] =
+    useState<DTOHistorialCambioEstadoRespuesta | null>(null);
+  const [estadisticas, setEstadisticas] =
+    useState<EstadisticasHistorial | null>(null);
+  const [mostrarEstadisticas, setMostrarEstadisticas] =
+    useState<boolean>(false);
 
   const [filtros, setFiltros] = useState<FiltrosHistorial>({
     tipoEntidad: "",
@@ -102,7 +256,13 @@ const AdministradorHistorial: React.FC = () => {
       setHistoriales(historialesArray);
       setHistorialesFiltrados(historialesArray);
 
-      const usuarios = [...new Set(historialesArray.map((h) => h.nombreUsuarioResponsable).filter((u): u is string => !!u))].sort();
+      const usuarios = [
+        ...new Set(
+          historialesArray
+            .map((h) => h.nombreUsuarioResponsable)
+            .filter((u): u is string => !!u)
+        ),
+      ].sort();
       setUsuariosDisponibles(usuarios);
     } catch (error) {
       console.error("Error cargando historiales:", error);
@@ -127,7 +287,12 @@ const AdministradorHistorial: React.FC = () => {
       setError("");
 
       const hayFiltros =
-        filtros.tipoEntidad || filtros.idEntidad || filtros.tipoAccion || filtros.usuario || filtros.fechaInicio || filtros.fechaFin;
+        filtros.tipoEntidad ||
+        filtros.idEntidad ||
+        filtros.tipoAccion ||
+        filtros.usuario ||
+        filtros.fechaInicio ||
+        filtros.fechaFin;
 
       if (!hayFiltros) {
         setHistorialesFiltrados(historiales);
@@ -223,15 +388,15 @@ const AdministradorHistorial: React.FC = () => {
   const obtenerIconoEntidad = (tipoEntidad: string): string => {
     switch (tipoEntidad.toUpperCase()) {
       case "PROPIEDAD":
-        return "🏠";
+        return "info";
       case "CONTRATO":
-        return "📄";
+        return "question";
       case "FACTURA":
-        return "🧾";
+        return "warning";
       case "PAGO":
-        return "💰";
+        return "success";
       default:
-        return "📋";
+        return "info";
     }
   };
 
@@ -256,7 +421,10 @@ const AdministradorHistorial: React.FC = () => {
     );
   };
 
-  const renderizarDatosEntidad = (datos: any, tipoEntidad: string): ReactElement => {
+  const renderizarDatosEntidad = (
+    datos: any,
+    tipoEntidad: string
+  ): ReactElement => {
     if (!datos || typeof datos !== "object") {
       return <p className={styles.noData}>No hay datos disponibles</p>;
     }
@@ -271,7 +439,11 @@ const AdministradorHistorial: React.FC = () => {
       case "PAGO":
         return renderizarDatosPago(datos);
       default:
-        return <pre className={styles.jsonViewer}>{JSON.stringify(datos, null, 2)}</pre>;
+        return (
+          <pre className={styles.jsonViewer}>
+            {JSON.stringify(datos, null, 2)}
+          </pre>
+        );
     }
   };
 
@@ -299,7 +471,9 @@ const AdministradorHistorial: React.FC = () => {
         {contrato.valorMensual !== undefined && (
           <div className={styles.campoEntidad}>
             <label>Valor Mensual:</label>
-            <p className={styles.valorMonetario}>${contrato.valorMensual.toLocaleString("es-CO")}</p>
+            <p className={styles.valorMonetario}>
+              ${contrato.valorMensual.toLocaleString("es-CO")}
+            </p>
           </div>
         )}
         {contrato.estado && (
@@ -439,13 +613,17 @@ const AdministradorHistorial: React.FC = () => {
         {factura.fechaVencimiento && (
           <div className={styles.campoEntidad}>
             <label>Fecha Vencimiento:</label>
-            <p>{new Date(factura.fechaVencimiento).toLocaleDateString("es-CO")}</p>
+            <p>
+              {new Date(factura.fechaVencimiento).toLocaleDateString("es-CO")}
+            </p>
           </div>
         )}
         {factura.total !== undefined && (
           <div className={styles.campoEntidad}>
             <label>Total:</label>
-            <p className={styles.valorMonetario}>${factura.total.toLocaleString("es-CO")}</p>
+            <p className={styles.valorMonetario}>
+              ${factura.total.toLocaleString("es-CO")}
+            </p>
           </div>
         )}
         {factura.estado && (
@@ -482,7 +660,9 @@ const AdministradorHistorial: React.FC = () => {
         {pago.monto !== undefined && (
           <div className={styles.campoEntidad}>
             <label>Monto:</label>
-            <p className={styles.valorMonetario}>${pago.monto.toLocaleString("es-CO")}</p>
+            <p className={styles.valorMonetario}>
+              ${pago.monto.toLocaleString("es-CO")}
+            </p>
           </div>
         )}
         {pago.metodoPago && (
@@ -519,7 +699,9 @@ const AdministradorHistorial: React.FC = () => {
     );
   };
 
-  const totalPaginas = Math.ceil(historialesFiltrados.length / ITEMS_POR_PAGINA);
+  const totalPaginas = Math.ceil(
+    historialesFiltrados.length / ITEMS_POR_PAGINA
+  );
   const inicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
   const fin = inicio + ITEMS_POR_PAGINA;
   const historialesMostrados = historialesFiltrados.slice(inicio, fin);
@@ -551,7 +733,10 @@ const AdministradorHistorial: React.FC = () => {
               <FileText size={48} />
               <h2>Error</h2>
               <p className={styles.error}>{error}</p>
-              <button onClick={cargarHistoriales} className={styles.btnReintentar}>
+              <button
+                onClick={cargarHistoriales}
+                className={styles.btnReintentar}
+              >
                 <RefreshCw size={18} />
                 Reintentar
               </button>
@@ -576,19 +761,30 @@ const AdministradorHistorial: React.FC = () => {
                 Historial de Cambios
               </h1>
               <p className={styles.subtitulo}>
-                Auditoría y trazabilidad completa • {historialesFiltrados.length} registro(s)
+                Auditoría y trazabilidad completa •{" "}
+                {historialesFiltrados.length} registro(s)
               </p>
             </div>
             <div className={styles.botonesEncabezado}>
-              <button className={styles.btnEstadisticas} onClick={() => setMostrarEstadisticas(!mostrarEstadisticas)}>
+              <button
+                className={styles.btnEstadisticas}
+                onClick={() => setMostrarEstadisticas(!mostrarEstadisticas)}
+              >
                 <BarChart size={20} />
                 {mostrarEstadisticas ? "Ocultar" : "Estadísticas"}
               </button>
-              <button className={styles.btnFiltros} onClick={() => setMostrarFiltros(!mostrarFiltros)}>
+              <button
+                className={styles.btnFiltros}
+                onClick={() => setMostrarFiltros(!mostrarFiltros)}
+              >
                 <Filter size={20} />
                 {mostrarFiltros ? "Ocultar" : "Filtros"}
               </button>
-              <button className={styles.btnExportar} onClick={exportarPDF} disabled={cargando}>
+              <button
+                className={styles.btnExportar}
+                onClick={exportarPDF}
+                disabled={cargando}
+              >
                 <Download size={20} />
                 Exportar PDF
               </button>
@@ -606,22 +802,29 @@ const AdministradorHistorial: React.FC = () => {
                 <div className={styles.tarjetaEstadistica}>
                   <div className={styles.estadisticaIcono}>📊</div>
                   <div className={styles.estadisticaInfo}>
-                    <p className={styles.estadisticaValor}>{estadisticas.totalCambios || historiales.length}</p>
+                    <p className={styles.estadisticaValor}>
+                      {estadisticas.totalCambios || historiales.length}
+                    </p>
                     <p className={styles.estadisticaLabel}>Total de Cambios</p>
                   </div>
                 </div>
 
-                {estadisticas.cambiosPorTipo && estadisticas.cambiosPorTipo.length > 0 ? (
+                {estadisticas.cambiosPorTipo &&
+                estadisticas.cambiosPorTipo.length > 0 ? (
                   <>
-                    {estadisticas.cambiosPorTipo.slice(0, 4).map((item: any, idx: number) => (
-                      <div key={idx} className={styles.tarjetaEstadistica}>
-                        <div className={styles.estadisticaIcono}>{obtenerIconoEntidad(item[0])}</div>
-                        <div className={styles.estadisticaInfo}>
-                          <p className={styles.estadisticaValor}>{item[1]}</p>
-                          <p className={styles.estadisticaLabel}>{item[0]}</p>
+                    {estadisticas.cambiosPorTipo
+                      .slice(0, 4)
+                      .map((item: any, idx: number) => (
+                        <div key={idx} className={styles.tarjetaEstadistica}>
+                          <div className={styles.estadisticaIcono}>
+                            {obtenerIconoEntidad(item[0])}
+                          </div>
+                          <div className={styles.estadisticaInfo}>
+                            <p className={styles.estadisticaValor}>{item[1]}</p>
+                            <p className={styles.estadisticaLabel}>{item[0]}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </>
                 ) : null}
               </div>
@@ -642,7 +845,9 @@ const AdministradorHistorial: React.FC = () => {
                   </label>
                   <select
                     value={filtros.tipoEntidad}
-                    onChange={(e) => setFiltros({ ...filtros, tipoEntidad: e.target.value })}
+                    onChange={(e) =>
+                      setFiltros({ ...filtros, tipoEntidad: e.target.value })
+                    }
                     className={styles.select}
                   >
                     <option value="">Todas las entidades</option>
@@ -659,7 +864,12 @@ const AdministradorHistorial: React.FC = () => {
                     type="number"
                     value={filtros.idEntidad || ""}
                     onChange={(e) =>
-                      setFiltros({ ...filtros, idEntidad: e.target.value ? Number(e.target.value) : undefined })
+                      setFiltros({
+                        ...filtros,
+                        idEntidad: e.target.value
+                          ? Number(e.target.value)
+                          : undefined,
+                      })
                     }
                     placeholder="Ej: 123"
                     className={styles.input}
@@ -670,15 +880,17 @@ const AdministradorHistorial: React.FC = () => {
                   <label>Tipo de Acción</label>
                   <select
                     value={filtros.tipoAccion}
-                    onChange={(e) => setFiltros({ ...filtros, tipoAccion: e.target.value })}
+                    onChange={(e) =>
+                      setFiltros({ ...filtros, tipoAccion: e.target.value })
+                    }
                     className={styles.select}
                   >
                     <option value="">Todas las acciones</option>
-                    <option value="CREACION">✨ Creación</option>
-                    <option value="ACTUALIZACION">✏️ Actualización</option>
-                    <option value="ELIMINACION">🗑️ Eliminación</option>
-                    <option value="CAMBIO_ESTADO">🔄 Cambio de Estado</option>
-                    <option value="TRANSICION">➡️ Transición</option>
+                    <option value="CREACION">Creación</option>
+                    <option value="ACTUALIZACION">Actualización</option>
+                    <option value="ELIMINACION">Eliminación</option>
+                    <option value="CAMBIO_ESTADO">Cambio de Estado</option>
+                    <option value="TRANSICION">Transición</option>
                   </select>
                 </div>
 
@@ -688,7 +900,9 @@ const AdministradorHistorial: React.FC = () => {
                   </label>
                   <select
                     value={filtros.usuario}
-                    onChange={(e) => setFiltros({ ...filtros, usuario: e.target.value })}
+                    onChange={(e) =>
+                      setFiltros({ ...filtros, usuario: e.target.value })
+                    }
                     className={styles.select}
                   >
                     <option value="">Todos los usuarios</option>
@@ -707,7 +921,9 @@ const AdministradorHistorial: React.FC = () => {
                   <input
                     type="datetime-local"
                     value={filtros.fechaInicio}
-                    onChange={(e) => setFiltros({ ...filtros, fechaInicio: e.target.value })}
+                    onChange={(e) =>
+                      setFiltros({ ...filtros, fechaInicio: e.target.value })
+                    }
                     className={styles.input}
                   />
                 </div>
@@ -719,14 +935,20 @@ const AdministradorHistorial: React.FC = () => {
                   <input
                     type="datetime-local"
                     value={filtros.fechaFin}
-                    onChange={(e) => setFiltros({ ...filtros, fechaFin: e.target.value })}
+                    onChange={(e) =>
+                      setFiltros({ ...filtros, fechaFin: e.target.value })
+                    }
                     className={styles.input}
                   />
                 </div>
               </div>
 
               <div className={styles.botonesAccion}>
-                <button className={styles.btnAplicar} onClick={aplicarFiltros} disabled={cargando}>
+                <button
+                  className={styles.btnAplicar}
+                  onClick={aplicarFiltros}
+                  disabled={cargando}
+                >
                   <Search size={18} />
                   {cargando ? "Aplicando..." : "Aplicar Filtros"}
                 </button>
@@ -775,17 +997,28 @@ const AdministradorHistorial: React.FC = () => {
                         <td>{historial.idHistorial}</td>
                         <td>
                           <span className={styles.badgeModulo}>
-                            {obtenerIconoEntidad(historial.tipoEntidad)} {historial.tipoEntidad}
+                            {obtenerIconoEntidad(historial.tipoEntidad)}{" "}
+                            {historial.tipoEntidad}
                           </span>
                         </td>
-                        <td className={styles.idRegistro}>#{historial.idEntidad}</td>
+                        <td className={styles.idRegistro}>
+                          #{historial.idEntidad}
+                        </td>
                         <td>
-                          <span className={`${styles.badgeAccion} ${obtenerClaseTipoAccion(historial.tipoAccion)}`}>
+                          <span
+                            className={`${
+                              styles.badgeAccion
+                            } ${obtenerClaseTipoAccion(historial.tipoAccion)}`}
+                          >
                             {historial.tipoAccion}
                           </span>
                         </td>
-                        <td className={styles.estado}>{historial.estadoAnterior || "-"}</td>
-                        <td className={styles.estado}>{historial.estadoNuevo || "-"}</td>
+                        <td className={styles.estado}>
+                          {historial.estadoAnterior || "-"}
+                        </td>
+                        <td className={styles.estado}>
+                          {historial.estadoNuevo || "-"}
+                        </td>
                         <td className={styles.usuario}>
                           <User size={14} />
                           {historial.nombreUsuarioResponsable || "Sistema"}
@@ -794,12 +1027,16 @@ const AdministradorHistorial: React.FC = () => {
                           <Calendar size={14} />
                           {formatearFecha(historial.fechaCambio)}
                         </td>
-                        <td className={styles.version}>v{historial.version || 1}</td>
+                        <td className={styles.version}>
+                          v{historial.version || 1}
+                        </td>
                         <td>
                           <div className={styles.botonesAccionTabla}>
                             <button
                               className={styles.btnVer}
-                              onClick={() => setHistorialSeleccionado(historial)}
+                              onClick={() =>
+                                setHistorialSeleccionado(historial)
+                              }
                               title="Ver detalles"
                             >
                               <Eye size={16} />
@@ -807,7 +1044,12 @@ const AdministradorHistorial: React.FC = () => {
                             {tieneReporteDisponible(historial.tipoEntidad) && (
                               <button
                                 className={styles.btnReporte}
-                                onClick={() => verReporte(historial.tipoEntidad, historial.idEntidad)}
+                                onClick={() =>
+                                  verReporte(
+                                    historial.tipoEntidad,
+                                    historial.idEntidad
+                                  )
+                                }
                                 title="Ver reporte"
                               >
                                 <ExternalLink size={16} />
@@ -823,15 +1065,21 @@ const AdministradorHistorial: React.FC = () => {
 
               {totalPaginas > 1 && (
                 <div className={styles.paginacion}>
-                  <button onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))} disabled={paginaActual === 1}>
+                  <button
+                    onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))}
+                    disabled={paginaActual === 1}
+                  >
                     <ChevronLeft size={18} /> Anterior
                   </button>
                   <span>
-                    Página {paginaActual} de {totalPaginas} • {inicio + 1}-{Math.min(fin, historialesFiltrados.length)}{" "}
-                    de {historialesFiltrados.length}
+                    Página {paginaActual} de {totalPaginas} • {inicio + 1}-
+                    {Math.min(fin, historialesFiltrados.length)} de{" "}
+                    {historialesFiltrados.length}
                   </span>
                   <button
-                    onClick={() => setPaginaActual((p) => Math.min(p + 1, totalPaginas))}
+                    onClick={() =>
+                      setPaginaActual((p) => Math.min(p + 1, totalPaginas))
+                    }
                     disabled={paginaActual === totalPaginas}
                   >
                     Siguiente <ChevronRight size={18} />
@@ -846,14 +1094,23 @@ const AdministradorHistorial: React.FC = () => {
 
       {/* MODAL DE DETALLES */}
       {historialSeleccionado && (
-        <div className={styles.modalOverlay} onClick={() => setHistorialSeleccionado(null)}>
-          <div className={styles.modalContenido} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setHistorialSeleccionado(null)}
+        >
+          <div
+            className={styles.modalContenido}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               <h2>
                 <FileText size={20} />
                 Detalles del Cambio #{historialSeleccionado.idHistorial}
               </h2>
-              <button className={styles.btnCerrar} onClick={() => setHistorialSeleccionado(null)}>
+              <button
+                className={styles.btnCerrar}
+                onClick={() => setHistorialSeleccionado(null)}
+              >
                 <X size={24} />
               </button>
             </div>
@@ -869,7 +1126,8 @@ const AdministradorHistorial: React.FC = () => {
                   <div className={styles.detalleCampo}>
                     <label>Entidad:</label>
                     <p>
-                      {obtenerIconoEntidad(historialSeleccionado.tipoEntidad)} {historialSeleccionado.tipoEntidad}
+                      {obtenerIconoEntidad(historialSeleccionado.tipoEntidad)}{" "}
+                      {historialSeleccionado.tipoEntidad}
                     </p>
                   </div>
                   <div className={styles.detalleCampo}>
@@ -878,7 +1136,11 @@ const AdministradorHistorial: React.FC = () => {
                   </div>
                   <div className={styles.detalleCampo}>
                     <label>Acción:</label>
-                    <p className={obtenerClaseTipoAccion(historialSeleccionado.tipoAccion)}>
+                    <p
+                      className={obtenerClaseTipoAccion(
+                        historialSeleccionado.tipoAccion
+                      )}
+                    >
                       {historialSeleccionado.tipoAccion}
                     </p>
                   </div>
@@ -894,11 +1156,14 @@ const AdministradorHistorial: React.FC = () => {
               </div>
 
               <div className={styles.seccionModal}>
-                <h3>👤 Usuario Responsable</h3>
+                <h3>Usuario Responsable</h3>
                 <div className={styles.detallesGrid}>
                   <div className={styles.detalleCampo}>
                     <label>Nombre:</label>
-                    <p>{historialSeleccionado.nombreUsuarioResponsable || "Sistema"}</p>
+                    <p>
+                      {historialSeleccionado.nombreUsuarioResponsable ||
+                        "Sistema"}
+                    </p>
                   </div>
                   {historialSeleccionado.emailUsuario && (
                     <div className={styles.detalleCampo}>
@@ -916,7 +1181,7 @@ const AdministradorHistorial: React.FC = () => {
               </div>
 
               <div className={styles.seccionModal}>
-                <h3>🔄 Transición</h3>
+                <h3>Transición</h3>
                 <div className={styles.transicionVisual}>
                   <div className={styles.estadoBox}>
                     <label>Anterior</label>
@@ -932,7 +1197,7 @@ const AdministradorHistorial: React.FC = () => {
 
               {historialSeleccionado.datosAnteriores && (
                 <div className={styles.seccionModal}>
-                  <h3>📊 Datos Anteriores</h3>
+                  <h3>Datos Anteriores</h3>
                   {(() => {
                     try {
                       return renderizarDatosEntidad(
@@ -940,7 +1205,11 @@ const AdministradorHistorial: React.FC = () => {
                         historialSeleccionado.tipoEntidad
                       );
                     } catch {
-                      return <pre className={styles.jsonViewer}>{historialSeleccionado.datosAnteriores}</pre>;
+                      return (
+                        <pre className={styles.jsonViewer}>
+                          {historialSeleccionado.datosAnteriores}
+                        </pre>
+                      );
                     }
                   })()}
                 </div>
@@ -948,7 +1217,7 @@ const AdministradorHistorial: React.FC = () => {
 
               {historialSeleccionado.datosNuevos && (
                 <div className={styles.seccionModal}>
-                  <h3>✨ Datos Nuevos</h3>
+                  <h3>Datos Nuevos</h3>
                   {(() => {
                     try {
                       return renderizarDatosEntidad(
@@ -956,7 +1225,11 @@ const AdministradorHistorial: React.FC = () => {
                         historialSeleccionado.tipoEntidad
                       );
                     } catch {
-                      return <pre className={styles.jsonViewer}>{historialSeleccionado.datosNuevos}</pre>;
+                      return (
+                        <pre className={styles.jsonViewer}>
+                          {historialSeleccionado.datosNuevos}
+                        </pre>
+                      );
                     }
                   })()}
                 </div>
@@ -968,7 +1241,10 @@ const AdministradorHistorial: React.FC = () => {
                 <button
                   className={styles.btnVerReporte}
                   onClick={() => {
-                    verReporte(historialSeleccionado.tipoEntidad, historialSeleccionado.idEntidad);
+                    verReporte(
+                      historialSeleccionado.tipoEntidad,
+                      historialSeleccionado.idEntidad
+                    );
                     setHistorialSeleccionado(null);
                   }}
                 >
@@ -976,7 +1252,10 @@ const AdministradorHistorial: React.FC = () => {
                   Ver Reporte
                 </button>
               )}
-              <button className={styles.btnCerrarModal} onClick={() => setHistorialSeleccionado(null)}>
+              <button
+                className={styles.btnCerrarModal}
+                onClick={() => setHistorialSeleccionado(null)}
+              >
                 Cerrar
               </button>
             </div>
@@ -988,4 +1267,3 @@ const AdministradorHistorial: React.FC = () => {
 };
 
 export default AdministradorHistorial;
-

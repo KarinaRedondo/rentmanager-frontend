@@ -1,5 +1,13 @@
 import estilos from "./Footer.module.css";
-import { Home, Facebook, Twitter, Linkedin, Instagram, GitHub, Mail } from "react-feather";
+import {
+  Home,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  GitHub,
+  Mail,
+} from "react-feather";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -13,19 +21,39 @@ const Footer = () => {
           </div>
           <p>Gestión profesional de alquiler de propiedades.</p>
           <div className={estilos.redes}>
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Facebook size={20} />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Twitter size={20} />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Linkedin size={20} />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Instagram size={20} />
             </a>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <GitHub size={20} />
             </a>
             <a href="mailto:contacto@rentmanager.com">
@@ -38,9 +66,15 @@ const Footer = () => {
         <div>
           <h3>Empresa</h3>
           <ul>
-            <li><Link to="/acerca">Acerca de Nosotros</Link></li>
-            <li><Link to="/carreras">Carreras</Link></li>
-            <li><Link to="/prensa">Prensa</Link></li>
+            <li>
+              <Link to="/acerca">Acerca de Nosotros</Link>
+            </li>
+            <li>
+              <Link to="/carreras">Carreras</Link>
+            </li>
+            <li>
+              <Link to="/prensa">Prensa</Link>
+            </li>
           </ul>
         </div>
 
@@ -48,9 +82,15 @@ const Footer = () => {
         <div>
           <h3>Producto</h3>
           <ul>
-            <li><Link to="/caracteristicas">Características</Link></li>
-            <li><Link to="/precios">Precios</Link></li>
-            <li><Link to="/integraciones">Integraciones</Link></li>
+            <li>
+              <Link to="/caracteristicas">Características</Link>
+            </li>
+            <li>
+              <Link to="/precios">Precios</Link>
+            </li>
+            <li>
+              <Link to="/integraciones">Integraciones</Link>
+            </li>
           </ul>
         </div>
 
@@ -58,9 +98,15 @@ const Footer = () => {
         <div>
           <h3>Recursos</h3>
           <ul>
-            <li><Link to="/blog">Blog</Link></li>
-            <li><Link to="/soporte">Soporte</Link></li>
-            <li><Link to="/faq">Preguntas Frecuentes</Link></li>
+            <li>
+              <Link to="/blog">Blog</Link>
+            </li>
+            <li>
+              <Link to="/soporte">Soporte</Link>
+            </li>
+            <li>
+              <Link to="/faq">Preguntas Frecuentes</Link>
+            </li>
           </ul>
         </div>
 
@@ -68,15 +114,20 @@ const Footer = () => {
         <div>
           <h3>Legal</h3>
           <ul>
-            <li><Link to="/terminos">Términos de Servicio</Link></li>
-            <li><Link to="/privacidad">Política de Privacidad</Link></li>
+            <li>
+              <Link to="/terminos">Términos de Servicio</Link>
+            </li>
+            <li>
+              <Link to="/privacidad">Política de Privacidad</Link>
+            </li>
           </ul>
         </div>
       </div>
 
       <div className={estilos.inferior}>
         <p>
-          ¿Listo para gestionar tus propiedades? <Link to="/comenzar">Comenzar</Link>
+          ¿Listo para gestionar tus propiedades?{" "}
+          <Link to="/comenzar">Comenzar</Link>
         </p>
         <p>© 2025 RentManager. Todos los derechos reservados.</p>
       </div>
@@ -85,4 +136,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

@@ -23,17 +23,94 @@ import {
   Eye,
 } from "react-feather";
 
+// ========================================
+// PÁGINA DETALLE DE PROPIEDAD
+// ========================================
+//
+// Vista completa de información de una propiedad específica con tabs para datos relacionados.
+// Permite visualizar detalles, contratos, facturas y pagos asociados.
+//
+// FUNCIONALIDADES:
+// - Visualización de información completa de propiedad.
+// - Tabs para organizar datos: Información, Contratos, Facturas, Pagos.
+// - Filtrado automático de registros relacionados por ID de propiedad.
+// - Navegación a detalles de contratos, facturas y pagos específicos.
+// - Botón de edición para modificar propiedad.
+//
+// ESTADO:
+// - propiedad: Datos completos de la propiedad cargada.
+// - contratos: Lista de contratos asociados a la propiedad.
+// - facturas: Lista de facturas de contratos de la propiedad.
+// - pagos: Lista de pagos de facturas de la propiedad.
+// - cargando: Indica si está cargando datos.
+// - error: Mensaje de error si falla carga.
+// - tabActiva: Tab seleccionado (informacion, contratos, facturas, pagos).
+//
+// FLUJO DE CARGA:
+// 1. Obtiene ID de propiedad desde URL params.
+// 2. Carga datos de propiedad con PropiedadService.obtenerPropiedadPorId().
+// 3. Carga todos los contratos y filtra por idPropiedad.
+// 4. Carga todas las facturas y filtra por IDs de contratos relacionados.
+// 5. Carga todos los pagos y filtra por IDs de facturas relacionadas.
+//
+// TABS:
+//
+// Tab Información:
+// - Grid con detalles: Dirección, ciudad, tipo, estado, área, habitaciones, baños, parqueaderos.
+// - Sección descripción si existe.
+// - Sección propietario con nombre.
+//
+// Tab Contratos:
+// - Lista de cards con información resumida de cada contrato.
+// - Muestra: ID, estado, inquilino, fechas, valor mensual.
+// - Botón Ver Detalles navega a página de detalle de contrato.
+//
+// Tab Facturas:
+// - Lista de cards con información resumida de cada factura.
+// - Muestra: ID, estado, fecha emisión, fecha vencimiento, total.
+// - Botón Ver Detalles navega a página de detalle de factura.
+//
+// Tab Pagos:
+// - Lista de cards con información resumida de cada pago.
+// - Muestra: ID, estado, monto, método de pago, fecha.
+// - Sin botón de detalles (solo visualización).
+//
+// UTILIDADES:
+// - formatearFecha(): Convierte ISO string a formato DD/MM/AAAA en español.
+// - formatearMoneda(): Formatea números a formato moneda colombiana (COP).
+//
+// NAVEGACIÓN:
+// - Botón volver a lista de propiedades.
+// - Botón editar navega a formulario de edición.
+// - Botones Ver Detalles en tabs navegan a páginas específicas.
+//
+// ESTADOS VISUALES:
+// - Cargando: Spinner con mensaje.
+// - Error: Icono, mensaje y botón volver.
+// - Sin datos en tabs: Icono y mensaje informativo.
+//
+// ESTILOS:
+// - CSS Modules encapsulado (DetallePropiedad.module.css).
+// - Grid responsive para campos de información.
+// - Cards para lista de items relacionados.
+// - Badges para estados coloreados.
+// - Tabs con indicador de cantidad de items.
+
 const DetallePropiedad: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const [propiedad, setPropiedad] = useState<DTOPropiedadRespuesta | null>(null);
+  const [propiedad, setPropiedad] = useState<DTOPropiedadRespuesta | null>(
+    null
+  );
   const [contratos, setContratos] = useState<DTOContratoRespuesta[]>([]);
   const [facturas, setFacturas] = useState<DTOFacturaRespuesta[]>([]);
   const [pagos, setPagos] = useState<DTOPagoRespuesta[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [tabActiva, setTabActiva] = useState<"informacion" | "contratos" | "facturas" | "pagos">("informacion");
+  const [tabActiva, setTabActiva] = useState<
+    "informacion" | "contratos" | "facturas" | "pagos"
+  >("informacion");
 
   useEffect(() => {
     cargarDatos();
@@ -50,7 +127,9 @@ const DetallePropiedad: React.FC = () => {
       }
 
       // Cargar propiedad
-      const propiedadData = await PropiedadService.obtenerPropiedadPorId(parseInt(id));
+      const propiedadData = await PropiedadService.obtenerPropiedadPorId(
+        parseInt(id)
+      );
       setPropiedad(propiedadData);
 
       // Cargar todos los contratos y filtrar por propiedad
@@ -75,7 +154,6 @@ const DetallePropiedad: React.FC = () => {
         (p) => p.factura && idsFacturas.includes(p.factura.idFactura)
       );
       setPagos(pagosPropiedad);
-
     } catch (err: any) {
       console.error("Error al cargar datos:", err);
       setError("Error al cargar la información de la propiedad");
@@ -163,7 +241,9 @@ const DetallePropiedad: React.FC = () => {
             <div className={styles.acciones}>
               <BotonComponente
                 label="Editar"
-                onClick={() => navigate(`/administrador/propiedades/editar/${id}`)}
+                onClick={() =>
+                  navigate(`/administrador/propiedades/editar/${id}`)
+                }
               />
             </div>
           </div>
@@ -171,21 +251,27 @@ const DetallePropiedad: React.FC = () => {
           {/* Tabs */}
           <div className={styles.tabs}>
             <button
-              className={tabActiva === "informacion" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "informacion" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("informacion")}
             >
               <Home size={20} />
               Información
             </button>
             <button
-              className={tabActiva === "contratos" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "contratos" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("contratos")}
             >
               <FileText size={20} />
               Contratos ({contratos.length})
             </button>
             <button
-              className={tabActiva === "facturas" ? styles.tabActiva : styles.tab}
+              className={
+                tabActiva === "facturas" ? styles.tabActiva : styles.tab
+              }
               onClick={() => setTabActiva("facturas")}
             >
               <FileText size={20} />
@@ -223,7 +309,9 @@ const DetallePropiedad: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Estado</span>
-                    <span className={styles.estadoBadge}>{propiedad.estado}</span>
+                    <span className={styles.estadoBadge}>
+                      {propiedad.estado}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Área</span>
@@ -231,7 +319,9 @@ const DetallePropiedad: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Habitaciones</span>
-                    <span className={styles.valor}>{propiedad.habitaciones}</span>
+                    <span className={styles.valor}>
+                      {propiedad.habitaciones}
+                    </span>
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Baños</span>
@@ -239,7 +329,9 @@ const DetallePropiedad: React.FC = () => {
                   </div>
                   <div className={styles.campo}>
                     <span className={styles.label}>Parqueadero</span>
-                    <span className={styles.valor}>{propiedad.parqueaderos ? "Sí" : "No"}</span>
+                    <span className={styles.valor}>
+                      {propiedad.parqueaderos ? "Sí" : "No"}
+                    </span>
                   </div>
                 </div>
 
@@ -260,7 +352,9 @@ const DetallePropiedad: React.FC = () => {
                 <div className={styles.grid2}>
                   <div className={styles.campo}>
                     <span className={styles.label}>Nombre</span>
-                    <span className={styles.valor}>{propiedad.nombrePropietario || "N/A"}</span>
+                    <span className={styles.valor}>
+                      {propiedad.nombrePropietario || "N/A"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -283,19 +377,26 @@ const DetallePropiedad: React.FC = () => {
                 ) : (
                   <div className={styles.listaItems}>
                     {contratos.map((contrato) => (
-                      <div key={contrato.idContrato} className={styles.itemCard}>
+                      <div
+                        key={contrato.idContrato}
+                        className={styles.itemCard}
+                      >
                         <div className={styles.itemHeader}>
                           <h3>Contrato #{contrato.idContrato}</h3>
-                          <span className={styles.estadoBadge}>{contrato.estado}</span>
+                          <span className={styles.estadoBadge}>
+                            {contrato.estado}
+                          </span>
                         </div>
                         <div className={styles.itemBody}>
                           <p>
                             <User size={16} />
-                            Inquilino: {contrato.nombreInquilino} {contrato.apellidoInquilino}
+                            Inquilino: {contrato.nombreInquilino}{" "}
+                            {contrato.apellidoInquilino}
                           </p>
                           <p>
                             <Calendar size={16} />
-                            {formatearFecha(contrato.fechaInicio)} - {formatearFecha(contrato.fechaFin)}
+                            {formatearFecha(contrato.fechaInicio)} -{" "}
+                            {formatearFecha(contrato.fechaFin)}
                           </p>
                           <p>
                             <DollarSign size={16} />
@@ -304,7 +405,11 @@ const DetallePropiedad: React.FC = () => {
                         </div>
                         <button
                           className={styles.btnVer}
-                          onClick={() => navigate(`/administrador/contratos/${contrato.idContrato}`)}
+                          onClick={() =>
+                            navigate(
+                              `/administrador/contratos/${contrato.idContrato}`
+                            )
+                          }
                         >
                           <Eye size={16} />
                           Ver Detalles
@@ -336,7 +441,9 @@ const DetallePropiedad: React.FC = () => {
                       <div key={factura.idFactura} className={styles.itemCard}>
                         <div className={styles.itemHeader}>
                           <h3>Factura #{factura.idFactura}</h3>
-                          <span className={styles.estadoBadge}>{factura.estado}</span>
+                          <span className={styles.estadoBadge}>
+                            {factura.estado}
+                          </span>
                         </div>
                         <div className={styles.itemBody}>
                           <p>
@@ -345,7 +452,8 @@ const DetallePropiedad: React.FC = () => {
                           </p>
                           <p>
                             <Calendar size={16} />
-                            Vencimiento: {formatearFecha(factura.fechaVencimiento)}
+                            Vencimiento:{" "}
+                            {formatearFecha(factura.fechaVencimiento)}
                           </p>
                           <p>
                             <DollarSign size={16} />
@@ -354,7 +462,11 @@ const DetallePropiedad: React.FC = () => {
                         </div>
                         <button
                           className={styles.btnVer}
-                          onClick={() => navigate(`/administrador/facturas/${factura.idFactura}`)}
+                          onClick={() =>
+                            navigate(
+                              `/administrador/facturas/${factura.idFactura}`
+                            )
+                          }
                         >
                           <Eye size={16} />
                           Ver Detalles
@@ -386,7 +498,9 @@ const DetallePropiedad: React.FC = () => {
                       <div key={pago.idPago} className={styles.itemCard}>
                         <div className={styles.itemHeader}>
                           <h3>Pago #{pago.idPago}</h3>
-                          <span className={styles.estadoBadge}>{pago.estado}</span>
+                          <span className={styles.estadoBadge}>
+                            {pago.estado}
+                          </span>
                         </div>
                         <div className={styles.itemBody}>
                           <p>

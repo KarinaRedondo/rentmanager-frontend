@@ -75,8 +75,12 @@ const Header: React.FC = () => {
           { nombre: "Dashboard", ruta: "/administrador/dashboard" },
           { nombre: "Usuarios", ruta: "/administrador/usuarios" },
           { nombre: "Propiedades", ruta: "/administrador/propiedades" },
-          { nombre: "Historial", ruta: "/administrador/historial" }, 
-          { nombre: "Reportes", ruta: "/administrador/reportes", icono: <FileText size={16} /> },
+          { nombre: "Historial", ruta: "/administrador/historial" },
+          {
+            nombre: "Reportes",
+            ruta: "/administrador/reportes",
+            icono: <FileText size={16} />,
+          },
         ];
       case "PROPIETARIO":
         return [
@@ -84,7 +88,11 @@ const Header: React.FC = () => {
           { nombre: "Propiedades", ruta: "/propietario/propiedades" },
           { nombre: "Contratos", ruta: "/propietario/contratos" },
           { nombre: "Facturas", ruta: "/propietario/facturas" },
-          { nombre: "Reportes", ruta: "/propietario/reportes", icono: <FileText size={16} /> },
+          {
+            nombre: "Reportes",
+            ruta: "/propietario/reportes",
+            icono: <FileText size={16} />,
+          },
         ];
       case "INQUILINO":
         return [
@@ -99,7 +107,11 @@ const Header: React.FC = () => {
           { nombre: "Gestión de Pagos", ruta: "/contador/pagos" },
           { nombre: "Gestión de facturas", ruta: "/contador/facturas" },
           { nombre: "Historial", ruta: "/contador/historial" },
-          { nombre: "Reportes", ruta: "/contador/reportes", icono: <FileText size={16} /> },
+          {
+            nombre: "Reportes",
+            ruta: "/contador/reportes",
+            icono: <FileText size={16} />,
+          },
         ];
       default:
         return [];
