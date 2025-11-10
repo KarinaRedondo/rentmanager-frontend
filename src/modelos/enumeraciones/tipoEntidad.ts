@@ -22,15 +22,15 @@ export const obtenerNombreTipoEntidad = (tipo: TipoEntidad): string => {
   return nombres[tipo];
 };
 
-// Helper para obtener el icono de SweetAlert2
-export const obtenerIconoTipoEntidad = (tipo: TipoEntidad): string => {
-  const iconos: Record<TipoEntidad, string> = {
-    PROPIEDAD: "info",     
-    CONTRATO: "info",     
-    FACTURA: "warning",     
-    PAGO: "success",        
-    USUARIO: "question",   
-    MANTENIMIENTO: "error", 
+// Helper para obtener el icono NATIVO de SweetAlert2
+export const obtenerIconoTipoEntidad = (tipo: TipoEntidad): "success" | "error" | "warning" | "info" | "question" => {
+  const iconos: Record<TipoEntidad, "success" | "error" | "warning" | "info" | "question"> = {
+    PROPIEDAD: "info",        // Ícono azul de información
+    CONTRATO: "info",         // Ícono azul de información
+    FACTURA: "warning",       // Ícono amarillo de advertencia
+    PAGO: "success",          // Ícono verde de éxito
+    USUARIO: "question",      // Ícono gris de pregunta
+    MANTENIMIENTO: "error",   // Ícono rojo de error
   };
   return iconos[tipo];
 };

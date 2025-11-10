@@ -1,23 +1,3 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../../../componentes/Header";
-import Footer from "../../../componentes/Footer";
-import { BotonComponente } from "../../../componentes/ui/Boton";
-import type { DTOPropiedadRespuesta } from "../../../modelos/types/Propiedad";
-import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
-import { EstadoPropiedad } from "../../../modelos/enumeraciones/estadoPropiedad";
-import { PropiedadService } from "../../../servicios/propiedades";
-import styles from "./PropietarioPropiedades.module.css";
-import { Home, MapPin, Edit3, Eye, Trash2, Plus, Search } from "react-feather";
-import { ModalComponente } from "../../../componentes/Modal";
-import InputCustom from "../../../componentes/ui/Input";
-import { TipoPropiedad } from "../../../modelos/enumeraciones/tipoPropiedad";
-import type { Evento } from "../../../modelos/enumeraciones/evento";
-import type {
-  ResultadoValidacion,
-  ResultadoEjecucion,
-} from "../../../servicios/propiedades";
-
 // ========================================
 // GESTIÓN DE PROPIEDADES - ROL PROPIETARIO
 // ========================================
@@ -223,6 +203,27 @@ import type {
 // - Badges dinámicos según estado.
 // - Tags informativos.
 
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import Header from "../../../componentes/Header";
+import Footer from "../../../componentes/Footer";
+import { BotonComponente } from "../../../componentes/ui/Boton";
+import type { DTOPropiedadRespuesta } from "../../../modelos/types/Propiedad";
+import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
+import { EstadoPropiedad } from "../../../modelos/enumeraciones/estadoPropiedad";
+import { PropiedadService } from "../../../servicios/propiedades";
+import styles from "./PropietarioPropiedades.module.css";
+import { Home, MapPin, Edit3, Eye, Trash2, Plus, Search } from "react-feather";
+import { ModalComponente } from "../../../componentes/Modal";
+import InputCustom from "../../../componentes/ui/Input";
+import { TipoPropiedad } from "../../../modelos/enumeraciones/tipoPropiedad";
+import type { Evento } from "../../../modelos/enumeraciones/evento";
+import type {
+  ResultadoValidacion,
+  ResultadoEjecucion,
+} from "../../../servicios/propiedades";
+
 const PropietarioPropiedades: React.FC = () => {
   const navigate = useNavigate();
 
@@ -254,7 +255,6 @@ const PropietarioPropiedades: React.FC = () => {
     EstadoPropiedad.DISPONIBLE
   );
 
-  // Estados para transiciones de estado
   const [resultadoTransicion, setResultadoTransicion] =
     useState<ResultadoValidacion | null>(null);
   const [resultadoEjecucion, setResultadoEjecucion] =
@@ -286,7 +286,12 @@ const PropietarioPropiedades: React.FC = () => {
         rolUsuario !== "PROPIETARIO" &&
         rolUsuario !== TipoUsuario.PROPIETARIO
       ) {
-        alert("No tienes permisos para acceder a esta sección");
+        await Swal.fire({
+          title: "Acceso Denegado",
+          text: "No tienes permisos para acceder a esta sección",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         navigate("/");
         return;
       }
@@ -393,7 +398,12 @@ const PropietarioPropiedades: React.FC = () => {
   const handleGuardar = async () => {
     try {
       if (!direccion || !ciudad) {
-        alert("Dirección y ciudad son obligatorios");
+        await Swal.fire({
+          title: "Campos Requeridos",
+          text: "Dirección y ciudad son obligatorios",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
         return;
       }
 
@@ -402,13 +412,23 @@ const PropietarioPropiedades: React.FC = () => {
       const banosNum = Number(banos);
 
       if (areaNum <= 0) {
-        alert("El área debe ser mayor a 0");
+        await Swal.fire({
+          title: "Área Inválida",
+          text: "El área debe ser mayor a 0",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
         return;
       }
 
       const usuarioString = localStorage.getItem("usuario");
       if (!usuarioString) {
-        alert("No se pudo obtener la información del usuario");
+        await Swal.fire({
+          title: "Error",
+          text: "No se pudo obtener la información del usuario",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         return;
       }
 
@@ -416,12 +436,16 @@ const PropietarioPropiedades: React.FC = () => {
       const propietarioId = usuario.idUsuario || usuario.id;
 
       if (!propietarioId) {
-        alert("No se pudo obtener el ID del propietario");
+        await Swal.fire({
+          title: "Error",
+          text: "No se pudo obtener el ID del propietario",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         return;
       }
 
       if (propiedadSeleccionada === null) {
-        // Crear
         const datos: any = {
           direccion: direccion.trim(),
           ciudad: ciudad.trim(),
@@ -439,9 +463,14 @@ const PropietarioPropiedades: React.FC = () => {
         };
 
         await PropiedadService.crearPropiedad(datos);
-        alert("Propiedad creada correctamente");
+        await Swal.fire({
+          title: "Éxito",
+          text: "Propiedad creada correctamente",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       } else {
-        // Actualizar
         const datosActualizar: any = {
           direccion: direccion.trim(),
           ciudad: ciudad.trim(),
@@ -461,7 +490,13 @@ const PropietarioPropiedades: React.FC = () => {
           propiedadSeleccionada.idPropiedad || 0,
           datosActualizar
         );
-        alert("Propiedad actualizada correctamente");
+        await Swal.fire({
+          title: "Éxito",
+          text: "Propiedad actualizada correctamente",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
 
       await cargarPropiedades();
@@ -471,25 +506,52 @@ const PropietarioPropiedades: React.FC = () => {
       console.error("ERROR COMPLETO:", err);
       const mensajeError =
         err.response?.data?.message || err.response?.data?.error || err.message;
-      alert(`Error: ${mensajeError}`);
+      
+      await Swal.fire({
+        title: "Error",
+        text: mensajeError,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 
   const handleEliminar = async (propiedadId: number) => {
-    if (!confirm("¿Estás seguro de eliminar esta propiedad?")) return;
+    const resultado = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#dc3545",
+    });
+
+    if (!resultado.isConfirmed) return;
 
     try {
       await PropiedadService.eliminarPropiedad(propiedadId);
-      alert("Propiedad eliminada correctamente");
+      await Swal.fire({
+        title: "Eliminada",
+        text: "Propiedad eliminada correctamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       await cargarPropiedades();
     } catch (err: any) {
       console.error("Error al eliminar:", err);
       const mensajeError = err.response?.data?.message || err.message;
-      alert(`Error al eliminar: ${mensajeError}`);
+      
+      await Swal.fire({
+        title: "Error al Eliminar",
+        text: mensajeError,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 
-  // Manejador para transiciones de estado con validación y ejecución
   const manejarTransicion = async (
     propiedadId: number,
     evento: Evento | string
@@ -499,7 +561,6 @@ const PropietarioPropiedades: React.FC = () => {
       setResultadoTransicion(null);
       setResultadoEjecucion(null);
 
-      // Validar transición
       const validacion = await PropiedadService.analizarTransicionPropiedad(
         propiedadId,
         evento as Evento
@@ -511,7 +572,6 @@ const PropietarioPropiedades: React.FC = () => {
         return;
       }
 
-      // Ejecutar transición
       const ejecucion = await PropiedadService.ejecutarTransicionPropiedad(
         propiedadId,
         evento as Evento
@@ -803,7 +863,6 @@ const PropietarioPropiedades: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* SELECTOR DE TRANSICIONES ACTUALIZADO */}
                     <select
                       defaultValue=""
                       onChange={(e) => {
@@ -845,7 +904,6 @@ const PropietarioPropiedades: React.FC = () => {
 
       <Footer />
 
-      {/* Modal para crear/editar propiedad */}
       <ModalComponente
         openModal={mostrarModal}
         setOpenModal={setMostrarModal}
@@ -993,7 +1051,6 @@ const PropietarioPropiedades: React.FC = () => {
         </div>
       </ModalComponente>
 
-      {/* Modal para mostrar resultados/errores de transiciones */}
       <ModalComponente
         openModal={mostrarModalTransicion}
         setOpenModal={setMostrarModalTransicion}
@@ -1003,21 +1060,18 @@ const PropietarioPropiedades: React.FC = () => {
         <div className={styles.modalResultado}>
           {!resultadoTransicion?.valido ? (
             <>
-              {/* TRANSICIÓN NO VÁLIDA */}
               <div className={styles.iconoError}>❌</div>
               <h3 className={styles.tituloError}>Transición No Permitida</h3>
 
-              {/* Motivo del rechazo */}
               <div className={styles.seccionMotivo}>
                 <h4 className={styles.subtituloSeccion}>
-                  📋 Motivo del Rechazo:
+                  Motivo del Rechazo:
                 </h4>
                 <p className={styles.textoMotivo}>
                   {resultadoTransicion?.motivo || "No se especificó un motivo"}
                 </p>
               </div>
 
-              {/* Recomendaciones */}
               {resultadoTransicion?.recomendaciones &&
                 resultadoTransicion.recomendaciones.length > 0 && (
                   <div className={styles.seccionRecomendaciones}>
@@ -1035,7 +1089,6 @@ const PropietarioPropiedades: React.FC = () => {
                   </div>
                 )}
 
-              {/* Alternativas disponibles */}
               {resultadoTransicion?.alternativas &&
                 resultadoTransicion.alternativas.length > 0 && (
                   <div className={styles.seccionAlternativas}>
@@ -1053,7 +1106,6 @@ const PropietarioPropiedades: React.FC = () => {
                   </div>
                 )}
 
-              {/* Botón de cerrar */}
               <div className={styles.accionesModal}>
                 <button
                   className={styles.btnCerrarModal}
@@ -1065,7 +1117,6 @@ const PropietarioPropiedades: React.FC = () => {
             </>
           ) : resultadoEjecucion ? (
             <>
-              {/* TRANSICIÓN EXITOSA */}
               <div
                 className={
                   resultadoEjecucion.exito
@@ -1087,7 +1138,6 @@ const PropietarioPropiedades: React.FC = () => {
                   : "Error en la Transición"}
               </h3>
 
-              {/* Mensaje de resultado */}
               <div className={styles.seccionMensaje}>
                 <h4 className={styles.subtituloSeccion}>
                   {resultadoEjecucion.exito ? "Resultado:" : "Error:"}
@@ -1097,7 +1147,6 @@ const PropietarioPropiedades: React.FC = () => {
                 </p>
               </div>
 
-              {/* Estado actual */}
               <div className={styles.seccionEstadoActual}>
                 <h4 className={styles.subtituloSeccion}>
                   Estado Actual de la Propiedad:
@@ -1109,7 +1158,6 @@ const PropietarioPropiedades: React.FC = () => {
                 </div>
               </div>
 
-              {/* Información adicional si es exitoso */}
               {resultadoEjecucion.exito && (
                 <div className={styles.seccionInformacion}>
                   <p className={styles.textoInformacion}>
@@ -1119,7 +1167,6 @@ const PropietarioPropiedades: React.FC = () => {
                 </div>
               )}
 
-              {/* Botones de acción */}
               <div className={styles.accionesModal}>
                 <button
                   className={styles.btnCerrarModal}
@@ -1131,7 +1178,6 @@ const PropietarioPropiedades: React.FC = () => {
             </>
           ) : (
             <>
-              {/* ESTADO DE CARGA */}
               <div className={styles.spinner}></div>
               <p className={styles.textoCargando}>
                 Analizando transición de estado...
@@ -1146,3 +1192,4 @@ const PropietarioPropiedades: React.FC = () => {
 };
 
 export default PropietarioPropiedades;
+

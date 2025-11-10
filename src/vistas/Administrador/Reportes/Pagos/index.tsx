@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../../../componentes/Header";
 import Footer from "../../../../componentes/Footer";
 import {
@@ -17,102 +18,25 @@ import {
   Clock,
   Users,
   AlertCircle,
+  CreditCard,
+  Home,
+  ArrowRight,
 } from "react-feather";
 import styles from "./ReportePago.module.css";
 import type { DTOReportePagoCompleto } from "../../../../modelos/types/Reporte";
 
 // ========================================
-// PÁGINA REPORTE DE PAGO
+// PÁGINA REPORTE DE PAGO MEJORADA
 // ========================================
 //
-// Vista completa de reporte detallado de un pago específico con datos relacionados.
-// Incluye pago, factura, contrato, propiedad, inquilino e historial de cambios.
-//
-// FUNCIONALIDADES:
-// - Visualización completa de reporte de pago con todas sus relaciones.
-// - Descarga de reporte en formato PDF.
-// - Extracción y visualización de usuario que generó el reporte.
-// - Tabla de historial de cambios con usuario responsable real.
-// - Información detallada de transacción bancaria si existe.
-//
-// ESTADO:
-// - reporte: Objeto completo DTOReportePagoCompleto.
-// - cargando: Indica si está cargando el reporte.
-// - descargando: Indica si está descargando el PDF.
-// - error: Mensaje de error si falla la carga.
-// - usuarioGenerador: Nombre completo del usuario que generó el reporte.
-//
-// FUNCIONES PRINCIPALES:
-//
-// cargarReporte():
-// - Obtiene ID de pago desde URL params.
-// - Llama obtenerReportePago() del servicio de reportes.
-// - Extrae usuario generador del DTO (nombre + apellido).
-// - Si no existe usuario en DTO, muestra "Sistema".
-//
-// descargarPDF():
-// - Llama descargarReportePagoPDF() para obtener blob.
-// - Usa descargarArchivo() para disparar descarga.
-// - Nombre de archivo incluye ID y timestamp.
-// - Logging para debugging de descarga.
-//
-// obtenerNombreUsuario():
-// - Extrae nombre de usuario del historial con múltiples fallbacks.
-// - Prioriza nombreUsuarioResponsable.
-// - Fallback a usuarioResponsable, luego ID, luego "Sistema Automático".
-// - Filtra valores null y strings vacíos.
-//
-// UTILIDADES:
-// - formatearFecha(): Convierte ISO a formato largo español.
-// - formatearFechaHora(): Convierte ISO a fecha/hora corta.
-// - formatearMoneda(): Formatea números a moneda COP.
-//
-// SECCIONES DEL REPORTE:
-//
-// Encabezado:
-// - Título con ID de pago.
-// - Fecha de generación y usuario real.
-// - Botones: Descargar PDF y Volver.
-//
-// Información del Pago:
-// - Grid con: ID, fecha, monto, método, estado.
-// - Campos opcionales: Referencia, banco origen, banco destino.
-//
-// Factura Asociada:
-// - Grid con: ID, fecha emisión, fecha vencimiento, total, estado.
-//
-// Contrato:
-// - Grid con: ID, periodo, valor mensual, estado.
-//
-// Propiedad:
-// - Grid con: Dirección, ciudad, tipo.
-//
-// Inquilino:
-// - Grid con: Nombre, documento, correo, teléfono.
-//
-// Historial de Cambios:
-// - Tabla con: Fecha/hora, acción, estado anterior, estado nuevo, usuario.
-// - Contador de cambios en título.
-// - Función obtenerNombreUsuario() para mostrar usuario real.
-//
-// CAMPOS CONDICIONALES:
-// - Referencia de transacción solo se muestra si existe.
-// - Banco origen solo se muestra si existe.
-// - Banco destino solo se muestra si existe.
-// - Todas las secciones relacionadas (factura, contrato, etc) solo si existen.
-//
-// ESTADOS VISUALES:
-// - Cargando: Spinner con mensaje.
-// - Error: Icono de alerta, mensaje y botón volver.
-// - Descargando: Botón deshabilitado con texto "Descargando...".
-// - Badges coloreados: Estados de pago según tipo.
-// - Montos destacados con clase CSS específica.
-//
-// ESTILOS:
-// - CSS Modules encapsulado.
-// - Grid responsive para información.
-// - Tabla con scroll horizontal en móviles.
-// - Campos opcionales se ocultan si no hay datos.
+// MEJORAS IMPLEMENTADAS:
+// - SweetAlert2 para alertas modernas
+// - Sin emojis (preferencia del usuario)
+// - Loading durante descarga de PDF
+// - Mejor manejo de errores
+// - Feedback visual mejorado
+// - Iconos consistentes de Feather
+// - Badges dinámicos por estado y acción
 
 const ReportePago: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -126,6 +50,9 @@ const ReportePago: React.FC = () => {
   useEffect(() => {
     if (id) {
       cargarReporte();
+    } else {
+      setError("ID de pago no proporcionado");
+      setCargando(false);
     }
   }, [id]);
 
@@ -151,8 +78,20 @@ const ReportePago: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error cargando reporte:", error);
-      setError(error.response?.data?.message || "Error al cargar el reporte");
+      const mensajeError =
+        error.response?.data?.message ||
+        error.message ||
+        "Error al cargar el reporte";
+      setError(mensajeError);
       setUsuarioGenerador("Sistema");
+
+      // Mostrar error con SweetAlert2
+      await Swal.fire({
+        title: "Error al Cargar",
+        text: mensajeError,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setCargando(false);
     }
@@ -163,17 +102,43 @@ const ReportePago: React.FC = () => {
       setDescargando(true);
       console.log("Iniciando descarga de PDF para pago:", id);
 
+      // Mostrar loading
+      Swal.fire({
+        title: "Generando PDF",
+        text: "Por favor espere...",
+        icon: "info",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       const blob = await descargarReportePagoPDF(Number(id));
       console.log("Blob recibido:", blob);
 
       descargarArchivo(blob, `reporte_pago_${id}_${Date.now()}.pdf`);
-      alert("PDF descargado exitosamente");
+
+      // Cerrar loading y mostrar éxito
+      await Swal.fire({
+        title: "Éxito",
+        text: "PDF descargado exitosamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error: any) {
       console.error("Error descargando PDF:", error);
-      alert(
-        "Error al descargar el PDF: " +
-          (error.response?.data?.message || error.message)
-      );
+
+      await Swal.fire({
+        title: "Error al Descargar",
+        text:
+          error.response?.data?.message ||
+          error.message ||
+          "Error al descargar el PDF",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setDescargando(false);
     }
@@ -208,7 +173,7 @@ const ReportePago: React.FC = () => {
   };
 
   const formatearMoneda = (valor: number): string => {
-    if (!valor && valor !== 0) return "N/A";
+    if (valor === null || valor === undefined) return "N/A";
     try {
       return new Intl.NumberFormat("es-CO", {
         style: "currency",
@@ -245,6 +210,35 @@ const ReportePago: React.FC = () => {
     return "Sistema Automático";
   };
 
+  // OBTENER CLASE CSS PARA BADGE DE ESTADO
+  const obtenerClaseEstado = (estado: string): string => {
+    const estadoNormalizado = estado?.toUpperCase() || "";
+    const clasesEstado: Record<string, string> = {
+      ACTIVO: styles.estadoACTIVO,
+      INACTIVO: styles.estadoINACTIVO,
+      PENDIENTE: styles.estadoPENDIENTE,
+      PAGADO: styles.estadoPAGADO,
+      COMPLETADO: styles.estadoCOMPLETADO,
+      RECHAZADO: styles.estadoRECHAZADO,
+      CANCELADO: styles.estadoCANCELADO,
+      CONFIRMADO: styles.estadoCONFIRMADO,
+    };
+    return clasesEstado[estadoNormalizado] || styles.badgeDefault;
+  };
+
+  // OBTENER CLASE CSS PARA BADGE DE ACCIÓN
+  const obtenerClaseAccion = (accion: string): string => {
+    const accionNormalizada = accion?.toUpperCase() || "";
+    const clasesAccion: Record<string, string> = {
+      CREACION: styles.accionCREACION,
+      ACTUALIZACION: styles.accionACTUALIZACION,
+      ELIMINACION: styles.accionELIMINACION,
+      CAMBIO_ESTADO: styles.accionCAMBIO_ESTADO,
+      TRANSICION: styles.accionTRANSICION,
+    };
+    return clasesAccion[accionNormalizada] || styles.badgeDefault;
+  };
+
   if (cargando) {
     return (
       <div className={styles.pagina}>
@@ -265,10 +259,12 @@ const ReportePago: React.FC = () => {
       <div className={styles.pagina}>
         <Header />
         <main className={styles.main}>
-          <div className={styles.error}>
-            <AlertCircle size={48} color="red" />
+          <div className={styles.errorContenedor}>
+            <AlertCircle size={48} color="#dc3545" />
             <h2>Error</h2>
-            <p>{error || "No se pudo cargar el reporte"}</p>
+            <p className={styles.error}>
+              {error || "No se pudo cargar el reporte"}
+            </p>
             <button onClick={() => navigate(-1)} className={styles.btnVolver}>
               <ArrowLeft size={18} />
               Volver
@@ -287,31 +283,30 @@ const ReportePago: React.FC = () => {
         <div className={styles.contenedor}>
           {/* ===== ENCABEZADO CON USUARIO REAL ===== */}
           <div className={styles.encabezado}>
-            <div>
-              <h1>
-                <FileText size={32} />
-                Reporte de Pago #{reporte.pago.idPago}
-              </h1>
-              {/* MOSTRAR USUARIO REAL */}
-              <p className={styles.fecha}>
-                Generado el {formatearFecha(reporte.fechaGeneracion)} por{" "}
-                <strong>{usuarioGenerador}</strong>
-              </p>
-            </div>
-            <div className={styles.botones}>
-              <button
-                onClick={descargarPDF}
-                className={styles.btnDescargar}
-                disabled={descargando}
-              >
-                <Download size={20} />
-                {descargando ? "Descargando..." : "Descargar PDF"}
+            <div className={styles.tituloSeccion}>
+              <button className={styles.btnVolver} onClick={() => navigate(-1)}>
+                <ArrowLeft size={20} />
               </button>
-              <button onClick={() => navigate(-1)} className={styles.btnVolver}>
-                <ArrowLeft size={18} />
-                Volver
-              </button>
+              <div>
+                <h1>
+                  <FileText size={32} />
+                  Reporte de Pago #{reporte.pago.idPago}
+                </h1>
+                <p className={styles.subtitulo}>
+                  <Calendar size={14} />
+                  Generado el {formatearFecha(reporte.fechaGeneracion)} por{" "}
+                  <strong>{usuarioGenerador}</strong>
+                </p>
+              </div>
             </div>
+            <button
+              onClick={descargarPDF}
+              className={styles.btnDescargar}
+              disabled={descargando}
+            >
+              <Download size={20} />
+              {descargando ? "Descargando..." : "Descargar PDF"}
+            </button>
           </div>
 
           {/* ===== INFORMACIÓN DEL PAGO ===== */}
@@ -333,24 +328,30 @@ const ReportePago: React.FC = () => {
                 <p>{formatearFecha(reporte.pago.fecha)}</p>
               </div>
               <div className={styles.campo}>
-                <label>Monto:</label>
+                <label>
+                  <DollarSign size={16} />
+                  Monto:
+                </label>
                 <p className={styles.monto}>
                   {formatearMoneda(reporte.pago.monto)}
                 </p>
               </div>
               <div className={styles.campo}>
-                <label>Método de Pago:</label>
+                <label>
+                  <CreditCard size={16} />
+                  Método de Pago:
+                </label>
                 <p>{reporte.pago.metodoPago}</p>
               </div>
               <div className={styles.campo}>
                 <label>Estado:</label>
-                <p
-                  className={`${styles.badge} ${
-                    styles[`estado${reporte.pago.estado}`]
-                  }`}
+                <span
+                  className={`${styles.badge} ${obtenerClaseEstado(
+                    reporte.pago.estado
+                  )}`}
                 >
                   {reporte.pago.estado}
-                </p>
+                </span>
               </div>
               {reporte.pago.referenciaTransaccion && (
                 <div className={styles.campo}>
@@ -376,29 +377,47 @@ const ReportePago: React.FC = () => {
           {/* ===== INFORMACIÓN DE LA FACTURA ===== */}
           {reporte.factura && (
             <section className={styles.seccion}>
-              <h2>🧾 Factura Asociada</h2>
+              <h2>
+                <FileText size={24} />
+                Factura Asociada
+              </h2>
               <div className={styles.grid}>
                 <div className={styles.campo}>
                   <label>ID Factura:</label>
                   <p>#{reporte.factura.idFactura}</p>
                 </div>
                 <div className={styles.campo}>
-                  <label>Fecha Emisión:</label>
+                  <label>
+                    <Calendar size={16} />
+                    Fecha Emisión:
+                  </label>
                   <p>{formatearFecha(reporte.factura.fechaEmision)}</p>
                 </div>
                 <div className={styles.campo}>
-                  <label>Fecha Vencimiento:</label>
+                  <label>
+                    <Calendar size={16} />
+                    Fecha Vencimiento:
+                  </label>
                   <p>{formatearFecha(reporte.factura.fechaVencimiento)}</p>
                 </div>
                 <div className={styles.campo}>
-                  <label>Total:</label>
+                  <label>
+                    <DollarSign size={16} />
+                    Total:
+                  </label>
                   <p className={styles.monto}>
                     {formatearMoneda(reporte.factura.total)}
                   </p>
                 </div>
                 <div className={styles.campo}>
                   <label>Estado:</label>
-                  <p className={styles.badge}>{reporte.factura.estado}</p>
+                  <span
+                    className={`${styles.badge} ${obtenerClaseEstado(
+                      reporte.factura.estado
+                    )}`}
+                  >
+                    {reporte.factura.estado}
+                  </span>
                 </div>
               </div>
             </section>
@@ -407,28 +426,43 @@ const ReportePago: React.FC = () => {
           {/* ===== INFORMACIÓN DEL CONTRATO ===== */}
           {reporte.contrato && (
             <section className={styles.seccion}>
-              <h2>📄 Contrato</h2>
+              <h2>
+                <FileText size={24} />
+                Contrato
+              </h2>
               <div className={styles.grid}>
                 <div className={styles.campo}>
                   <label>ID Contrato:</label>
                   <p>#{reporte.contrato.idContrato}</p>
                 </div>
                 <div className={styles.campo}>
-                  <label>Periodo:</label>
+                  <label>
+                    <Calendar size={16} />
+                    Periodo:
+                  </label>
                   <p>
                     {formatearFecha(reporte.contrato.fechaInicio)} -{" "}
                     {formatearFecha(reporte.contrato.fechaFin)}
                   </p>
                 </div>
                 <div className={styles.campo}>
-                  <label>Valor Mensual:</label>
+                  <label>
+                    <DollarSign size={16} />
+                    Valor Mensual:
+                  </label>
                   <p className={styles.monto}>
                     {formatearMoneda(reporte.contrato.valorMensual)}
                   </p>
                 </div>
                 <div className={styles.campo}>
                   <label>Estado:</label>
-                  <p className={styles.badge}>{reporte.contrato.estado}</p>
+                  <span
+                    className={`${styles.badge} ${obtenerClaseEstado(
+                      reporte.contrato.estado
+                    )}`}
+                  >
+                    {reporte.contrato.estado}
+                  </span>
                 </div>
               </div>
             </section>
@@ -437,7 +471,10 @@ const ReportePago: React.FC = () => {
           {/* ===== INFORMACIÓN DE LA PROPIEDAD ===== */}
           {reporte.propiedad && (
             <section className={styles.seccion}>
-              <h2>Propiedad</h2>
+              <h2>
+                <Home size={24} />
+                Propiedad
+              </h2>
               <div className={styles.grid}>
                 <div className={styles.campo}>
                   <label>Dirección:</label>
@@ -509,20 +546,28 @@ const ReportePago: React.FC = () => {
                   <tbody>
                     {reporte.historialCambios.map((cambio) => (
                       <tr key={cambio.idHistorial}>
-                        <td>{formatearFechaHora(cambio.fechaCambio)}</td>
                         <td>
-                          <span className={styles.badgeAccion}>
+                          <Clock size={14} className={styles.iconoInline} />
+                          {formatearFechaHora(cambio.fechaCambio)}
+                        </td>
+                        <td>
+                          <span
+                            className={`${styles.badge} ${obtenerClaseAccion(
+                              cambio.tipoAccion
+                            )}`}
+                          >
                             {cambio.tipoAccion}
                           </span>
                         </td>
                         <td>{cambio.estadoAnterior || "-"}</td>
-                        <td>{cambio.estadoNuevo}</td>
-                        {/* USAR FUNCIÓN CORREGIDA */}
                         <td>
-                          <Users
-                            size={14}
-                            style={{ display: "inline", marginRight: "0.3rem" }}
-                          />
+                          {cambio.estadoAnterior && (
+                            <ArrowRight size={14} className={styles.iconoFlecha} />
+                          )}
+                          {cambio.estadoNuevo}
+                        </td>
+                        <td>
+                          <Users size={14} className={styles.iconoInline} />
                           {obtenerNombreUsuario(cambio)}
                         </td>
                       </tr>

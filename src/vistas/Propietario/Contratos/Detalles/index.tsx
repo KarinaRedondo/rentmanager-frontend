@@ -313,10 +313,6 @@ const DetalleContrato: React.FC = () => {
               <span className={styles.badge}>{contrato.estado}</span>
             </div>
             <div className={styles.acciones}>
-              <BotonComponente
-                label="Editar"
-                onClick={() => navigate(`/propietario/contratos/editar/${id}`)}
-              />
             </div>
           </div>
 

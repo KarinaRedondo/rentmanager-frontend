@@ -1,34 +1,3 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../../../componentes/Header";
-import Footer from "../../../componentes/Footer";
-import { BotonComponente } from "../../../componentes/ui/Boton";
-import {
-  obtenerPagos,
-  actualizarPago,
-  analizarTransicionPago,
-  ejecutarTransicionPago,
-} from "../../../servicios/pagos";
-import type { DTOPagoRespuesta } from "../../../modelos/types/Pago";
-import { EstadoPago } from "../../../modelos/enumeraciones/estadoPago";
-import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
-import styles from "./ContadorGestionPagos.module.css";
-import {
-  DollarSign,
-  Calendar,
-  Search,
-  CheckCircle,
-  Clock,
-  XCircle,
-  AlertCircle,
-  AlertTriangle,
-  RefreshCw,
-  FileText,
-  CreditCard,
-  Eye,
-  X,
-} from "react-feather";
-
 // ========================================
 // GESTIÓN DE PAGOS - ROL CONTADOR
 // ========================================
@@ -153,6 +122,38 @@ import {
 // - Modal con backdrop blur.
 // - Grid de estadísticas responsive.
 
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import Header from "../../../componentes/Header";
+import Footer from "../../../componentes/Footer";
+import { BotonComponente } from "../../../componentes/ui/Boton";
+import {
+  obtenerPagos,
+  actualizarPago,
+  analizarTransicionPago,
+  ejecutarTransicionPago,
+} from "../../../servicios/pagos";
+import type { DTOPagoRespuesta } from "../../../modelos/types/Pago";
+import { EstadoPago } from "../../../modelos/enumeraciones/estadoPago";
+import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
+import styles from "./ContadorGestionPagos.module.css";
+import {
+  DollarSign,
+  Calendar,
+  Search,
+  CheckCircle,
+  Clock,
+  XCircle,
+  AlertCircle,
+  AlertTriangle,
+  RefreshCw,
+  FileText,
+  CreditCard,
+  Eye,
+  X,
+} from "react-feather";
+
 interface ResultadoValidacion {
   valido: boolean;
   motivo?: string;
@@ -193,7 +194,12 @@ const ModalEditar: React.FC<ModalEditarProps> = ({
     try {
       await onGuardar(pago.idPago || 0, { estado });
     } catch (error: any) {
-      alert(error.message || "Error al guardar");
+      await Swal.fire({
+        title: "Error",
+        text: error.message || "Error al guardar",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setGuardando(false);
     }
@@ -407,7 +413,12 @@ const ContadorGestionPagos: React.FC = () => {
         rolUsuario !== "ADMINISTRADOR" &&
         rolUsuario !== TipoUsuario.ADMINISTRADOR
       ) {
-        alert("No tienes permisos para acceder a esta sección");
+        await Swal.fire({
+          title: "Acceso Denegado",
+          text: "No tienes permisos para acceder a esta sección",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         navigate("/");
         return;
       }
@@ -525,7 +536,13 @@ const ContadorGestionPagos: React.FC = () => {
     try {
       console.log("Actualizando pago:", pagoId, datos);
       await actualizarPago(pagoId, datos);
-      alert("Pago actualizado correctamente");
+      await Swal.fire({
+        title: "Éxito",
+        text: "Pago actualizado correctamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       await cargarPagos();
       setMostrarModal(false);
       setPagoSeleccionado(null);
@@ -953,3 +970,5 @@ const ContadorGestionPagos: React.FC = () => {
 };
 
 export default ContadorGestionPagos;
+
+

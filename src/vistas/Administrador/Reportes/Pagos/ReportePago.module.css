@@ -333,3 +333,122 @@
     text-align: left;
   }
 }
+
+/* Iconos inline */
+.iconoInline {
+  display: inline;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
+.iconoFlecha {
+  display: inline;
+  margin: 0 0.3rem;
+  vertical-align: middle;
+  color: #6c757d;
+}
+
+/* Título sección */
+.tituloSeccion {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.subtitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+/* Error container */
+.errorContenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.errorContenedor h2 {
+  margin: 1rem 0;
+  color: #dc3545;
+}
+
+/* Badges */
+.badgeDefault {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Estados */
+.estadoACTIVO {
+  background-color: #28a745;
+  color: white;
+}
+
+.estadoINACTIVO {
+  background-color: #6c757d;
+  color: white;
+}
+
+.estadoPENDIENTE {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.estadoPAGADO {
+  background-color: #28a745;
+  color: white;
+}
+
+.estadoCOMPLETADO {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.estadoRECHAZADO {
+  background-color: #dc3545;
+  color: white;
+}
+
+.estadoCANCELADO {
+  background-color: #6c757d;
+  color: white;
+}
+
+.estadoCONFIRMADO {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Acciones */
+.accionCREACION {
+  background-color: #28a745;
+  color: white;
+}
+
+.accionACTUALIZACION {
+  background-color: #007bff;
+  color: white;
+}
+
+.accionELIMINACION {
+  background-color: #dc3545;
+  color: white;
+}
+
+.accionCAMBIO_ESTADO {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.accionTRANSICION {
+  background-color: #17a2b8;
+  color: white;
+}

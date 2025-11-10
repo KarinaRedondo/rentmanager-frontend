@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../../../componentes/Header";
 import Footer from "../../../../componentes/Footer";
 import {
@@ -17,116 +18,41 @@ import {
   Clock,
   Users,
   AlertCircle,
+  CreditCard,
+  Home,
+  ArrowRight,
 } from "react-feather";
 import styles from "./ReporteFactura.module.css";
 import type { DTOReporteFacturaCompleto } from "../../../../modelos/types/Reporte";
 
 // ========================================
-// PÁGINA REPORTE DE FACTURA
+// PÁGINA REPORTE DE FACTURA MEJORADA
 // ========================================
 //
-// Vista completa de reporte detallado de una factura específica con datos relacionados.
-// Incluye factura, contrato, propiedad, inquilino, propietario, pagos e historial de cambios.
-//
-// FUNCIONALIDADES:
-// - Visualización completa de reporte de factura con todas sus relaciones.
-// - Descarga de reporte en formato PDF.
-// - Extracción y visualización de usuario que generó el reporte.
-// - Tabla de historial de cambios con usuario responsable real.
-// - Tabla de pagos asociados con resumen de totales.
-// - Cálculo automático de saldo pendiente.
-//
-// ESTADO:
-// - reporte: Objeto completo DTOReporteFacturaCompleto.
-// - cargando: Indica si está cargando el reporte o descargando PDF.
-// - error: Mensaje de error si falla la carga.
-// - usuarioGenerador: Nombre completo del usuario que generó el reporte.
-//
-// FUNCIONES PRINCIPALES:
-//
-// cargarReporte():
-// - Obtiene ID de factura desde URL params.
-// - Llama obtenerReporteFactura() del servicio de reportes.
-// - Extrae usuario generador del DTO (nombre + apellido).
-// - Si no existe usuario en DTO, muestra "Sistema".
-//
-// descargarPDF():
-// - Llama descargarReporteFacturaPDF() para obtener blob.
-// - Usa descargarArchivo() para disparar descarga.
-// - Nombre de archivo incluye ID y timestamp.
-//
-// obtenerNombreUsuario():
-// - Extrae nombre de usuario del historial con múltiples fallbacks.
-// - Prioriza nombreUsuarioResponsable.
-// - Fallback a usuarioResponsable, luego ID, luego "Sistema Automático".
-// - Filtra valores null y strings vacíos.
-//
-// UTILIDADES:
-// - formatearFecha(): Convierte ISO a formato largo español.
-// - formatearFechaHora(): Convierte ISO a fecha/hora corta.
-// - formatearMoneda(): Formatea números a moneda COP.
-//
-// SECCIONES DEL REPORTE:
-//
-// Encabezado:
-// - Título con ID de factura.
-// - Fecha de generación y usuario real.
-// - Botones: Descargar PDF y Volver.
-//
-// Información de la Factura:
-// - Grid con: ID, fecha emisión, fecha vencimiento, total, estado.
-//
-// Contrato Asociado:
-// - Grid con: ID, periodo, valor mensual, tipo, forma de pago, estado.
-//
-// Propiedad:
-// - Grid con: Dirección, ciudad, tipo, estado, área, habitaciones.
-//
-// Inquilino:
-// - Grid con: Nombre, documento, correo, teléfono.
-//
-// Propietario:
-// - Grid con: Nombre, documento, correo, teléfono.
-//
-// Pagos Realizados:
-// - Tabla con: ID, fecha, monto, método, estado, referencia.
-// - Contador de pagos en título.
-// - Resumen: Total pagado y saldo pendiente calculado.
-//
-// Historial de Cambios:
-// - Tabla con: Fecha/hora, acción, estado anterior, estado nuevo, usuario, observación.
-// - Contador de cambios en título.
-// - Función obtenerNombreUsuario() para mostrar usuario real.
-//
-// CÁLCULOS:
-// - Total Pagado: Suma de montos de todos los pagos asociados.
-// - Saldo Pendiente: Total factura - Total pagado (mínimo 0).
-//
-// ESTADOS VISUALES:
-// - Cargando: Spinner con mensaje.
-// - Error: Icono de alerta, mensaje y botón volver.
-// - Badges coloreados: Estados de factura, pagos según tipo.
-// - Montos destacados con clase CSS específica.
-//
-// ESTILOS:
-// - CSS Modules encapsulado.
-// - Grid responsive para información.
-// - Tablas con scroll horizontal en móviles.
-// - Resumen de pagos en cards destacadas.
+// MEJORAS IMPLEMENTADAS:
+// - SweetAlert2 integrado para alertas modernas
+// - Sin emojis (preferencia del usuario)
+// - Loading durante descarga de PDF
+// - Mejor manejo de errores con validación
+// - Feedback visual mejorado
+// - Iconos consistentes de Feather
+// - Badges dinámicos por estado y acción
 
 const ReporteFactura: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [reporte, setReporte] = useState<DTOReporteFacturaCompleto | null>(
-    null
-  );
+  const [reporte, setReporte] = useState<DTOReporteFacturaCompleto | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [descargando, setDescargando] = useState(false);
   const [usuarioGenerador, setUsuarioGenerador] = useState<string>("Sistema");
 
   useEffect(() => {
     if (id) {
       cargarReporte();
+    } else {
+      setError("ID de factura no proporcionado");
+      setCargando(false);
     }
   }, [id]);
 
@@ -151,10 +77,20 @@ const ReporteFactura: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error cargando reporte:", error);
-      setError(
-        error.response?.data?.mensaje || "Error al cargar el reporte de factura"
-      );
+      const mensajeError =
+        error.response?.data?.mensaje ||
+        error.message ||
+        "Error al cargar el reporte de factura";
+      setError(mensajeError);
       setUsuarioGenerador("Sistema");
+
+      // Mostrar error con SweetAlert2
+      await Swal.fire({
+        title: "Error al Cargar",
+        text: mensajeError,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setCargando(false);
     }
@@ -162,15 +98,42 @@ const ReporteFactura: React.FC = () => {
 
   const descargarPDF = async () => {
     try {
-      setCargando(true);
+      setDescargando(true);
+
+      // Mostrar loading
+      Swal.fire({
+        title: "Generando PDF",
+        text: "Por favor espere...",
+        icon: "info",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       const blob = await descargarReporteFacturaPDF(Number(id));
       descargarArchivo(blob, `reporte_factura_${id}_${Date.now()}.pdf`);
-      alert("PDF descargado exitosamente");
+
+      // Cerrar loading y mostrar éxito
+      await Swal.fire({
+        title: "Éxito",
+        text: "PDF descargado exitosamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error: any) {
       console.error("Error descargando PDF:", error);
-      alert("Error al descargar el PDF");
+
+      await Swal.fire({
+        title: "Error al Descargar",
+        text: error.response?.data?.mensaje || "Error al descargar el PDF",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
-      setCargando(false);
+      setDescargando(false);
     }
   };
 
@@ -203,7 +166,7 @@ const ReporteFactura: React.FC = () => {
   };
 
   const formatearMoneda = (valor: number): string => {
-    if (!valor && valor !== 0) return "N/A";
+    if (valor === null || valor === undefined) return "N/A";
     try {
       return new Intl.NumberFormat("es-CO", {
         style: "currency",
@@ -240,6 +203,38 @@ const ReporteFactura: React.FC = () => {
     return "Sistema Automático";
   };
 
+  // OBTENER CLASE CSS PARA BADGE DE ESTADO
+  const obtenerClaseEstado = (estado: string): string => {
+    const estadoNormalizado = estado?.toUpperCase() || "";
+    const clasesEstado: Record<string, string> = {
+      ACTIVO: styles.estadoACTIVO,
+      INACTIVO: styles.estadoINACTIVO,
+      PENDIENTE: styles.estadoPENDIENTE,
+      PAGADO: styles.estadoPAGADO,
+      PAGADA: styles.estadoPAGADO,
+      VENCIDO: styles.estadoVENCIDO,
+      VENCIDA: styles.estadoVENCIDO,
+      CANCELADO: styles.estadoCANCELADO,
+      CANCELADA: styles.estadoCANCELADO,
+      COMPLETADO: styles.estadoCOMPLETADO,
+      COMPLETADA: styles.estadoCOMPLETADO,
+    };
+    return clasesEstado[estadoNormalizado] || styles.badgeDefault;
+  };
+
+  // OBTENER CLASE CSS PARA BADGE DE ACCIÓN
+  const obtenerClaseAccion = (accion: string): string => {
+    const accionNormalizada = accion?.toUpperCase() || "";
+    const clasesAccion: Record<string, string> = {
+      CREACION: styles.accionCREACION,
+      ACTUALIZACION: styles.accionACTUALIZACION,
+      ELIMINACION: styles.accionELIMINACION,
+      CAMBIO_ESTADO: styles.accionCAMBIO_ESTADO,
+      TRANSICION: styles.accionTRANSICION,
+    };
+    return clasesAccion[accionNormalizada] || styles.badgeDefault;
+  };
+
   if (cargando) {
     return (
       <div className={styles.pagina}>
@@ -260,10 +255,12 @@ const ReporteFactura: React.FC = () => {
       <div className={styles.pagina}>
         <Header />
         <main className={styles.main}>
-          <div className={styles.error}>
-            <AlertCircle size={48} color="red" />
+          <div className={styles.errorContenedor}>
+            <AlertCircle size={48} color="#dc3545" />
             <h2>Error</h2>
-            <p>{error || "No se pudo cargar el reporte"}</p>
+            <p className={styles.error}>
+              {error || "No se pudo cargar el reporte"}
+            </p>
             <button onClick={() => navigate(-1)} className={styles.btnVolver}>
               <ArrowLeft size={18} />
               Volver
@@ -282,31 +279,30 @@ const ReporteFactura: React.FC = () => {
         <div className={styles.contenedor}>
           {/* ===== ENCABEZADO CON USUARIO REAL ===== */}
           <div className={styles.encabezado}>
-            <div>
-              <h1>
-                <FileText size={32} />
-                Reporte de Factura #{reporte.factura.idFactura}
-              </h1>
-              {/* MOSTRAR USUARIO REAL */}
-              <p className={styles.fecha}>
-                Generado el {formatearFecha(reporte.fechaGeneracion)} por{" "}
-                <strong>{usuarioGenerador}</strong>
-              </p>
-            </div>
-            <div className={styles.botones}>
-              <button
-                onClick={descargarPDF}
-                className={styles.btnDescargar}
-                disabled={cargando}
-              >
-                <Download size={20} />
-                {cargando ? "Descargando..." : "Descargar PDF"}
+            <div className={styles.tituloSeccion}>
+              <button className={styles.btnVolver} onClick={() => navigate(-1)}>
+                <ArrowLeft size={20} />
               </button>
-              <button onClick={() => navigate(-1)} className={styles.btnVolver}>
-                <ArrowLeft size={18} />
-                Volver
-              </button>
+              <div>
+                <h1>
+                  <FileText size={32} />
+                  Reporte de Factura #{reporte.factura.idFactura}
+                </h1>
+                <p className={styles.subtitulo}>
+                  <Calendar size={14} />
+                  Generado el {formatearFecha(reporte.fechaGeneracion)} por{" "}
+                  <strong>{usuarioGenerador}</strong>
+                </p>
+              </div>
             </div>
+            <button
+              onClick={descargarPDF}
+              className={styles.btnDescargar}
+              disabled={descargando}
+            >
+              <Download size={20} />
+              {descargando ? "Descargando..." : "Descargar PDF"}
+            </button>
           </div>
 
           {/* ===== INFORMACIÓN DE LA FACTURA ===== */}
@@ -345,13 +341,13 @@ const ReporteFactura: React.FC = () => {
               </div>
               <div className={styles.campo}>
                 <label>Estado:</label>
-                <p
-                  className={`${styles.badge} ${
-                    styles[`estado${reporte.factura.estado}`]
-                  }`}
+                <span
+                  className={`${styles.badge} ${obtenerClaseEstado(
+                    reporte.factura.estado
+                  )}`}
                 >
                   {reporte.factura.estado}
-                </p>
+                </span>
               </div>
             </div>
           </section>
@@ -359,21 +355,30 @@ const ReporteFactura: React.FC = () => {
           {/* ===== INFORMACIÓN DEL CONTRATO ===== */}
           {reporte.contrato && (
             <section className={styles.seccion}>
-              <h2>📄 Contrato Asociado</h2>
+              <h2>
+                <FileText size={24} />
+                Contrato Asociado
+              </h2>
               <div className={styles.grid}>
                 <div className={styles.campo}>
                   <label>ID Contrato:</label>
                   <p>#{reporte.contrato.idContrato}</p>
                 </div>
                 <div className={styles.campo}>
-                  <label>Periodo:</label>
+                  <label>
+                    <Calendar size={16} />
+                    Periodo:
+                  </label>
                   <p>
                     {formatearFecha(reporte.contrato.fechaInicio)} -{" "}
                     {formatearFecha(reporte.contrato.fechaFin)}
                   </p>
                 </div>
                 <div className={styles.campo}>
-                  <label>Valor Mensual:</label>
+                  <label>
+                    <DollarSign size={16} />
+                    Valor Mensual:
+                  </label>
                   <p className={styles.monto}>
                     {formatearMoneda(reporte.contrato.valorMensual)}
                   </p>
@@ -383,12 +388,21 @@ const ReporteFactura: React.FC = () => {
                   <p>{reporte.contrato.tipoContrato}</p>
                 </div>
                 <div className={styles.campo}>
-                  <label>Forma de Pago:</label>
+                  <label>
+                    <CreditCard size={16} />
+                    Forma de Pago:
+                  </label>
                   <p>{reporte.contrato.formaPago}</p>
                 </div>
                 <div className={styles.campo}>
                   <label>Estado:</label>
-                  <p className={styles.badge}>{reporte.contrato.estado}</p>
+                  <span
+                    className={`${styles.badge} ${obtenerClaseEstado(
+                      reporte.contrato.estado
+                    )}`}
+                  >
+                    {reporte.contrato.estado}
+                  </span>
                 </div>
               </div>
             </section>
@@ -397,7 +411,10 @@ const ReporteFactura: React.FC = () => {
           {/* ===== INFORMACIÓN DE LA PROPIEDAD ===== */}
           {reporte.propiedad && (
             <section className={styles.seccion}>
-              <h2>Propiedad</h2>
+              <h2>
+                <Home size={24} />
+                Propiedad
+              </h2>
               <div className={styles.grid}>
                 <div className={styles.campo}>
                   <label>Dirección:</label>
@@ -413,7 +430,13 @@ const ReporteFactura: React.FC = () => {
                 </div>
                 <div className={styles.campo}>
                   <label>Estado:</label>
-                  <p className={styles.badge}>{reporte.propiedad.estado}</p>
+                  <span
+                    className={`${styles.badge} ${obtenerClaseEstado(
+                      reporte.propiedad.estado
+                    )}`}
+                  >
+                    {reporte.propiedad.estado}
+                  </span>
                 </div>
                 <div className={styles.campo}>
                   <label>Área:</label>
@@ -464,7 +487,7 @@ const ReporteFactura: React.FC = () => {
           {reporte.propietario && (
             <section className={styles.seccion}>
               <h2>
-                <User size={24} />
+                <Users size={24} />
                 Propietario
               </h2>
               <div className={styles.grid}>
@@ -496,7 +519,10 @@ const ReporteFactura: React.FC = () => {
           {/* ===== PAGOS ASOCIADOS ===== */}
           {reporte.pagosAsociados && reporte.pagosAsociados.length > 0 && (
             <section className={styles.seccion}>
-              <h2>Pagos Realizados ({reporte.pagosAsociados.length})</h2>
+              <h2>
+                <DollarSign size={24} />
+                Pagos Realizados ({reporte.pagosAsociados.length})
+              </h2>
               <div className={styles.tablaWrapper}>
                 <table className={styles.tabla}>
                   <thead>
@@ -520,9 +546,9 @@ const ReporteFactura: React.FC = () => {
                         <td>{pago.metodoPago}</td>
                         <td>
                           <span
-                            className={`${styles.badge} ${
-                              styles[`estado${pago.estado}`]
-                            }`}
+                            className={`${styles.badge} ${obtenerClaseEstado(
+                              pago.estado
+                            )}`}
                           >
                             {pago.estado}
                           </span>
@@ -534,21 +560,24 @@ const ReporteFactura: React.FC = () => {
                 </table>
               </div>
 
-              {/* RESUMEN DE PAGOS CORREGIDO */}
+              {/* RESUMEN DE PAGOS */}
               <div className={styles.resumenPagos}>
                 <div className={styles.resumenItem}>
-                  <label>Total Pagado:</label>
+                  <label>
+                    <DollarSign size={16} />
+                    Total Pagado:
+                  </label>
                   <p className={styles.montoTotal}>
                     {formatearMoneda(
-                      reporte.pagosAsociados.reduce(
-                        (sum, p) => sum + p.monto,
-                        0
-                      )
+                      reporte.pagosAsociados.reduce((sum, p) => sum + p.monto, 0)
                     )}
                   </p>
                 </div>
                 <div className={styles.resumenItem}>
-                  <label>Saldo Pendiente:</label>
+                  <label>
+                    <AlertCircle size={16} />
+                    Saldo Pendiente:
+                  </label>
                   <p className={styles.montoPendiente}>
                     {formatearMoneda(
                       Math.max(
@@ -588,20 +617,28 @@ const ReporteFactura: React.FC = () => {
                   <tbody>
                     {reporte.historialCambios.map((cambio) => (
                       <tr key={cambio.idHistorial}>
-                        <td>{formatearFechaHora(cambio.fechaCambio)}</td>
                         <td>
-                          <span className={styles.badgeAccion}>
+                          <Clock size={14} className={styles.iconoInline} />
+                          {formatearFechaHora(cambio.fechaCambio)}
+                        </td>
+                        <td>
+                          <span
+                            className={`${styles.badge} ${obtenerClaseAccion(
+                              cambio.tipoAccion
+                            )}`}
+                          >
                             {cambio.tipoAccion}
                           </span>
                         </td>
                         <td>{cambio.estadoAnterior || "-"}</td>
-                        <td>{cambio.estadoNuevo}</td>
-                        {/* USAR FUNCIÓN CORREGIDA */}
                         <td>
-                          <Users
-                            size={14}
-                            style={{ display: "inline", marginRight: "0.3rem" }}
-                          />
+                          {cambio.estadoAnterior && (
+                            <ArrowRight size={14} className={styles.iconoFlecha} />
+                          )}
+                          {cambio.estadoNuevo}
+                        </td>
+                        <td>
+                          <Users size={14} className={styles.iconoInline} />
                           {obtenerNombreUsuario(cambio)}
                         </td>
                         <td className={styles.observacion}>
@@ -622,3 +659,4 @@ const ReporteFactura: React.FC = () => {
 };
 
 export default ReporteFactura;
+

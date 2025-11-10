@@ -1,5 +1,6 @@
 import React, { useState, useEffect, type ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
 import {
@@ -31,7 +32,10 @@ import {
   BarChart,
   ExternalLink,
   Clock,
+  ArrowUp,
+  ArrowDown,
 } from "react-feather";
+
 // ========================================
 // PÁGINA ADMINISTRACIÓN DE HISTORIAL
 // ========================================
@@ -182,6 +186,20 @@ import {
 
 const ITEMS_POR_PAGINA = 15;
 
+// Tipo para el ordenamiento
+type ColumnaOrden = 
+  | "idHistorial" 
+  | "tipoEntidad" 
+  | "idEntidad" 
+  | "tipoAccion" 
+  | "estadoAnterior" 
+  | "estadoNuevo" 
+  | "nombreUsuarioResponsable" 
+  | "fechaCambio"
+  | "version";
+
+type DireccionOrden = "asc" | "desc";
+
 const AdministradorHistorial: React.FC = () => {
   const navigate = useNavigate();
 
@@ -202,6 +220,10 @@ const AdministradorHistorial: React.FC = () => {
     useState<EstadisticasHistorial | null>(null);
   const [mostrarEstadisticas, setMostrarEstadisticas] =
     useState<boolean>(false);
+
+  // NUEVO: Estados para el ordenamiento
+  const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>("fechaCambio");
+  const [direccionOrden, setDireccionOrden] = useState<DireccionOrden>("desc");
 
   const [filtros, setFiltros] = useState<FiltrosHistorial>({
     tipoEntidad: "",
@@ -235,7 +257,12 @@ const AdministradorHistorial: React.FC = () => {
         rolUsuario !== "ADMINISTRADOR" &&
         rolUsuario !== TipoUsuario.ADMINISTRADOR
       ) {
-        alert("No tienes permisos para acceder a esta sección");
+        await Swal.fire({
+          title: "Acceso Denegado",
+          text: "No tienes permisos para acceder a esta sección",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         navigate("/");
         return;
       }
@@ -253,8 +280,12 @@ const AdministradorHistorial: React.FC = () => {
       setError("");
       const data = await obtenerTodosHistoriales();
       const historialesArray = Array.isArray(data) ? data : [];
-      setHistoriales(historialesArray);
-      setHistorialesFiltrados(historialesArray);
+      
+      // NUEVO: Ordenar por fecha del más reciente al más antiguo por defecto
+      const historialesOrdenados = ordenarHistoriales(historialesArray, "fechaCambio", "desc");
+      
+      setHistoriales(historialesOrdenados);
+      setHistorialesFiltrados(historialesOrdenados);
 
       const usuarios = [
         ...new Set(
@@ -281,6 +312,75 @@ const AdministradorHistorial: React.FC = () => {
     }
   };
 
+  // NUEVA FUNCIÓN: Ordenar historiales
+  const ordenarHistoriales = (
+    datos: DTOHistorialCambioEstadoRespuesta[],
+    columna: ColumnaOrden,
+    direccion: DireccionOrden
+  ): DTOHistorialCambioEstadoRespuesta[] => {
+    const datosOrdenados = [...datos];
+
+    datosOrdenados.sort((a, b) => {
+      let valorA: any = a[columna];
+      let valorB: any = b[columna];
+
+      // Manejar valores nulos o undefined
+      if (valorA === null || valorA === undefined) valorA = "";
+      if (valorB === null || valorB === undefined) valorB = "";
+
+      // Convertir a mayúsculas para comparación de strings
+      if (typeof valorA === "string") valorA = valorA.toUpperCase();
+      if (typeof valorB === "string") valorB = valorB.toUpperCase();
+
+      // Comparación para fechas
+      if (columna === "fechaCambio") {
+        valorA = new Date(a.fechaCambio).getTime();
+        valorB = new Date(b.fechaCambio).getTime();
+      }
+
+      // Comparación
+      if (valorA < valorB) return direccion === "asc" ? -1 : 1;
+      if (valorA > valorB) return direccion === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return datosOrdenados;
+  };
+
+  // NUEVA FUNCIÓN: Manejar clic en columna para ordenar
+  const manejarOrdenamiento = (columna: ColumnaOrden) => {
+    let nuevaDireccion: DireccionOrden = "asc";
+
+    // Si es la misma columna, alternar dirección
+    if (columna === columnaOrden) {
+      nuevaDireccion = direccionOrden === "asc" ? "desc" : "asc";
+    }
+
+    setColumnaOrden(columna);
+    setDireccionOrden(nuevaDireccion);
+
+    const datosOrdenados = ordenarHistoriales(
+      historialesFiltrados,
+      columna,
+      nuevaDireccion
+    );
+
+    setHistorialesFiltrados(datosOrdenados);
+    setPaginaActual(1); // Volver a la primera página
+  };
+
+  // NUEVA FUNCIÓN: Renderizar icono de ordenamiento
+  const renderizarIconoOrden = (columna: ColumnaOrden) => {
+    if (columna !== columnaOrden) {
+      return <span className={styles.iconoOrdenInactivo}>⇅</span>;
+    }
+    return direccionOrden === "asc" ? (
+      <ArrowUp size={14} className={styles.iconoOrdenActivo} />
+    ) : (
+      <ArrowDown size={14} className={styles.iconoOrdenActivo} />
+    );
+  };
+
   const aplicarFiltros = async () => {
     try {
       setCargando(true);
@@ -295,7 +395,8 @@ const AdministradorHistorial: React.FC = () => {
         filtros.fechaFin;
 
       if (!hayFiltros) {
-        setHistorialesFiltrados(historiales);
+        const datosOrdenados = ordenarHistoriales(historiales, columnaOrden, direccionOrden);
+        setHistorialesFiltrados(datosOrdenados);
         setPaginaActual(1);
         setCargando(false);
         return;
@@ -310,7 +411,10 @@ const AdministradorHistorial: React.FC = () => {
       if (filtros.fechaFin) filtrosLimpios.fechaFin = filtros.fechaFin;
 
       const data = await buscarHistorialConFiltros(filtrosLimpios);
-      setHistorialesFiltrados(Array.isArray(data) ? data : []);
+      const datosArray = Array.isArray(data) ? data : [];
+      const datosOrdenados = ordenarHistoriales(datosArray, columnaOrden, direccionOrden);
+      
+      setHistorialesFiltrados(datosOrdenados);
       setPaginaActual(1);
     } catch (error) {
       console.error("Error aplicando filtros:", error);
@@ -329,7 +433,8 @@ const AdministradorHistorial: React.FC = () => {
       fechaInicio: "",
       fechaFin: "",
     });
-    setHistorialesFiltrados(historiales);
+    const datosOrdenados = ordenarHistoriales(historiales, columnaOrden, direccionOrden);
+    setHistorialesFiltrados(datosOrdenados);
     setPaginaActual(1);
   };
 
@@ -343,10 +448,21 @@ const AdministradorHistorial: React.FC = () => {
       link.download = `historial_${new Date().getTime()}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
-      alert("PDF descargado exitosamente");
+      
+      await Swal.fire({
+        title: "Éxito",
+        text: "PDF descargado exitosamente",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
     } catch (error) {
       console.error("Error exportando PDF:", error);
-      alert("Error al exportar el reporte");
+      await Swal.fire({
+        title: "Error",
+        text: "Error al exportar el reporte",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setCargando(false);
     }
@@ -371,7 +487,12 @@ const AdministradorHistorial: React.FC = () => {
         navigate(`/${rol}/reporte/factura/${idEntidad}`);
         break;
       default:
-        alert("Tipo de reporte no disponible para esta entidad");
+        Swal.fire({
+          title: "No Disponible",
+          text: "Tipo de reporte no disponible para esta entidad",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        });
     }
   };
 
@@ -385,18 +506,41 @@ const AdministradorHistorial: React.FC = () => {
     return styles.accionDefault;
   };
 
-  const obtenerIconoEntidad = (tipoEntidad: string): string => {
+  const obtenerIconoEntidad = (tipoEntidad: string): "success" | "error" | "warning" | "info" | "question" => {
     switch (tipoEntidad.toUpperCase()) {
       case "PROPIEDAD":
         return "info";
       case "CONTRATO":
-        return "question";
+        return "info";
       case "FACTURA":
         return "warning";
       case "PAGO":
         return "success";
+      case "USUARIO":
+        return "question";
+      case "MANTENIMIENTO":
+        return "error";
       default:
         return "info";
+    }
+  };
+
+  const obtenerEmojiEntidad = (tipoEntidad: string): string => {
+    switch (tipoEntidad.toUpperCase()) {
+      case "PROPIEDAD":
+        return "🏢";
+      case "CONTRATO":
+        return "📄";
+      case "FACTURA":
+        return "🧾";
+      case "PAGO":
+        return "💳";
+      case "USUARIO":
+        return "👤";
+      case "MANTENIMIENTO":
+        return "🔧";
+      default:
+        return "📋";
     }
   };
 
@@ -817,7 +961,7 @@ const AdministradorHistorial: React.FC = () => {
                       .map((item: any, idx: number) => (
                         <div key={idx} className={styles.tarjetaEstadistica}>
                           <div className={styles.estadisticaIcono}>
-                            {obtenerIconoEntidad(item[0])}
+                            {obtenerEmojiEntidad(item[0])}
                           </div>
                           <div className={styles.estadisticaInfo}>
                             <p className={styles.estadisticaValor}>{item[1]}</p>
@@ -851,10 +995,10 @@ const AdministradorHistorial: React.FC = () => {
                     className={styles.select}
                   >
                     <option value="">Todas las entidades</option>
-                    <option value="PROPIEDAD">🏠 Propiedades</option>
-                    <option value="CONTRATO">📄 Contratos</option>
-                    <option value="FACTURA">🧾 Facturas</option>
-                    <option value="PAGO">💰 Pagos</option>
+                    <option value="PROPIEDAD">Propiedades</option>
+                    <option value="CONTRATO">Contratos</option>
+                    <option value="FACTURA">Facturas</option>
+                    <option value="PAGO">Pagos</option>
                   </select>
                 </div>
 
@@ -960,7 +1104,7 @@ const AdministradorHistorial: React.FC = () => {
             </div>
           )}
 
-          {/* TABLA */}
+          {/* TABLA CON ORDENAMIENTO */}
           {historialesFiltrados.length === 0 ? (
             <div className={styles.sinDatos}>
               <FileText size={48} />
@@ -979,15 +1123,60 @@ const AdministradorHistorial: React.FC = () => {
                 <table className={styles.tabla}>
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Entidad</th>
-                      <th>ID Reg</th>
-                      <th>Tipo Acción</th>
-                      <th>Estado Anterior</th>
-                      <th>Estado Nuevo</th>
-                      <th>Usuario</th>
-                      <th>Fecha y Hora</th>
-                      <th>Ver</th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("idHistorial")}
+                        className={styles.thOrdenable}
+                      >
+                        ID {renderizarIconoOrden("idHistorial")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("tipoEntidad")}
+                        className={styles.thOrdenable}
+                      >
+                        Entidad {renderizarIconoOrden("tipoEntidad")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("idEntidad")}
+                        className={styles.thOrdenable}
+                      >
+                        ID Reg {renderizarIconoOrden("idEntidad")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("tipoAccion")}
+                        className={styles.thOrdenable}
+                      >
+                        Tipo Acción {renderizarIconoOrden("tipoAccion")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("estadoAnterior")}
+                        className={styles.thOrdenable}
+                      >
+                        Estado Anterior {renderizarIconoOrden("estadoAnterior")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("estadoNuevo")}
+                        className={styles.thOrdenable}
+                      >
+                        Estado Nuevo {renderizarIconoOrden("estadoNuevo")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("nombreUsuarioResponsable")}
+                        className={styles.thOrdenable}
+                      >
+                        Usuario {renderizarIconoOrden("nombreUsuarioResponsable")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("fechaCambio")}
+                        className={styles.thOrdenable}
+                      >
+                        Fecha y Hora {renderizarIconoOrden("fechaCambio")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("version")}
+                        className={styles.thOrdenable}
+                      >
+                        Ver {renderizarIconoOrden("version")}
+                      </th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -997,7 +1186,7 @@ const AdministradorHistorial: React.FC = () => {
                         <td>{historial.idHistorial}</td>
                         <td>
                           <span className={styles.badgeModulo}>
-                            {obtenerIconoEntidad(historial.tipoEntidad)}{" "}
+                            {obtenerEmojiEntidad(historial.tipoEntidad)}{" "}
                             {historial.tipoEntidad}
                           </span>
                         </td>
@@ -1092,7 +1281,7 @@ const AdministradorHistorial: React.FC = () => {
       </main>
       <Footer />
 
-      {/* MODAL DE DETALLES */}
+      {/* MODAL DE DETALLES - Sin cambios */}
       {historialSeleccionado && (
         <div
           className={styles.modalOverlay}
@@ -1117,7 +1306,7 @@ const AdministradorHistorial: React.FC = () => {
 
             <div className={styles.modalBody}>
               <div className={styles.seccionModal}>
-                <h3>📋 Información General</h3>
+                <h3>Información General</h3>
                 <div className={styles.detallesGrid}>
                   <div className={styles.detalleCampo}>
                     <label>ID:</label>
@@ -1126,7 +1315,7 @@ const AdministradorHistorial: React.FC = () => {
                   <div className={styles.detalleCampo}>
                     <label>Entidad:</label>
                     <p>
-                      {obtenerIconoEntidad(historialSeleccionado.tipoEntidad)}{" "}
+                      {obtenerEmojiEntidad(historialSeleccionado.tipoEntidad)}{" "}
                       {historialSeleccionado.tipoEntidad}
                     </p>
                   </div>

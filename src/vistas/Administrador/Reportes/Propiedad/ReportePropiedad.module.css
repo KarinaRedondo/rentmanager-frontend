@@ -420,3 +420,141 @@
   background: #fce7f3;
   color: #9f1239;
 }
+
+/* Iconos inline */
+.iconoInline {
+  display: inline;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
+.iconoFlecha {
+  display: inline;
+  margin: 0 0.3rem;
+  vertical-align: middle;
+  color: #6c757d;
+}
+
+/* Título sección */
+.tituloSeccion {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.subtitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+/* Servicios grid */
+.serviciosGrid {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Error container */
+.errorContenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.errorContenedor h2 {
+  margin: 1rem 0;
+  color: #dc3545;
+}
+
+/* Observación en historial */
+.observacionHistorial {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border-left: 3px solid #007bff;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Badges */
+.badgeDefault {
+  background-color: #6c757d;
+  color: white;
+}
+
+.badgeInfo {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.badgeServicio {
+  background-color: #6c757d;
+  color: white;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Estados */
+.estadoDISPONIBLE {
+  background-color: #28a745;
+  color: white;
+}
+
+.estadoOCUPADA {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.estadoMANTENIMIENTO {
+  background-color: #dc3545;
+  color: white;
+}
+
+.estadoACTIVO {
+  background-color: #28a745;
+  color: white;
+}
+
+.estadoINACTIVO {
+  background-color: #6c757d;
+  color: white;
+}
+
+.estadoFINALIZADO {
+  background-color: #17a2b8;
+  color: white;
+}
+
+/* Acciones */
+.accionCREACION {
+  background-color: #28a745;
+  color: white;
+}
+
+.accionACTUALIZACION {
+  background-color: #007bff;
+  color: white;
+}
+
+.accionELIMINACION {
+  background-color: #dc3545;
+  color: white;
+}
+
+.accionCAMBIO_ESTADO {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.accionTRANSICION {
+  background-color: #17a2b8;
+  color: white;
+}

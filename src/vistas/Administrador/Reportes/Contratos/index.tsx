@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../../../componentes/Header";
 import Footer from "../../../../componentes/Footer";
 import {
@@ -20,119 +21,27 @@ import {
   ArrowLeft,
   Users,
   AlertCircle,
+  Calendar,
+  ArrowRight,
 } from "react-feather";
 
 // ========================================
-// PÁGINA REPORTE DE CONTRATO
+// PÁGINA REPORTE DE CONTRATO MEJORADA
 // ========================================
 //
-// Vista completa de reporte detallado de un contrato específico con todos sus datos relacionados.
-// Incluye información de contrato, propiedad, propietario, inquilino, facturas, pagos e historial de cambios.
-//
-// FUNCIONALIDADES:
-// - Visualización completa de reporte de contrato con todas sus relaciones.
-// - Descarga de reporte en formato PDF.
-// - Extracción y visualización de usuario que generó el reporte.
-// - Timeline de historial de cambios con usuario responsable real.
-// - Tablas de facturas y pagos asociados al contrato.
-//
-// ESTADO:
-// - reporte: Objeto completo DTOReporteContratoCompleto con todos los datos.
-// - cargando: Indica si está cargando el reporte.
-// - error: Mensaje de error si falla la carga.
-// - descargando: Indica si está descargando el PDF.
-// - usuarioGenerador: Nombre completo del usuario que generó el reporte.
-//
-// FUNCIONES PRINCIPALES:
-//
-// cargarReporte():
-// - Obtiene ID de contrato desde URL params.
-// - Llama obtenerReporteContrato() del servicio de reportes.
-// - Extrae usuario generador del DTO (nombre + apellido).
-// - Si no existe usuario en DTO, muestra "Sistema".
-// - Maneja errores mostrando mensaje al usuario.
-//
-// descargarPDF():
-// - Llama descargarReporteContratoPDF() para obtener blob.
-// - Usa descargarArchivo() para disparar descarga en navegador.
-// - Nombre de archivo incluye ID de contrato y timestamp.
-// - Muestra indicador de descarga en progreso.
-//
-// obtenerNombreUsuario():
-// - Función robusta para extraer nombre de usuario del historial.
-// - Prioriza nombreUsuarioResponsable si existe y es válido.
-// - Fallback a usuarioResponsable si es string válido.
-// - Fallback a "Usuario #ID" si solo hay ID.
-// - Fallback final a "Sistema Automático".
-// - Filtra valores null, undefined, "[null]", strings vacíos.
-//
-// UTILIDADES:
-// - formatearFecha(): Convierte ISO string a formato largo español.
-// - formatearFechaHora(): Convierte ISO string a fecha/hora corta.
-// - formatearMoneda(): Formatea números a moneda colombiana (COP).
-//
-// SECCIONES DEL REPORTE:
-//
-// Encabezado:
-// - Título con ID de contrato.
-// - Fecha de generación y usuario real que generó el reporte.
-// - Botón volver y botón descargar PDF.
-//
-// Información del Contrato:
-// - Grid con datos principales: Fechas, valor, estado, tipo, forma de pago.
-// - Campo observaciones si existe.
-//
-// Propiedad Arrendada:
-// - Grid con datos de propiedad: Dirección, ciudad, tipo, área, habitaciones, baños.
-//
-// Propietario:
-// - Grid con datos personales: Nombre, documento, correo, teléfono.
-//
-// Inquilino:
-// - Grid con datos personales: Nombre, documento, correo, teléfono.
-//
-// Facturas Generadas:
-// - Tabla con lista de facturas asociadas al contrato.
-// - Columnas: ID, emisión, vencimiento, total, estado.
-// - Contador de facturas en título.
-//
-// Pagos Realizados:
-// - Tabla con lista de pagos asociados a facturas del contrato.
-// - Columnas: ID, fecha, monto, método, estado.
-// - Contador de pagos en título.
-//
-// Historial de Cambios:
-// - Timeline vertical con todos los cambios de estado.
-// - Para cada cambio: Badge de acción, fecha/hora, transición de estados, usuario real.
-// - Observaciones si existen.
-// - Marcador visual conectando items.
-// - Contador de cambios en título.
-//
-// ESTADOS VISUALES:
-// - Cargando: Spinner con mensaje "Generando reporte...".
-// - Error: Icono de alerta, mensaje de error y botón volver.
-// - Badges coloreados: Estados de contrato, facturas, pagos según tipo.
-//
-// MEJORA CLAVE:
-// - Función obtenerNombreUsuario() con múltiples fallbacks robustos.
-// - Priorización de nombreUsuarioResponsable sobre otros campos.
-// - Validación exhaustiva de valores nulos y strings vacíos.
-// - Garantiza que siempre se muestre un nombre útil.
-//
-// ESTILOS:
-// - CSS Modules encapsulado.
-// - Grid responsive para secciones de información.
-// - Timeline vertical con línea conectora y marcadores.
-// - Tablas con scroll horizontal en móviles.
-// - Badges con colores semánticos.
+// MEJORAS IMPLEMENTADAS:
+// - Reemplazo de alert() por SweetAlert2 con iconos nativos
+// - Sin uso de emojis (preferencia del usuario)
+// - Mejor manejo de estados de carga y error
+// - Feedback visual mejorado para descargas
+// - Validación robusta de datos
+// - Mensajes de error más descriptivos
 
 const ReporteContrato: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [reporte, setReporte] = useState<DTOReporteContratoCompleto | null>(
-    null
-  );
+  const [reporte, setReporte] = useState<DTOReporteContratoCompleto | null>(null);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [descargando, setDescargando] = useState<boolean>(false);
@@ -141,6 +50,9 @@ const ReporteContrato: React.FC = () => {
   useEffect(() => {
     if (id) {
       cargarReporte();
+    } else {
+      setError("ID de contrato no proporcionado");
+      setCargando(false);
     }
   }, [id]);
 
@@ -165,8 +77,20 @@ const ReporteContrato: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error cargando reporte:", error);
-      setError(error.response?.data?.mensaje || "Error al cargar el reporte");
+      const mensajeError = 
+        error.response?.data?.mensaje || 
+        error.message || 
+        "Error al cargar el reporte";
+      setError(mensajeError);
       setUsuarioGenerador("Sistema");
+      
+      // Mostrar error con SweetAlert2
+      await Swal.fire({
+        title: "Error al Cargar",
+        text: mensajeError,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setCargando(false);
     }
@@ -175,12 +99,39 @@ const ReporteContrato: React.FC = () => {
   const descargarPDF = async () => {
     try {
       setDescargando(true);
+      
+      // Mostrar loading
+      Swal.fire({
+        title: "Generando PDF",
+        text: "Por favor espere...",
+        icon: "info",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       const blob = await descargarReporteContratoPDF(Number(id));
       descargarArchivo(blob, `reporte_contrato_${id}_${Date.now()}.pdf`);
-      alert("PDF descargado exitosamente");
+      
+      // Cerrar loading y mostrar éxito
+      await Swal.fire({
+        title: "Éxito",
+        text: "PDF descargado exitosamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error: any) {
       console.error("Error descargando PDF:", error);
-      alert("Error al descargar el PDF");
+      
+      await Swal.fire({
+        title: "Error al Descargar",
+        text: error.response?.data?.mensaje || "Error al descargar el PDF",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setDescargando(false);
     }
@@ -215,7 +166,7 @@ const ReporteContrato: React.FC = () => {
   };
 
   const formatearMoneda = (valor: number): string => {
-    if (!valor && valor !== 0) return "N/A";
+    if (valor === null || valor === undefined) return "N/A";
     try {
       return new Intl.NumberFormat("es-CO", {
         style: "currency",
@@ -252,6 +203,35 @@ const ReporteContrato: React.FC = () => {
     return "Sistema Automático";
   };
 
+  // OBTENER CLASE CSS PARA BADGE DE ESTADO
+  const obtenerClaseEstado = (estado: string): string => {
+    const estadoNormalizado = estado?.toUpperCase() || "";
+    const clasesEstado: Record<string, string> = {
+      ACTIVO: styles.estadoACTIVO,
+      INACTIVO: styles.estadoINACTIVO,
+      PENDIENTE: styles.estadoPENDIENTE,
+      PAGADO: styles.estadoPAGADO,
+      VENCIDO: styles.estadoVENCIDO,
+      CANCELADO: styles.estadoCANCELADO,
+      COMPLETADO: styles.estadoCOMPLETADO,
+      FINALIZADO: styles.estadoFINALIZADO,
+    };
+    return clasesEstado[estadoNormalizado] || styles.badgeDefault;
+  };
+
+  // OBTENER CLASE CSS PARA BADGE DE ACCIÓN
+  const obtenerClaseAccion = (accion: string): string => {
+    const accionNormalizada = accion?.toUpperCase() || "";
+    const clasesAccion: Record<string, string> = {
+      CREACION: styles.accionCREACION,
+      ACTUALIZACION: styles.accionACTUALIZACION,
+      ELIMINACION: styles.accionELIMINACION,
+      CAMBIO_ESTADO: styles.accionCAMBIO_ESTADO,
+      TRANSICION: styles.accionTRANSICION,
+    };
+    return clasesAccion[accionNormalizada] || styles.badgeDefault;
+  };
+
   if (cargando) {
     return (
       <div className={styles.pagina}>
@@ -276,10 +256,16 @@ const ReporteContrato: React.FC = () => {
         <main className={styles.main}>
           <div className={styles.contenedor}>
             <div className={styles.errorContenedor}>
-              <AlertCircle size={48} color="red" />
+              <AlertCircle size={48} color="#dc3545" />
               <h2>Error</h2>
               <p className={styles.error}>{error || "Reporte no encontrado"}</p>
-              <button onClick={() => navigate(-1)}>Volver</button>
+              <button 
+                className={styles.btnVolver}
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeft size={18} />
+                Volver
+              </button>
             </div>
           </div>
         </main>
@@ -304,8 +290,8 @@ const ReporteContrato: React.FC = () => {
                   <FileText size={32} />
                   Reporte de Contrato #{reporte.contrato.idContrato}
                 </h1>
-                {/* MOSTRAR USUARIO REAL */}
                 <p className={styles.subtitulo}>
+                  <Calendar size={14} />
                   Generado el {formatearFecha(reporte.fechaGeneracion)} por{" "}
                   <strong>{usuarioGenerador}</strong>
                 </p>
@@ -329,15 +315,21 @@ const ReporteContrato: React.FC = () => {
             </h2>
             <div className={styles.grid2}>
               <div className={styles.campo}>
-                <label>Fecha Inicio:</label>
+                <label>
+                  <Calendar size={14} /> Fecha Inicio:
+                </label>
                 <p>{formatearFecha(reporte.contrato.fechaInicio)}</p>
               </div>
               <div className={styles.campo}>
-                <label>Fecha Fin:</label>
+                <label>
+                  <Calendar size={14} /> Fecha Fin:
+                </label>
                 <p>{formatearFecha(reporte.contrato.fechaFin)}</p>
               </div>
               <div className={styles.campo}>
-                <label>Valor Mensual:</label>
+                <label>
+                  <DollarSign size={14} /> Valor Mensual:
+                </label>
                 <p className={styles.valorDestacado}>
                   {formatearMoneda(reporte.contrato.valorMensual)}
                 </p>
@@ -345,9 +337,9 @@ const ReporteContrato: React.FC = () => {
               <div className={styles.campo}>
                 <label>Estado:</label>
                 <span
-                  className={`${styles.badge} ${
-                    styles[`estado${reporte.contrato.estado}`]
-                  }`}
+                  className={`${styles.badge} ${obtenerClaseEstado(
+                    reporte.contrato.estado
+                  )}`}
                 >
                   {reporte.contrato.estado}
                 </span>
@@ -357,7 +349,9 @@ const ReporteContrato: React.FC = () => {
                 <p>{reporte.contrato.tipoContrato}</p>
               </div>
               <div className={styles.campo}>
-                <label>Forma de Pago:</label>
+                <label>
+                  <CreditCard size={14} /> Forma de Pago:
+                </label>
                 <p>{reporte.contrato.formaPago}</p>
               </div>
             </div>
@@ -444,7 +438,7 @@ const ReporteContrato: React.FC = () => {
           {reporte.inquilino && (
             <div className={styles.seccion}>
               <h2>
-                <User size={24} />
+                <Users size={24} />
                 Inquilino
               </h2>
               <div className={styles.grid3}>
@@ -502,9 +496,9 @@ const ReporteContrato: React.FC = () => {
                         </td>
                         <td>
                           <span
-                            className={`${styles.badge} ${
-                              styles[`estado${factura.estado}`]
-                            }`}
+                            className={`${styles.badge} ${obtenerClaseEstado(
+                              factura.estado
+                            )}`}
                           >
                             {factura.estado}
                           </span>
@@ -546,9 +540,9 @@ const ReporteContrato: React.FC = () => {
                         <td>{pago.metodoPago}</td>
                         <td>
                           <span
-                            className={`${styles.badge} ${
-                              styles[`estado${pago.estado}`]
-                            }`}
+                            className={`${styles.badge} ${obtenerClaseEstado(
+                              pago.estado
+                            )}`}
                           >
                             {pago.estado}
                           </span>
@@ -575,38 +569,31 @@ const ReporteContrato: React.FC = () => {
                     <div className={styles.timelineContenido}>
                       <div className={styles.timelineEncabezado}>
                         <span
-                          className={`${styles.badge} ${
-                            styles[`accion${cambio.tipoAccion}`]
-                          }`}
+                          className={`${styles.badge} ${obtenerClaseAccion(
+                            cambio.tipoAccion
+                          )}`}
                         >
                           {cambio.tipoAccion}
                         </span>
                         <span className={styles.timelineFecha}>
+                          <Clock size={14} />
                           {formatearFechaHora(cambio.fechaCambio)}
                         </span>
                       </div>
                       <div className={styles.timelineDetalle}>
                         <p>
                           <strong>Estado:</strong>{" "}
-                          {cambio.estadoAnterior || "N/A"} →{" "}
+                          {cambio.estadoAnterior || "N/A"}{" "}
+                          <ArrowRight size={14} className={styles.iconoFlecha} />{" "}
                           {cambio.estadoNuevo}
                         </p>
-                        {/* USAR FUNCIÓN CORREGIDA */}
                         <p>
-                          <strong>
-                            <Users
-                              size={14}
-                              style={{
-                                display: "inline",
-                                marginRight: "0.5rem",
-                              }}
-                            />
-                            Usuario:
-                          </strong>{" "}
+                          <Users size={14} className={styles.iconoInline} />
+                          <strong>Usuario:</strong>{" "}
                           {obtenerNombreUsuario(cambio)}
                         </p>
                         {cambio.observacion && (
-                          <p>
+                          <p className={styles.observacionHistorial}>
                             <strong>Observación:</strong> {cambio.observacion}
                           </p>
                         )}

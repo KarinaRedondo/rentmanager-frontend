@@ -1,33 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../../../componentes/Header";
-import Footer from "../../../componentes/Footer";
-import { BotonComponente } from "../../../componentes/ui/Boton";
-import {
-  obtenerFacturas,
-  actualizarFactura,
-  crearFactura,
-  analizarTransicionFactura,
-  ejecutarTransicionFactura,
-} from "../../../servicios/facturas";
-import { obtenerContratos } from "../../../servicios/contratos";
-import type { DTOFacturaRespuesta } from "../../../modelos/types/Factura";
-import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato";
-import { EstadoFactura } from "../../../modelos/enumeraciones/estadoFactura";
-import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
-import styles from "./ContadorFacturas.module.css";
-import {
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-  Edit3,
-  X,
-  Save,
-  Plus,
-  FileText,
-  AlertCircle,
-} from "react-feather";
-
 // ========================================
 // GESTIÓN DE FACTURAS - ROL CONTADOR
 // ========================================
@@ -158,9 +128,38 @@ import {
 // - Modales con overlay oscuro y backdrop blur.
 // - Badges con colores semánticos por estado.
 
-const ITEMS_POR_PAGINA = 10;
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import Header from "../../../componentes/Header";
+import Footer from "../../../componentes/Footer";
+import { BotonComponente } from "../../../componentes/ui/Boton";
+import {
+  obtenerFacturas,
+  actualizarFactura,
+  crearFactura,
+  analizarTransicionFactura,
+  ejecutarTransicionFactura,
+} from "../../../servicios/facturas";
+import { obtenerContratos } from "../../../servicios/contratos";
+import type { DTOFacturaRespuesta } from "../../../modelos/types/Factura";
+import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato";
+import { EstadoFactura } from "../../../modelos/enumeraciones/estadoFactura";
+import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
+import styles from "./ContadorFacturas.module.css";
+import {
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  Edit3,
+  X,
+  Save,
+  Plus,
+  FileText,
+  AlertCircle,
+} from "react-feather";
 
-// ==================== INTERFACES ====================
+const ITEMS_POR_PAGINA = 10;
 
 interface ResultadoValidacion {
   valido: boolean;
@@ -185,8 +184,6 @@ interface ModalCrearProps {
   onClose: () => void;
   onGuardar: (datos: any) => Promise<void>;
 }
-
-// ==================== MODAL DE EDICIÓN ====================
 
 const ModalEditar: React.FC<ModalEditarProps> = ({
   factura,
@@ -213,7 +210,12 @@ const ModalEditar: React.FC<ModalEditarProps> = ({
     try {
       await onGuardar(factura.idFactura || 0, estado);
     } catch (error: any) {
-      alert(error.message || "Error al guardar");
+      await Swal.fire({
+        title: "Error",
+        text: error.message || "Error al guardar",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setGuardando(false);
     }
@@ -337,8 +339,6 @@ const ModalEditar: React.FC<ModalEditarProps> = ({
   );
 };
 
-// ==================== MODAL DE CREAR ====================
-
 const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
   const [contratos, setContratos] = useState<DTOContratoRespuesta[]>([]);
   const [contratoId, setContratoId] = useState<string>("");
@@ -373,7 +373,6 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
     if (!fechaVencimiento) return "Debes ingresar la fecha de vencimiento";
     if (!total || Number(total) <= 0) return "El total debe ser mayor a cero";
 
-    // Validar que la fecha de vencimiento sea posterior a la emisión
     if (new Date(fechaVencimiento) <= new Date(fechaEmision)) {
       return "La fecha de vencimiento debe ser posterior a la fecha de emisión";
     }
@@ -384,7 +383,12 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
   const handleGuardar = async () => {
     const error = validarFormulario();
     if (error) {
-      alert(error);
+      await Swal.fire({
+        title: "Validación",
+        text: error,
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
       return;
     }
 
@@ -398,7 +402,12 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
         estado: EstadoFactura.GENERADA,
       });
     } catch (error: any) {
-      alert(error.message || "Error al crear");
+      await Swal.fire({
+        title: "Error",
+        text: error.message || "Error al crear",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setGuardando(false);
     }
@@ -519,8 +528,6 @@ const ModalCrear: React.FC<ModalCrearProps> = ({ onClose, onGuardar }) => {
   );
 };
 
-// ==================== COMPONENTE PRINCIPAL ====================
-
 const ContadorFacturas: React.FC = () => {
   const navigate = useNavigate();
 
@@ -569,7 +576,12 @@ const ContadorFacturas: React.FC = () => {
         rolUsuario !== "ADMINISTRADOR" &&
         rolUsuario !== TipoUsuario.ADMINISTRADOR
       ) {
-        alert("No tienes permisos para acceder a esta sección");
+        await Swal.fire({
+          title: "Acceso Denegado",
+          text: "No tienes permisos para acceder a esta sección",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         navigate("/");
         return;
       }
@@ -608,7 +620,13 @@ const ContadorFacturas: React.FC = () => {
     try {
       console.log("Actualizando factura:", facturaId, estado);
       await actualizarFactura(facturaId, { estado });
-      alert("Factura actualizada correctamente");
+      await Swal.fire({
+        title: "Éxito",
+        text: "Factura actualizada correctamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       await cargarFacturas();
       setMostrarModalEditar(false);
       setFacturaSeleccionada(null);
@@ -622,7 +640,13 @@ const ContadorFacturas: React.FC = () => {
     try {
       console.log("Creando factura:", datos);
       await crearFactura(datos);
-      alert("Factura creada correctamente");
+      await Swal.fire({
+        title: "Éxito",
+        text: "Factura creada correctamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       await cargarFacturas();
       setMostrarModalCrear(false);
     } catch (err: any) {
@@ -929,7 +953,7 @@ const ContadorFacturas: React.FC = () => {
             <div className={styles.modalBody}>
               {!resultadoTransicion?.valido ? (
                 <>
-                  <div className={styles.iconoError}></div>
+                  <div className={styles.iconoError}>❌</div>
                   <h3 className={styles.tituloError}>
                     Transición No Permitida
                   </h3>

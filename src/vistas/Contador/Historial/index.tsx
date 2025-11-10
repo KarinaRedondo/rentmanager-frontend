@@ -1,5 +1,6 @@
 import React, { useState, useEffect, type ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
 import {
@@ -31,17 +32,18 @@ import {
   BarChart,
   ExternalLink,
   Clock,
+  ArrowUp,
+  ArrowDown,
 } from "react-feather";
 
 // ========================================
-// HISTORIAL DE CAMBIOS - ROL CONTADOR
+// PÁGINA CONTADOR DE HISTORIAL
 // ========================================
 //
 // Panel de auditoría para visualizar, filtrar y analizar historial completo de cambios del sistema.
-// Acceso exclusivo para roles CONTADOR y ADMINISTRADOR.
-// Funcionalidad idéntica al historial de administrador pero con permisos de contador.
+// Acceso exclusivo para roles ADMINISTRADOR y CONTADOR.
 //
-// FUNCIONALIDADES:
+// FUNCIONALIDADES PRINCIPALES:
 // - Visualización completa del historial de cambios en tabla paginada.
 // - Filtrado avanzado por entidad, acción, usuario, fechas y ID.
 // - Estadísticas agregadas de cambios por tipo de entidad.
@@ -50,65 +52,153 @@ import {
 // - Navegación a reportes específicos de entidad.
 //
 // SEGURIDAD Y ACCESO:
-// - verificarAcceso(): Solo CONTADOR y ADMINISTRADOR.
+// - Validación de rol en verificarAcceso(): Solo ADMINISTRADOR y CONTADOR.
 // - Lectura de token y usuario desde localStorage.
 // - Redirección a login si no hay autenticación.
 // - Redirección a home si rol no autorizado.
 //
 // ESTADO:
-// - historiales: Lista completa de cambios.
-// - historialesFiltrados: Subset filtrado para mostrar.
-// - usuariosDisponibles: Lista única de usuarios para filtro.
+// - historiales: Lista completa de cambios cargados desde backend.
+// - historialesFiltrados: Subset filtrado para mostrar en tabla.
+// - usuariosDisponibles: Lista única de usuarios responsables para filtro.
 // - paginaActual: Control de paginación (15 items por página).
-// - cargando: Operación en curso.
-// - error: Mensaje de error.
-// - mostrarFiltros: Toggle para panel de filtros.
-// - historialSeleccionado: Cambio seleccionado para modal.
-// - estadisticas: Datos agregados.
+// - cargando: Indica operación en curso (carga, filtrado, exportación).
+// - error: Mensaje de error para mostrar al usuario.
+// - mostrarFiltros: Toggle para panel de filtros avanzados.
+// - historialSeleccionado: Cambio seleccionado para modal de detalles.
+// - estadisticas: Datos agregados (total cambios, cambios por tipo).
 // - mostrarEstadisticas: Toggle para panel de estadísticas.
-// - filtros: Criterios de búsqueda activos.
+// - filtros: Objeto con criterios de búsqueda activos.
 //
 // FUNCIONES PRINCIPALES:
-// - verificarAcceso(): Valida autenticación y autorización.
-// - cargarHistoriales(): Carga lista completa de historiales.
-// - cargarEstadisticas(): Obtiene datos agregados.
-// - aplicarFiltros(): Filtra historiales según criterios.
-// - limpiarFiltros(): Resetea filtros y muestra lista completa.
-// - exportarPDF(): Genera reporte PDF con filtros.
-// - verReporte(): Navega a reporte específico según tipo de entidad.
+//
+// verificarAcceso():
+// - Valida autenticación y autorización al cargar componente.
+// - Lee usuario y token de localStorage.
+// - Verifica que rol sea CONTADOR o ADMINISTRADOR.
+// - Redirige si falla validación.
+// - Carga datos iniciales si validación exitosa.
+//
+// cargarHistoriales():
+// - Llama obtenerTodosHistoriales() del servicio.
+// - Actualiza estados de historiales y historialesFiltrados.
+// - Extrae lista única de usuarios para filtro.
+// - Maneja errores mostrando mensaje al usuario.
+//
+// cargarEstadisticas():
+// - Obtiene datos agregados del backend.
+// - Muestra total de cambios y distribución por tipo de entidad.
+// - Se renderiza en panel colapsable.
+//
+// aplicarFiltros():
+// - Construye objeto de filtros limpiando valores vacíos.
+// - Llama buscarHistorialConFiltros() con criterios activos.
+// - Actualiza historialesFiltrados con resultados.
+// - Resetea paginación a página 1.
+// - Si no hay filtros, muestra lista completa.
+//
+// limpiarFiltros():
+// - Resetea objeto filtros a valores por defecto.
+// - Restaura lista completa en historialesFiltrados.
+// - Vuelve a página 1.
+//
+// exportarPDF():
+// - Genera reporte PDF con filtros aplicados.
+// - Descarga archivo usando Blob y URL temporal.
+// - Nombre archivo incluye timestamp para unicidad.
+//
+// verReporte():
+// - Navega a reporte específico según tipo de entidad.
+// - Construye URL dinámica con rol del usuario.
+// - Soporta: CONTRATO, PROPIEDAD, PAGO, FACTURA.
 //
 // RENDERIZADO DE DATOS:
-// - renderizarDatosEntidad(): Dispatcher según tipo.
-// - renderizarDatosContrato(): Grid con campos de contrato.
+// - renderizarDatosEntidad(): Dispatcher según tipo de entidad.
+// - renderizarDatosContrato(): Grid con campos específicos de contrato.
 // - renderizarDatosPropiedad(): Grid con campos de propiedad.
 // - renderizarDatosFactura(): Grid con campos de factura.
 // - renderizarDatosPago(): Grid con campos de pago.
 //
 // UTILIDADES:
-// - formatearFecha(): Convierte ISO a formato legible español.
+// - formatearFecha(): Convierte ISO string a formato legible español.
 // - obtenerClaseTipoAccion(): Asigna clase CSS según tipo de acción.
 // - obtenerIconoEntidad(): Retorna emoji según tipo de entidad.
-// - tieneReporteDisponible(): Valida si entidad tiene reporte.
-//
-// COMPONENTES VISUALES:
-// - Encabezado: Título, contador, botones de estadísticas/filtros/exportar.
-// - Panel Estadísticas: Total de cambios y tarjetas por tipo de entidad.
-// - Panel Filtros: Selects e inputs para filtrado avanzado.
-// - Tabla: Listado paginado con columnas completas.
-// - Modal Detalles: Vista expandida de cambio con datos antes/después.
+// - tieneReporteDisponible(): Valida si entidad tiene reporte detallado.
 //
 // PAGINACIÓN:
-// - 15 items por página.
-// - Controles anterior/siguiente con disabled.
-// - Indicador de página actual, total y rango de items.
+// - 15 items por página (ITEMS_POR_PAGINA).
+// - Controles anterior/siguiente con estado disabled.
+// - Indicador de página actual y total.
+// - Rango de items mostrados (ej: 1-15 de 243).
 //
-// ESTILOS:
-// - CSS Modules encapsulado.
-// - Grid responsive.
-// - Badges coloreados por acción.
-// - Modal con backdrop blur.
+// COMPONENTES VISUALES:
+//
+// Encabezado:
+// - Título con icono y contador de registros.
+// - Botones: Estadísticas, Filtros, Exportar PDF.
+//
+// Panel Estadísticas (colapsable):
+// - Total de cambios del sistema.
+// - Tarjetas con cambios por tipo de entidad.
+//
+// Panel Filtros (colapsable):
+// - Select: Tipo de entidad (PROPIEDAD, CONTRATO, FACTURA, PAGO).
+// - Input: ID de registro específico.
+// - Select: Tipo de acción (CREACION, ACTUALIZACION, etc).
+// - Select: Usuario responsable (lista dinámica).
+// - Input: Fecha inicio y fecha fin (datetime-local).
+// - Botones: Aplicar Filtros, Limpiar.
+//
+// Tabla:
+// - Columnas: ID, Entidad, ID Reg, Tipo Acción, Estado Anterior, Estado Nuevo, Usuario, Fecha, Ver, Acciones.
+// - Badges coloreados para entidad y acción.
+// - Botón ojo para modal de detalles.
+// - Botón link externo para reportes (si disponible).
+//
+// Modal Detalles:
+// - Overlay oscuro con modal centrado.
+// - Información general: ID, entidad, acción, versión, fecha.
+// - Usuario responsable: Nombre, email, IP.
+// - Transición visual: Estado anterior -> Estado nuevo.
+// - Datos anteriores y datos nuevos en grids formateados.
+// - Botón cerrar (X) y botón Ver Reporte.
+//
+// Estados Vacíos:
+// - Sin datos: Mensaje con icono y botón limpiar filtros.
+// - Cargando: Spinner animado con mensaje.
+// - Error: Icono, mensaje de error y botón reintentar.
+//
+// ESTILOS CSS:
+// - CSS Modules para encapsulación (AdministradorHistorial.module.css).
+// - Grid responsive para estadísticas y filtros.
+// - Tabla con scroll horizontal en móviles.
+// - Modal con backdrop blur y animación fade-in.
+// - Badges con colores semánticos por tipo de acción.
+// - Hover effects en botones y filas de tabla.
+//
+// MEJORAS FUTURAS:
+// - Implementar búsqueda por texto en observaciones/motivo.
+// - Exportar a Excel además de PDF.
+// - Comparación visual diff entre datos anteriores/nuevos.
+// - Filtro por rango de versiones.
+// - Gráficas de tendencias temporales.
+// - Notificaciones en tiempo real de cambios críticos.
 
 const ITEMS_POR_PAGINA = 15;
+
+// Tipo para el ordenamiento
+type ColumnaOrden = 
+  | "idHistorial" 
+  | "tipoEntidad" 
+  | "idEntidad" 
+  | "tipoAccion" 
+  | "estadoAnterior" 
+  | "estadoNuevo" 
+  | "nombreUsuarioResponsable" 
+  | "fechaCambio"
+  | "version";
+
+type DireccionOrden = "asc" | "desc";
 
 const ContadorHistorial: React.FC = () => {
   const navigate = useNavigate();
@@ -130,6 +220,10 @@ const ContadorHistorial: React.FC = () => {
     useState<EstadisticasHistorial | null>(null);
   const [mostrarEstadisticas, setMostrarEstadisticas] =
     useState<boolean>(false);
+
+  // NUEVO: Estados para el ordenamiento
+  const [columnaOrden, setColumnaOrden] = useState<ColumnaOrden>("fechaCambio");
+  const [direccionOrden, setDireccionOrden] = useState<DireccionOrden>("desc");
 
   const [filtros, setFiltros] = useState<FiltrosHistorial>({
     tipoEntidad: "",
@@ -163,7 +257,12 @@ const ContadorHistorial: React.FC = () => {
         rolUsuario !== "ADMINISTRADOR" &&
         rolUsuario !== TipoUsuario.ADMINISTRADOR
       ) {
-        alert("No tienes permisos para acceder a esta sección");
+        await Swal.fire({
+          title: "Acceso Denegado",
+          text: "No tienes permisos para acceder a esta sección",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         navigate("/");
         return;
       }
@@ -181,8 +280,12 @@ const ContadorHistorial: React.FC = () => {
       setError("");
       const data = await obtenerTodosHistoriales();
       const historialesArray = Array.isArray(data) ? data : [];
-      setHistoriales(historialesArray);
-      setHistorialesFiltrados(historialesArray);
+      
+      // NUEVO: Ordenar por fecha del más reciente al más antiguo por defecto
+      const historialesOrdenados = ordenarHistoriales(historialesArray, "fechaCambio", "desc");
+      
+      setHistoriales(historialesOrdenados);
+      setHistorialesFiltrados(historialesOrdenados);
 
       const usuarios = [
         ...new Set(
@@ -209,6 +312,75 @@ const ContadorHistorial: React.FC = () => {
     }
   };
 
+  // NUEVA FUNCIÓN: Ordenar historiales
+  const ordenarHistoriales = (
+    datos: DTOHistorialCambioEstadoRespuesta[],
+    columna: ColumnaOrden,
+    direccion: DireccionOrden
+  ): DTOHistorialCambioEstadoRespuesta[] => {
+    const datosOrdenados = [...datos];
+
+    datosOrdenados.sort((a, b) => {
+      let valorA: any = a[columna];
+      let valorB: any = b[columna];
+
+      // Manejar valores nulos o undefined
+      if (valorA === null || valorA === undefined) valorA = "";
+      if (valorB === null || valorB === undefined) valorB = "";
+
+      // Convertir a mayúsculas para comparación de strings
+      if (typeof valorA === "string") valorA = valorA.toUpperCase();
+      if (typeof valorB === "string") valorB = valorB.toUpperCase();
+
+      // Comparación para fechas
+      if (columna === "fechaCambio") {
+        valorA = new Date(a.fechaCambio).getTime();
+        valorB = new Date(b.fechaCambio).getTime();
+      }
+
+      // Comparación
+      if (valorA < valorB) return direccion === "asc" ? -1 : 1;
+      if (valorA > valorB) return direccion === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return datosOrdenados;
+  };
+
+  // NUEVA FUNCIÓN: Manejar clic en columna para ordenar
+  const manejarOrdenamiento = (columna: ColumnaOrden) => {
+    let nuevaDireccion: DireccionOrden = "asc";
+
+    // Si es la misma columna, alternar dirección
+    if (columna === columnaOrden) {
+      nuevaDireccion = direccionOrden === "asc" ? "desc" : "asc";
+    }
+
+    setColumnaOrden(columna);
+    setDireccionOrden(nuevaDireccion);
+
+    const datosOrdenados = ordenarHistoriales(
+      historialesFiltrados,
+      columna,
+      nuevaDireccion
+    );
+
+    setHistorialesFiltrados(datosOrdenados);
+    setPaginaActual(1); // Volver a la primera página
+  };
+
+  // NUEVA FUNCIÓN: Renderizar icono de ordenamiento
+  const renderizarIconoOrden = (columna: ColumnaOrden) => {
+    if (columna !== columnaOrden) {
+      return <span className={styles.iconoOrdenInactivo}>⇅</span>;
+    }
+    return direccionOrden === "asc" ? (
+      <ArrowUp size={14} className={styles.iconoOrdenActivo} />
+    ) : (
+      <ArrowDown size={14} className={styles.iconoOrdenActivo} />
+    );
+  };
+
   const aplicarFiltros = async () => {
     try {
       setCargando(true);
@@ -223,7 +395,8 @@ const ContadorHistorial: React.FC = () => {
         filtros.fechaFin;
 
       if (!hayFiltros) {
-        setHistorialesFiltrados(historiales);
+        const datosOrdenados = ordenarHistoriales(historiales, columnaOrden, direccionOrden);
+        setHistorialesFiltrados(datosOrdenados);
         setPaginaActual(1);
         setCargando(false);
         return;
@@ -238,7 +411,10 @@ const ContadorHistorial: React.FC = () => {
       if (filtros.fechaFin) filtrosLimpios.fechaFin = filtros.fechaFin;
 
       const data = await buscarHistorialConFiltros(filtrosLimpios);
-      setHistorialesFiltrados(Array.isArray(data) ? data : []);
+      const datosArray = Array.isArray(data) ? data : [];
+      const datosOrdenados = ordenarHistoriales(datosArray, columnaOrden, direccionOrden);
+      
+      setHistorialesFiltrados(datosOrdenados);
       setPaginaActual(1);
     } catch (error) {
       console.error("Error aplicando filtros:", error);
@@ -257,7 +433,8 @@ const ContadorHistorial: React.FC = () => {
       fechaInicio: "",
       fechaFin: "",
     });
-    setHistorialesFiltrados(historiales);
+    const datosOrdenados = ordenarHistoriales(historiales, columnaOrden, direccionOrden);
+    setHistorialesFiltrados(datosOrdenados);
     setPaginaActual(1);
   };
 
@@ -271,10 +448,21 @@ const ContadorHistorial: React.FC = () => {
       link.download = `historial_${new Date().getTime()}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
-      alert("PDF descargado exitosamente");
+      
+      await Swal.fire({
+        title: "Éxito",
+        text: "PDF descargado exitosamente",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
     } catch (error) {
       console.error("Error exportando PDF:", error);
-      alert("Error al exportar el reporte");
+      await Swal.fire({
+        title: "Error",
+        text: "Error al exportar el reporte",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setCargando(false);
     }
@@ -299,7 +487,12 @@ const ContadorHistorial: React.FC = () => {
         navigate(`/${rol}/reporte/factura/${idEntidad}`);
         break;
       default:
-        alert("Tipo de reporte no disponible para esta entidad");
+        Swal.fire({
+          title: "No Disponible",
+          text: "Tipo de reporte no disponible para esta entidad",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        });
     }
   };
 
@@ -313,18 +506,41 @@ const ContadorHistorial: React.FC = () => {
     return styles.accionDefault;
   };
 
-  const obtenerIconoEntidad = (tipoEntidad: string): string => {
+  const obtenerIconoEntidad = (tipoEntidad: string): "success" | "error" | "warning" | "info" | "question" => {
     switch (tipoEntidad.toUpperCase()) {
       case "PROPIEDAD":
         return "info";
       case "CONTRATO":
-        return "question";
+        return "info";
       case "FACTURA":
         return "warning";
       case "PAGO":
         return "success";
+      case "USUARIO":
+        return "question";
+      case "MANTENIMIENTO":
+        return "error";
       default:
         return "info";
+    }
+  };
+
+  const obtenerEmojiEntidad = (tipoEntidad: string): string => {
+    switch (tipoEntidad.toUpperCase()) {
+      case "PROPIEDAD":
+        return "🏢";
+      case "CONTRATO":
+        return "📄";
+      case "FACTURA":
+        return "🧾";
+      case "PAGO":
+        return "💳";
+      case "USUARIO":
+        return "👤";
+      case "MANTENIMIENTO":
+        return "🔧";
+      default:
+        return "📋";
     }
   };
 
@@ -745,7 +961,7 @@ const ContadorHistorial: React.FC = () => {
                       .map((item: any, idx: number) => (
                         <div key={idx} className={styles.tarjetaEstadistica}>
                           <div className={styles.estadisticaIcono}>
-                            {obtenerIconoEntidad(item[0])}
+                            {obtenerEmojiEntidad(item[0])}
                           </div>
                           <div className={styles.estadisticaInfo}>
                             <p className={styles.estadisticaValor}>{item[1]}</p>
@@ -888,7 +1104,7 @@ const ContadorHistorial: React.FC = () => {
             </div>
           )}
 
-          {/* TABLA */}
+          {/* TABLA CON ORDENAMIENTO */}
           {historialesFiltrados.length === 0 ? (
             <div className={styles.sinDatos}>
               <FileText size={48} />
@@ -907,15 +1123,60 @@ const ContadorHistorial: React.FC = () => {
                 <table className={styles.tabla}>
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Entidad</th>
-                      <th>ID Reg</th>
-                      <th>Tipo Acción</th>
-                      <th>Estado Anterior</th>
-                      <th>Estado Nuevo</th>
-                      <th>Usuario</th>
-                      <th>Fecha y Hora</th>
-                      <th>Ver</th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("idHistorial")}
+                        className={styles.thOrdenable}
+                      >
+                        ID {renderizarIconoOrden("idHistorial")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("tipoEntidad")}
+                        className={styles.thOrdenable}
+                      >
+                        Entidad {renderizarIconoOrden("tipoEntidad")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("idEntidad")}
+                        className={styles.thOrdenable}
+                      >
+                        ID Reg {renderizarIconoOrden("idEntidad")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("tipoAccion")}
+                        className={styles.thOrdenable}
+                      >
+                        Tipo Acción {renderizarIconoOrden("tipoAccion")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("estadoAnterior")}
+                        className={styles.thOrdenable}
+                      >
+                        Estado Anterior {renderizarIconoOrden("estadoAnterior")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("estadoNuevo")}
+                        className={styles.thOrdenable}
+                      >
+                        Estado Nuevo {renderizarIconoOrden("estadoNuevo")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("nombreUsuarioResponsable")}
+                        className={styles.thOrdenable}
+                      >
+                        Usuario {renderizarIconoOrden("nombreUsuarioResponsable")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("fechaCambio")}
+                        className={styles.thOrdenable}
+                      >
+                        Fecha y Hora {renderizarIconoOrden("fechaCambio")}
+                      </th>
+                      <th 
+                        onClick={() => manejarOrdenamiento("version")}
+                        className={styles.thOrdenable}
+                      >
+                        Ver {renderizarIconoOrden("version")}
+                      </th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -925,7 +1186,7 @@ const ContadorHistorial: React.FC = () => {
                         <td>{historial.idHistorial}</td>
                         <td>
                           <span className={styles.badgeModulo}>
-                            {obtenerIconoEntidad(historial.tipoEntidad)}{" "}
+                            {obtenerEmojiEntidad(historial.tipoEntidad)}{" "}
                             {historial.tipoEntidad}
                           </span>
                         </td>
@@ -1020,7 +1281,7 @@ const ContadorHistorial: React.FC = () => {
       </main>
       <Footer />
 
-      {/* MODAL DE DETALLES */}
+      {/* MODAL DE DETALLES - Sin cambios */}
       {historialSeleccionado && (
         <div
           className={styles.modalOverlay}
@@ -1054,7 +1315,7 @@ const ContadorHistorial: React.FC = () => {
                   <div className={styles.detalleCampo}>
                     <label>Entidad:</label>
                     <p>
-                      {obtenerIconoEntidad(historialSeleccionado.tipoEntidad)}{" "}
+                      {obtenerEmojiEntidad(historialSeleccionado.tipoEntidad)}{" "}
                       {historialSeleccionado.tipoEntidad}
                     </p>
                   </div>
@@ -1195,3 +1456,4 @@ const ContadorHistorial: React.FC = () => {
 };
 
 export default ContadorHistorial;
+

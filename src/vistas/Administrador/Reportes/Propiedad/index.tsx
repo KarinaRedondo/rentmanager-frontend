@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../../../componentes/Header";
 import Footer from "../../../../componentes/Footer";
 import {
@@ -19,113 +20,29 @@ import {
   MapPin,
   Users,
   AlertCircle,
+  Calendar,
+  DollarSign,
+  ArrowRight,
 } from "react-feather";
 
 // ========================================
-// PÁGINA REPORTE DE PROPIEDAD
+// PÁGINA REPORTE DE PROPIEDAD MEJORADA
 // ========================================
 //
-// Vista completa de reporte detallado de una propiedad con todos sus datos relacionados.
-// Incluye propiedad, propietario, contratos, historial de propiedad e historial de contratos.
-//
-// FUNCIONALIDADES:
-// - Visualización completa de reporte de propiedad con todas sus relaciones.
-// - Descarga de reporte en formato PDF.
-// - Extracción y visualización de usuario que generó el reporte.
-// - Timeline dual: Historial de propiedad e historial de contratos consolidado.
-// - Tabla de contratos asociados a la propiedad.
-// - Visualización de servicios públicos disponibles.
-//
-// ESTADO:
-// - reporte: Objeto completo DTOReportePropiedadCompleto.
-// - cargando: Indica si está cargando el reporte.
-// - descargando: Indica si está descargando el PDF.
-// - error: Mensaje de error si falla la carga.
-// - usuarioGenerador: Nombre completo del usuario que generó el reporte.
-//
-// FUNCIONES PRINCIPALES:
-//
-// cargarReporte():
-// - Obtiene ID de propiedad desde URL params.
-// - Llama obtenerReportePropiedad() del servicio de reportes.
-// - Extrae usuario generador del DTO desde usuarioGenerador (UsuarioPrincipal en backend).
-// - Si no existe usuario en DTO, muestra "Sistema".
-//
-// descargarPDF():
-// - Llama descargarReportePropiedadPDF() para obtener blob.
-// - Usa descargarArchivo() para disparar descarga.
-// - Nombre de archivo incluye ID y timestamp.
-//
-// obtenerNombreUsuario():
-// - Extrae nombre de usuario del historial con múltiples fallbacks.
-// - Prioriza nombreUsuarioResponsable.
-// - Fallback a usuarioResponsable, luego ID, luego "Sistema Automático".
-// - Filtra valores null, undefined, "[null]", strings vacíos.
-//
-// UTILIDADES:
-// - formatearFecha(): Convierte ISO a formato largo español.
-// - formatearFechaHora(): Convierte ISO a fecha/hora corta.
-// - formatearMoneda(): Formatea números a moneda COP.
-//
-// SECCIONES DEL REPORTE:
-//
-// Encabezado:
-// - Título con ID de propiedad.
-// - Fecha de generación y usuario real.
-// - Botón volver y botón descargar PDF.
-//
-// Información de la Propiedad:
-// - Grid con: Dirección, ciudad, tipo, estado.
-// - Lista de servicios públicos si existe.
-// - Descripción detallada si existe.
-//
-// Propietario:
-// - Grid con: Nombre, documento, correo, teléfono.
-//
-// Contratos Asociados:
-// - Tabla con lista de contratos de la propiedad.
-// - Columnas: ID, fecha inicio, fecha fin, valor mensual, estado.
-// - Contador de contratos en título.
-//
-// Historial de la Propiedad:
-// - Timeline con cambios específicos de la propiedad.
-// - Badge de acción, fecha/hora, transición estados, usuario real.
-// - Observaciones si existen.
-// - Contador de cambios en título.
-//
-// Historial de Contratos:
-// - Timeline con cambios de todos los contratos de la propiedad.
-// - Badge de acción, fecha/hora, transición estados, usuario real.
-// - Observaciones si existen.
-// - Contador de cambios en título.
-//
-// HISTORIAL CONSOLIDADO:
-// - Estructura especial que agrupa dos tipos de historial:
-//   1. historialPropiedad: Cambios directos de la propiedad.
-//   2. historialContratos: Cambios de contratos asociados.
-// - Permite ver evolución completa de propiedad y sus contratos.
-//
-// ESTADOS VISUALES:
-// - Cargando: Spinner con mensaje "Generando reporte...".
-// - Error: Icono de alerta, mensaje y botón volver.
-// - Badges coloreados: Estados de propiedad y contratos según tipo.
-// - Timeline vertical con línea conectora.
-// - Servicios públicos en badges pequeños.
-//
-// ESTILOS:
-// - CSS Modules encapsulado.
-// - Grid responsive 3 columnas para información.
-// - Timeline vertical con marcadores y línea.
-// - Tabla con scroll horizontal en móviles.
-// - Badges con colores semánticos.
+// MEJORAS IMPLEMENTADAS:
+// - SweetAlert2 para alertas modernas
+// - Sin emojis (preferencia del usuario)
+// - Loading durante descarga de PDF
+// - Mejor manejo de errores
+// - Feedback visual mejorado
+// - Iconos consistentes de Feather
+// - Badges dinámicos por estado y acción
 
 const ReportePropiedad: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [reporte, setReporte] = useState<DTOReportePropiedadCompleto | null>(
-    null
-  );
+  const [reporte, setReporte] = useState<DTOReportePropiedadCompleto | null>(null);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [descargando, setDescargando] = useState<boolean>(false);
@@ -134,6 +51,9 @@ const ReportePropiedad: React.FC = () => {
   useEffect(() => {
     if (id) {
       cargarReporte();
+    } else {
+      setError("ID de propiedad no proporcionado");
+      setCargando(false);
     }
   }, [id]);
 
@@ -145,7 +65,7 @@ const ReportePropiedad: React.FC = () => {
       const data = await obtenerReportePropiedad(Number(id));
       setReporte(data);
 
-      // OBTENER USUARIO DEL DTO (desde el backend con UsuarioPrincipal)
+      // OBTENER USUARIO DEL DTO
       if (data.usuarioGenerador) {
         const usuario = data.usuarioGenerador;
         const nombreCompleto = `${usuario.nombre || "Sistema"} ${
@@ -158,8 +78,20 @@ const ReportePropiedad: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error cargando reporte:", error);
-      setError(error.response?.data?.mensaje || "Error al cargar el reporte");
+      const mensajeError =
+        error.response?.data?.mensaje ||
+        error.message ||
+        "Error al cargar el reporte";
+      setError(mensajeError);
       setUsuarioGenerador("Sistema");
+
+      // Mostrar error con SweetAlert2
+      await Swal.fire({
+        title: "Error al Cargar",
+        text: mensajeError,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setCargando(false);
     }
@@ -168,12 +100,39 @@ const ReportePropiedad: React.FC = () => {
   const descargarPDF = async () => {
     try {
       setDescargando(true);
+
+      // Mostrar loading
+      Swal.fire({
+        title: "Generando PDF",
+        text: "Por favor espere...",
+        icon: "info",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       const blob = await descargarReportePropiedadPDF(Number(id));
       descargarArchivo(blob, `reporte_propiedad_${id}_${Date.now()}.pdf`);
-      alert("PDF descargado exitosamente");
+
+      // Cerrar loading y mostrar éxito
+      await Swal.fire({
+        title: "Éxito",
+        text: "PDF descargado exitosamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error: any) {
       console.error("Error descargando PDF:", error);
-      alert("Error al descargar el PDF");
+
+      await Swal.fire({
+        title: "Error al Descargar",
+        text: error.response?.data?.mensaje || "Error al descargar el PDF",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setDescargando(false);
     }
@@ -208,7 +167,7 @@ const ReportePropiedad: React.FC = () => {
   };
 
   const formatearMoneda = (valor: number): string => {
-    if (!valor && valor !== 0) return "N/A";
+    if (valor === null || valor === undefined) return "N/A";
     try {
       return new Intl.NumberFormat("es-CO", {
         style: "currency",
@@ -222,7 +181,6 @@ const ReportePropiedad: React.FC = () => {
 
   // OBTENER NOMBRE DE USUARIO (priorizar nombreUsuarioResponsable)
   const obtenerNombreUsuario = (cambio: any): string => {
-    // 1️ PRIORIDAD: nombreUsuarioResponsable (string con nombre completo)
     if (
       cambio.nombreUsuarioResponsable &&
       typeof cambio.nombreUsuarioResponsable === "string"
@@ -232,8 +190,6 @@ const ReportePropiedad: React.FC = () => {
         return nombre;
       }
     }
-
-    // 2️ FALLBACK: usuarioResponsable (puede ser string o número)
     if (cambio.usuarioResponsable) {
       if (typeof cambio.usuarioResponsable === "string") {
         const nombre = cambio.usuarioResponsable.trim();
@@ -242,14 +198,37 @@ const ReportePropiedad: React.FC = () => {
         }
       }
     }
-
-    // 3️ ÚLTIMO RECURSO: Si tiene ID pero no nombre, mostrar "Usuario #ID"
     if (cambio.idUsuarioResponsable) {
       return `Usuario #${cambio.idUsuarioResponsable}`;
     }
-
-    // 4️ DEFAULT: Sistema
     return "Sistema Automático";
+  };
+
+  // OBTENER CLASE CSS PARA BADGE DE ESTADO
+  const obtenerClaseEstado = (estado: string): string => {
+    const estadoNormalizado = estado?.toUpperCase() || "";
+    const clasesEstado: Record<string, string> = {
+      DISPONIBLE: styles.estadoDISPONIBLE,
+      OCUPADA: styles.estadoOCUPADA,
+      MANTENIMIENTO: styles.estadoMANTENIMIENTO,
+      ACTIVO: styles.estadoACTIVO,
+      INACTIVO: styles.estadoINACTIVO,
+      FINALIZADO: styles.estadoFINALIZADO,
+    };
+    return clasesEstado[estadoNormalizado] || styles.badgeDefault;
+  };
+
+  // OBTENER CLASE CSS PARA BADGE DE ACCIÓN
+  const obtenerClaseAccion = (accion: string): string => {
+    const accionNormalizada = accion?.toUpperCase() || "";
+    const clasesAccion: Record<string, string> = {
+      CREACION: styles.accionCREACION,
+      ACTUALIZACION: styles.accionACTUALIZACION,
+      ELIMINACION: styles.accionELIMINACION,
+      CAMBIO_ESTADO: styles.accionCAMBIO_ESTADO,
+      TRANSICION: styles.accionTRANSICION,
+    };
+    return clasesAccion[accionNormalizada] || styles.badgeDefault;
   };
 
   if (cargando) {
@@ -276,10 +255,13 @@ const ReportePropiedad: React.FC = () => {
         <main className={styles.main}>
           <div className={styles.contenedor}>
             <div className={styles.errorContenedor}>
-              <AlertCircle size={48} color="red" />
+              <AlertCircle size={48} color="#dc3545" />
               <h2>Error</h2>
               <p className={styles.error}>{error || "Reporte no encontrado"}</p>
-              <button onClick={() => navigate(-1)}>Volver</button>
+              <button className={styles.btnVolver} onClick={() => navigate(-1)}>
+                <ArrowLeft size={18} />
+                Volver
+              </button>
             </div>
           </div>
         </main>
@@ -305,6 +287,7 @@ const ReportePropiedad: React.FC = () => {
                   Reporte de Propiedad #{reporte.propiedad.idPropiedad}
                 </h1>
                 <p className={styles.subtitulo}>
+                  <Calendar size={14} />
                   Generado el {formatearFecha(reporte.fechaGeneracion)} por{" "}
                   <strong>{usuarioGenerador}</strong>
                 </p>
@@ -346,21 +329,20 @@ const ReportePropiedad: React.FC = () => {
               <div className={styles.campo}>
                 <label>Estado:</label>
                 <span
-                  className={`${styles.badge} ${
-                    styles[`estado${reporte.propiedad.estado}`]
-                  }`}
+                  className={`${styles.badge} ${obtenerClaseEstado(
+                    reporte.propiedad.estado
+                  )}`}
                 >
                   {reporte.propiedad.estado}
                 </span>
               </div>
             </div>
+
             {reporte.propiedad.serviciosPublicos &&
               reporte.propiedad.serviciosPublicos.length > 0 && (
                 <div className={styles.campo} style={{ marginTop: "1.5rem" }}>
                   <label>Servicios Públicos:</label>
-                  <div
-                    style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}
-                  >
+                  <div className={styles.serviciosGrid}>
                     {reporte.propiedad.serviciosPublicos.map(
                       (servicio, index) => (
                         <span
@@ -440,16 +422,23 @@ const ReportePropiedad: React.FC = () => {
                     {reporte.contratos.map((contrato) => (
                       <tr key={contrato.idContrato}>
                         <td>#{contrato.idContrato}</td>
-                        <td>{formatearFecha(contrato.fechaInicio)}</td>
-                        <td>{formatearFecha(contrato.fechaFin)}</td>
+                        <td>
+                          <Calendar size={14} className={styles.iconoInline} />
+                          {formatearFecha(contrato.fechaInicio)}
+                        </td>
+                        <td>
+                          <Calendar size={14} className={styles.iconoInline} />
+                          {formatearFecha(contrato.fechaFin)}
+                        </td>
                         <td className={styles.valorDestacado}>
+                          <DollarSign size={14} className={styles.iconoInline} />
                           {formatearMoneda(contrato.valorMensual)}
                         </td>
                         <td>
                           <span
-                            className={`${styles.badge} ${
-                              styles[`estado${contrato.estado}`]
-                            }`}
+                            className={`${styles.badge} ${obtenerClaseEstado(
+                              contrato.estado
+                            )}`}
                           >
                             {contrato.estado}
                           </span>
@@ -483,38 +472,34 @@ const ReportePropiedad: React.FC = () => {
                           <div className={styles.timelineContenido}>
                             <div className={styles.timelineEncabezado}>
                               <span
-                                className={`${styles.badge} ${
-                                  styles[`accion${cambio.tipoAccion}`]
-                                }`}
+                                className={`${styles.badge} ${obtenerClaseAccion(
+                                  cambio.tipoAccion
+                                )}`}
                               >
                                 {cambio.tipoAccion}
                               </span>
                               <span className={styles.timelineFecha}>
+                                <Clock size={14} />
                                 {formatearFechaHora(cambio.fechaCambio)}
                               </span>
                             </div>
                             <div className={styles.timelineDetalle}>
                               <p>
                                 <strong>Estado:</strong>{" "}
-                                {cambio.estadoAnterior || "N/A"} →{" "}
+                                {cambio.estadoAnterior || "N/A"}{" "}
+                                <ArrowRight
+                                  size={14}
+                                  className={styles.iconoFlecha}
+                                />{" "}
                                 {cambio.estadoNuevo}
                               </p>
-                              {/* USAR FUNCIÓN CORREGIDA */}
                               <p>
-                                <strong>
-                                  <Users
-                                    size={14}
-                                    style={{
-                                      display: "inline",
-                                      marginRight: "0.5rem",
-                                    }}
-                                  />
-                                  Usuario:
-                                </strong>{" "}
+                                <Users size={14} className={styles.iconoInline} />
+                                <strong>Usuario:</strong>{" "}
                                 {obtenerNombreUsuario(cambio)}
                               </p>
                               {cambio.observacion && (
-                                <p>
+                                <p className={styles.observacionHistorial}>
                                   <strong>Observación:</strong>{" "}
                                   {cambio.observacion}
                                 </p>
@@ -546,38 +531,34 @@ const ReportePropiedad: React.FC = () => {
                           <div className={styles.timelineContenido}>
                             <div className={styles.timelineEncabezado}>
                               <span
-                                className={`${styles.badge} ${
-                                  styles[`accion${cambio.tipoAccion}`]
-                                }`}
+                                className={`${styles.badge} ${obtenerClaseAccion(
+                                  cambio.tipoAccion
+                                )}`}
                               >
                                 {cambio.tipoAccion}
                               </span>
                               <span className={styles.timelineFecha}>
+                                <Clock size={14} />
                                 {formatearFechaHora(cambio.fechaCambio)}
                               </span>
                             </div>
                             <div className={styles.timelineDetalle}>
                               <p>
                                 <strong>Estado:</strong>{" "}
-                                {cambio.estadoAnterior || "N/A"} →{" "}
+                                {cambio.estadoAnterior || "N/A"}{" "}
+                                <ArrowRight
+                                  size={14}
+                                  className={styles.iconoFlecha}
+                                />{" "}
                                 {cambio.estadoNuevo}
                               </p>
-                              {/* USAR FUNCIÓN CORREGIDA */}
                               <p>
-                                <strong>
-                                  <Users
-                                    size={14}
-                                    style={{
-                                      display: "inline",
-                                      marginRight: "0.5rem",
-                                    }}
-                                  />
-                                  Usuario:
-                                </strong>{" "}
+                                <Users size={14} className={styles.iconoInline} />
+                                <strong>Usuario:</strong>{" "}
                                 {obtenerNombreUsuario(cambio)}
                               </p>
                               {cambio.observacion && (
-                                <p>
+                                <p className={styles.observacionHistorial}>
                                   <strong>Observación:</strong>{" "}
                                   {cambio.observacion}
                                 </p>
@@ -600,3 +581,4 @@ const ReportePropiedad: React.FC = () => {
 };
 
 export default ReportePropiedad;
+

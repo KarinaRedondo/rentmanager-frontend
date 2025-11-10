@@ -1,40 +1,3 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../../../componentes/Header";
-import Footer from "../../../componentes/Footer";
-import { BotonComponente } from "../../../componentes/ui/Boton";
-import { ModalComponente } from "../../../componentes/Modal";
-import InputCustom from "../../../componentes/ui/Input";
-import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
-import {
-  obtenerFacturas,
-  crearFactura,
-  actualizarFactura,
-  analizarTransicionFactura,
-  ejecutarTransicionFactura,
-} from "../../../servicios/facturas";
-import type { DTOFacturaRespuesta } from "../../../modelos/types/Factura";
-import { obtenerContratos } from "../../../servicios/contratos";
-import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato";
-import type { Evento } from "../../../modelos/enumeraciones/evento";
-import styles from "./PropietarioFacturas.module.css";
-import {
-  ArrowLeft,
-  FileText,
-  Filter,
-  Eye,
-  Edit,
-  DollarSign,
-  Calendar,
-  CheckCircle,
-  Clock,
-  XCircle,
-  AlertCircle,
-  Search,
-  Home,
-  User,
-} from "react-feather";
-
 // ========================================
 // GESTIÓN DE FACTURAS - ROL PROPIETARIO
 // ========================================
@@ -245,6 +208,45 @@ import {
 // - Propiedad clickeable en cards.
 
 // Interfaces para transiciones
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import Header from "../../../componentes/Header";
+import Footer from "../../../componentes/Footer";
+import { BotonComponente } from "../../../componentes/ui/Boton";
+import { ModalComponente } from "../../../componentes/Modal";
+import InputCustom from "../../../componentes/ui/Input";
+import { TipoUsuario } from "../../../modelos/enumeraciones/tipoUsuario";
+import {
+  obtenerFacturas,
+  crearFactura,
+  actualizarFactura,
+  analizarTransicionFactura,
+  ejecutarTransicionFactura,
+} from "../../../servicios/facturas";
+import type { DTOFacturaRespuesta } from "../../../modelos/types/Factura";
+import { obtenerContratos } from "../../../servicios/contratos";
+import type { DTOContratoRespuesta } from "../../../modelos/types/Contrato";
+import type { Evento } from "../../../modelos/enumeraciones/evento";
+import styles from "./PropietarioFacturas.module.css";
+import {
+  ArrowLeft,
+  FileText,
+  Filter,
+  Eye,
+  Edit,
+  DollarSign,
+  Calendar,
+  CheckCircle,
+  Clock,
+  XCircle,
+  AlertCircle,
+  Search,
+  Home,
+  User,
+} from "react-feather";
+
 interface ResultadoValidacion {
   valido: boolean;
   motivo?: string;
@@ -278,7 +280,6 @@ const PropietarioFacturas: React.FC = () => {
     useState<DTOFacturaRespuesta | null>(null);
   const [guardando, setGuardando] = useState<boolean>(false);
 
-  // Estados para transiciones
   const [resultadoTransicion, setResultadoTransicion] =
     useState<ResultadoValidacion | null>(null);
   const [resultadoEjecucion, setResultadoEjecucion] =
@@ -315,7 +316,12 @@ const PropietarioFacturas: React.FC = () => {
         rolUsuario !== "PROPIETARIO" &&
         rolUsuario !== TipoUsuario.PROPIETARIO
       ) {
-        alert("No tienes permisos para acceder a esta sección");
+        await Swal.fire({
+          title: "Acceso Denegado",
+          text: "No tienes permisos para acceder a esta sección",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         navigate("/");
         return;
       }
@@ -395,17 +401,32 @@ const PropietarioFacturas: React.FC = () => {
       setGuardando(true);
 
       if (!idContrato || parseInt(idContrato) === 0) {
-        alert("Debe seleccionar un contrato");
+        await Swal.fire({
+          title: "Campo Requerido",
+          text: "Debe seleccionar un contrato",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
         return;
       }
 
       if (!fechaEmision) {
-        alert("Debe ingresar la fecha de emisión");
+        await Swal.fire({
+          title: "Campo Requerido",
+          text: "Debe ingresar la fecha de emisión",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
         return;
       }
 
       if (!total || parseFloat(total) <= 0) {
-        alert("El monto debe ser mayor a 0");
+        await Swal.fire({
+          title: "Monto Inválido",
+          text: "El monto debe ser mayor a 0",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
         return;
       }
 
@@ -420,7 +441,13 @@ const PropietarioFacturas: React.FC = () => {
         }
 
         await actualizarFactura(facturaEditando.idFactura!, facturaActualizar);
-        alert("Factura actualizada exitosamente");
+        await Swal.fire({
+          title: "Éxito",
+          text: "Factura actualizada exitosamente",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       } else {
         const facturaRegistro: any = {
           contrato: { idContrato: parseInt(idContrato) },
@@ -434,20 +461,30 @@ const PropietarioFacturas: React.FC = () => {
         }
 
         await crearFactura(facturaRegistro);
-        alert("Factura creada exitosamente");
+        await Swal.fire({
+          title: "Éxito",
+          text: "Factura creada exitosamente",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
 
       setModalAbierto(false);
       await cargarDatos();
     } catch (err: any) {
       console.error("Error:", err);
-      alert(`Error: ${err.response?.data?.message || err.message}`);
+      await Swal.fire({
+        title: "Error",
+        text: err.response?.data?.message || err.message,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setGuardando(false);
     }
   };
 
-  // Manejador de transiciones
   const manejarTransicion = async (
     facturaId: number,
     evento: Evento | string
@@ -852,7 +889,6 @@ const PropietarioFacturas: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Selector de transiciones */}
                     <select
                       defaultValue=""
                       onChange={(e) => {
@@ -892,7 +928,6 @@ const PropietarioFacturas: React.FC = () => {
         </div>
       </main>
 
-      {/* MODAL DE FORMULARIO */}
       <ModalComponente
         openModal={modalAbierto}
         setOpenModal={setModalAbierto}
@@ -942,7 +977,6 @@ const PropietarioFacturas: React.FC = () => {
         </div>
       </ModalComponente>
 
-      {/* MODAL DE TRANSICIONES */}
       <ModalComponente
         openModal={mostrarModalTransicion}
         setOpenModal={setMostrarModalTransicion}

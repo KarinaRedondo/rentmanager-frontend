@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import { ModalComponente } from "../../../componentes/Modal";
 import InputCustom from "../../../componentes/ui/Input";
 import { BotonComponente } from "../../../componentes/ui/Boton";
@@ -278,6 +279,12 @@ const Usuarios = () => {
       setUsuarios(data);
     } catch (error) {
       console.error("Error al cargar usuarios:", error);
+      await Swal.fire({
+        title: "Error",
+        text: "No se pudieron cargar los usuarios",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 
@@ -331,17 +338,15 @@ const Usuarios = () => {
       if (usuario.tipoUsuario === TipoUsuario.PROPIETARIO) {
         console.log("Propietario seleccionado:", usuario);
 
-        // 🔹 1. Obtener todas las propiedades del propietario
         const todasPropiedades = await PropiedadService.obtenerPropiedades();
         console.log("Todas las propiedades:", todasPropiedades);
 
         const propsPropietario = todasPropiedades.filter(
           (p: any) => p.idPropietario === usuario.idUsuario
         );
-        console.log(" Propiedades del propietario:", propsPropietario);
+        console.log("Propiedades del propietario:", propsPropietario);
         setPropiedades(propsPropietario);
 
-        // 🔹 2. Obtener contratos asociados a esas propiedades
         const todosContratos = await obtenerContratos();
         console.log("Todos los contratos:", todosContratos);
 
@@ -352,7 +357,6 @@ const Usuarios = () => {
         console.log("Contratos del propietario:", contratosProps);
         setContratos(contratosProps);
 
-        // 🔹 3. Obtener facturas de esos contratos
         const todasFacturas = await obtenerFacturas();
         console.log("Todas las facturas:", todasFacturas);
 
@@ -363,7 +367,6 @@ const Usuarios = () => {
         console.log("Facturas del propietario:", facturasProps);
         setFacturas(facturasProps);
 
-        // 🔹 4. Obtener pagos asociados a esas facturas
         const todosPagos = await obtenerPagos();
         console.log("Todos los pagos:", todosPagos);
 
@@ -411,6 +414,12 @@ const Usuarios = () => {
       }
     } catch (error) {
       console.error("Error al cargar detalles:", error);
+      await Swal.fire({
+        title: "Error",
+        text: "No se pudieron cargar los detalles",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setCargandoDetalles(false);
     }
@@ -506,14 +515,34 @@ const Usuarios = () => {
 
       if (usuarioEditando) {
         await UsuarioService.actualizar(usuarioEditando.idUsuario, datosBase);
+        await Swal.fire({
+          title: "Éxito",
+          text: "Usuario actualizado correctamente",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       } else {
         await UsuarioService.registrar(datosBase);
+        await Swal.fire({
+          title: "Éxito",
+          text: "Usuario creado correctamente",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
 
       setOpenModal(false);
       await cargarUsuarios();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al guardar usuario:", error);
+      await Swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "No se pudo guardar el usuario",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 
@@ -522,21 +551,49 @@ const Usuarios = () => {
     tipo?: TipoUsuario,
     estado?: string
   ) => {
-    if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
+    const resultado = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#dc3545",
+    });
+
+    if (!resultado.isConfirmed) return;
+
     if (estado && estado !== "INACTIVO" && estado !== "SUSPENDIDO") {
-      alert("No se puede eliminar este usuario por su estado");
+      await Swal.fire({
+        title: "Acción No Permitida",
+        text: "No se puede eliminar este usuario por su estado",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
       return;
     }
+
     try {
       await UsuarioService.eliminar(id, tipo);
       await cargarUsuarios();
-      alert("Usuario eliminado correctamente");
+      await Swal.fire({
+        title: "Eliminado",
+        text: "Usuario eliminado correctamente",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error: any) {
       console.error(
         "Error al eliminar usuario:",
         error.response?.data || error.message
       );
-      alert("No se pudo eliminar el usuario");
+      await Swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "No se pudo eliminar el usuario",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 
@@ -1225,3 +1282,4 @@ const Usuarios = () => {
 };
 
 export default Usuarios;
+

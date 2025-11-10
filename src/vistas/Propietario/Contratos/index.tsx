@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../../componentes/Header";
 import Footer from "../../../componentes/Footer";
 import { BotonComponente } from "../../../componentes/ui/Boton";
@@ -350,7 +351,12 @@ const PropietarioContratos: React.FC = () => {
         rolUsuario !== "PROPIETARIO" &&
         rolUsuario !== TipoUsuario.PROPIETARIO
       ) {
-        alert("No tienes permisos para acceder a esta sección");
+        await Swal.fire({
+          title: "Acceso Denegado",
+          text: "No tienes permisos para acceder a esta sección",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         navigate("/");
         return;
       }
@@ -451,7 +457,7 @@ const PropietarioContratos: React.FC = () => {
   };
 
   const abrirModalEditar = (contrato: DTOContratoRespuesta) => {
-    console.log("📝 Abriendo modal para editar contrato:", contrato);
+    console.log("Abriendo modal para editar contrato:", contrato);
 
     setModoEdicion(true);
     setContratoEditando(contrato);
@@ -492,22 +498,42 @@ const PropietarioContratos: React.FC = () => {
     console.log("Intentando guardar contrato...");
 
     if (!idPropiedad || parseInt(idPropiedad) === 0) {
-      alert("Debe seleccionar una propiedad");
+      await Swal.fire({
+        title: "Campo Requerido",
+        text: "Debe seleccionar una propiedad",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
       return;
     }
 
     if (!idInquilino || parseInt(idInquilino) === 0) {
-      alert("Debe seleccionar un inquilino");
+      await Swal.fire({
+        title: "Campo Requerido",
+        text: "Debe seleccionar un inquilino",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
       return;
     }
 
     if (!fechaInicio || !fechaFin) {
-      alert("Debe ingresar las fechas de inicio y fin del contrato");
+      await Swal.fire({
+        title: "Fechas Requeridas",
+        text: "Debe ingresar las fechas de inicio y fin del contrato",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
       return;
     }
 
     if (!valorMensual || parseInt(valorMensual) <= 0) {
-      alert("El valor mensual debe ser mayor a 0");
+      await Swal.fire({
+        title: "Valor Inválido",
+        text: "El valor mensual debe ser mayor a 0",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
       return;
     }
 
@@ -540,17 +566,34 @@ const PropietarioContratos: React.FC = () => {
           contratoEditando.idContrato || 0,
           contratoData as any
         );
-        alert("Contrato actualizado exitosamente");
+        await Swal.fire({
+          title: "Éxito",
+          text: "Contrato actualizado exitosamente",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       } else {
         await crearContrato(contratoData as any);
-        alert("Contrato creado exitosamente");
+        await Swal.fire({
+          title: "Éxito",
+          text: "Contrato creado exitosamente",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
 
       setModalAbierto(false);
       await cargarDatos();
     } catch (err: any) {
       console.error("Error al guardar:", err);
-      alert(`Error: ${err.response?.data?.message || err.message}`);
+      await Swal.fire({
+        title: "Error",
+        text: err.response?.data?.message || err.message,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     } finally {
       setGuardando(false);
     }

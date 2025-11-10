@@ -281,12 +281,6 @@ const DetallePropiedad: React.FC = () => {
               <span className={styles.badge}>{propiedad.estado}</span>
             </div>
             <div className={styles.acciones}>
-              <BotonComponente
-                label="Editar"
-                onClick={() =>
-                  navigate(`/propietario/propiedades/editar/${id}`)
-                }
-              />
             </div>
           </div>
 
