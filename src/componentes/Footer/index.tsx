@@ -127,7 +127,7 @@ const Footer = () => {
       <div className={estilos.inferior}>
         <p>
           ¿Listo para gestionar tus propiedades?{" "}
-          <Link to="/comenzar">Comenzar</Link>
+          <Link to="/login">Comenzar</Link>
         </p>
         <p>© 2025 RentManager. Todos los derechos reservados.</p>
       </div>
